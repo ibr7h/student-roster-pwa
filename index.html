@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#173f5f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="سجلات الطلاب"/>
+<meta name="format-detection" content="telephone=no"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link rel="stylesheet" href="styles.css"/>
+<title>سجلات الطلاب</title>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar no-print">
+    <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
+      <span class="brand-mark">س</span>
+      <span class="brand-text"><b>سجلات الطلاب</b><small>سجل زمني للمتابعة والحضور</small></span>
+    </button>
+    <div class="top-actions">
+      <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
+      <button class="btn compact" id="backupBtn">⬇ <span>نسخة احتياطية</span></button>
+      <button class="btn compact" id="restoreBtn">⬆ <span>استعادة</span></button>
+    </div>
+  </header>
+
+  <div id="installNote" class="install-note no-print">
+    <b>تثبيت التطبيق على iPhone:</b> من Safari اختر مشاركة ← إضافة إلى الشاشة الرئيسية.
+    <button class="iconbtn" id="dismissInstall" aria-label="إخفاء">×</button>
+  </div>
+
+  <main>
+    <section class="view active" id="view-dashboard" data-view="dashboard">
+      <div class="hero panel">
+        <div><p class="eyebrow">لوحة السجلات</p><h1>متابعة زمنية للطلاب</h1><p>كل تقييم له اسم وتاريخ ودرجة مستقلة، والحضور محفوظ يوميًا، والتقارير قابلة للتصفية بالشهر.</p></div>
+        <div class="hero-actions no-print"><button class="btn primary" id="dashAddAssessment">＋ تقييم جديد</button><button class="btn" id="dashAddStudent">＋ طالب</button></div>
+      </div>
+      <div class="kpi-grid" id="dashboardKpis"></div>
+      <section class="panel">
+        <div class="section-head"><div><p class="eyebrow">الفصول</p><h2>سجلاتي</h2></div><button class="btn no-print" id="manageClassesBtn">إدارة الفصول</button></div>
+        <div class="class-cards" id="classCards"></div>
+      </section>
+      <section class="panel dashboard-settings">
+        <div class="section-head"><div><p class="eyebrow">بيانات الكليشة</p><h2>بيانات المدرسة والمعلم</h2></div></div>
+        <div class="meta-grid dashboard-meta">
+          <div class="field"><label>المدرسة</label><input data-app-meta="school" placeholder="اسم المدرسة"></div>
+          <div class="field"><label>المنطقة / مكتب التعليم</label><input data-app-meta="region" placeholder="المنطقة التعليمية"></div>
+          <div class="field"><label>العام الدراسي</label><input data-app-meta="year" placeholder="١٤٤٨ هـ"></div>
+          <div class="field"><label>الفصل الدراسي</label><input data-app-meta="semester" placeholder="الفصل الدراسي الأول"></div>
+          <div class="field"><label>معلم المادة</label><input data-app-meta="teacher" placeholder="اسم المعلم"></div>
+          <div class="field"><label>مدير المدرسة</label><input data-app-meta="principal" placeholder="اسم المدير"></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="view" id="view-assessments" data-view="assessments">
+      <section class="panel class-switch-panel no-print"><div class="classbar" id="assessmentClassbar"></div></section>
+      <section class="panel">
+        <div class="section-head assessment-head">
+          <div><p class="eyebrow">سجل التقييمات</p><h2 id="assessmentHeading">التقييمات الزمنية</h2><p class="subtle">أضف واجبًا أو مشاركة أو اختبارًا مرة واحدة ثم أدخل درجات جميع الطلاب.</p></div>
+          <div class="view-actions no-print"><button class="btn primary" id="addAssessmentBtn">＋ تقييم جديد</button><button class="btn" id="assessmentAddStudentBtn">＋ طالب</button><button class="btn" id="manageStudentsBtnTop">إدارة الطلاب</button><button class="btn" id="importBtn">⇧ استيراد CSV</button><button class="btn" id="exportCsvBtn">تصدير CSV</button></div>
+        </div>
+        <div class="assessment-layout">
+          <aside class="assessment-timeline no-print"><div class="timeline-toolbar"><b>سجل الأنشطة</b><select id="assessmentMonthFilter"><option value="all">كل الفصل</option></select></div><div id="assessmentList"></div></aside>
+          <div class="assessment-gradebook">
+            <div id="assessmentEmpty" class="empty-state"><b>اختر تقييمًا أو أنشئ تقييمًا جديدًا</b>ستظهر هنا قائمة الطلاب لإدخال الدرجات.</div>
+            <div id="assessmentEditor" hidden>
+              <div class="assessment-selected-head"><div><p class="eyebrow" id="selectedAssessmentType"></p><h3 id="selectedAssessmentTitle"></h3><p class="subtle" id="selectedAssessmentMeta"></p></div><div class="view-actions no-print"><button class="btn" id="editAssessmentBtn">تعديل</button><button class="btn danger" id="deleteAssessmentBtn">حذف</button></div></div>
+              <div class="table-toolbar no-print"><div class="searchbox"><span>⌕</span><input id="studentSearch" type="search" placeholder="بحث باسم الطالب"></div><button class="btn" id="addStudentBtn">＋ إضافة طالب</button><button class="btn" id="manageStudentsBtn">إدارة الطلاب</button></div>
+              <div class="table-wrap"><table class="gradebook" id="gradebookTable"></table></div>
+              <div class="summary" id="assessmentSummary"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="view" id="view-attendance" data-view="attendance">
+      <section class="panel class-switch-panel no-print"><div class="classbar" id="attendanceClassbar"></div></section>
+      <section class="panel">
+        <div class="section-head attendance-head"><div><p class="eyebrow">الحضور اليومي</p><h2 id="attendanceHeading">تسجيل الحضور والغياب</h2></div><div class="attendance-date-wrap"><label for="attendanceDate">التاريخ</label><input id="attendanceDate" type="date"></div></div>
+        <div class="attendance-stats" id="attendanceStats"></div>
+      </section>
+      <section class="panel"><div class="attendance-actions no-print"><button class="btn" data-mark-all="present">تحديد غير المسجلين حاضر</button><button class="btn" data-clear-attendance>مسح حالة اليوم</button></div><div class="attendance-list" id="attendanceList"></div></section>
+    </section>
+
+    <section class="view" id="view-reports" data-view="reports">
+      <section class="panel class-switch-panel no-print"><div class="classbar" id="reportsClassbar"></div></section>
+      <section class="panel">
+        <div class="section-head reports-head">
+          <div><p class="eyebrow">التقارير</p><h2>تحليل الأداء والحضور</h2><p class="subtle">اختر شهرًا أو اعرض الفصل كاملًا. التنبيه يعتمد على حدود تستطيع تعديلها.</p></div>
+          <div class="report-controls no-print"><div class="field"><label>الفترة</label><select id="reportPeriod"><option value="all">الفصل كاملًا</option></select></div><div class="field"><label>تنبيه الدرجة أقل من %</label><input id="gradeAlertThreshold" type="number" min="0" max="100"></div><div class="field"><label>تنبيه الغياب من</label><input id="absenceAlertThreshold" type="number" min="1" max="100"></div><button class="btn" id="printClassReportBtn">🖨 طباعة</button></div>
+        </div>
+        <div class="print-report-header" id="reportPrintHeader"></div><div class="report-kpis" id="reportKpis"></div>
+        <div class="risk-banner" id="riskBanner"></div>
+        <div class="student-report-list" id="studentReportList"></div>
+      </section>
+    </section>
+  </main>
+
+  <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
+    <button data-nav="dashboard" class="active"><span>⌂</span><small>الرئيسية</small></button>
+    <button data-nav="assessments"><span>✓</span><small>التقييمات</small></button>
+    <button data-nav="attendance"><span>◷</span><small>الحضور</small></button>
+    <button data-nav="reports"><span>▤</span><small>التقارير</small></button>
+  </nav>
+</div>
+
+<input id="csvInput" type="file" accept=".csv,text/csv" hidden>
+<input id="restoreInput" type="file" accept="application/json,.json" hidden>
+
+<dialog class="modal" id="classesModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">الإعدادات</p><h3>إدارة الفصول</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody" id="classesBody"></div><div class="row add-class-row"><input id="newClassName" placeholder="مثال: ٣ / ب"><input id="newClassGrade" placeholder="مثال: الثالث المتوسط"><input id="newClassSubject" placeholder="المادة"><button class="btn primary" id="addClassBtn">إضافة</button></div></div></dialog>
+
+<dialog class="modal" id="studentsModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">الفصل الحالي</p><h3 id="studentsModalTitle">إدارة الطلاب</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody" id="studentsBody"></div><div class="modalfooter"><button class="btn" id="studentsImportBtn">⇧ استيراد CSV</button><button class="btn primary" id="studentsAddBtn">＋ إضافة طالب</button></div></div></dialog>
+
+<dialog class="modal" id="assessmentModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">التقييمات</p><h3 id="assessmentModalTitle">تقييم جديد</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم التقييم</label><input id="assessmentTitleInput" placeholder="مثال: واجب الوحدة الأولى"></div><div class="field"><label>النوع</label><select id="assessmentTypeInput"><option value="homework">واجب</option><option value="participation">مشاركة</option><option value="quiz">اختبار قصير</option><option value="project">مشروع</option><option value="practical">تطبيق عملي</option><option value="exam">اختبار</option><option value="other">أخرى</option></select></div><div class="field"><label>التاريخ</label><input id="assessmentDateInput" type="date"></div><div class="field"><label>الدرجة العظمى</label><input id="assessmentMaxInput" type="number" min="0.5" max="1000" step="0.5" value="10"></div><div class="field span2"><label>ملاحظة / وصف اختياري</label><input id="assessmentNoteInput" placeholder="مثال: الدرس 1–3"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveAssessmentBtn">حفظ التقييم</button></div></div></dialog>
+
+<dialog class="modal student-modal" id="studentModal"><div class="modalbox"><div class="modalhead no-print"><div><p class="eyebrow">تقرير فردي</p><h3 id="studentModalTitle">تقرير الطالب</h3></div><button class="iconbtn" data-close>×</button></div><div id="studentReportPrint" class="student-report-print"></div><div class="student-notes no-print"><label for="studentNotes">ملاحظات المعلم</label><textarea id="studentNotes" rows="4" placeholder="اكتب ملاحظة مختصرة عن الطالب…"></textarea></div><div class="modalfooter no-print"><button class="btn" id="printStudentBtn">🖨 طباعة التقرير</button><button class="btn primary" id="saveStudentNotesBtn">حفظ الملاحظات</button></div></div></dialog>
+
+<div class="toast no-print" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
