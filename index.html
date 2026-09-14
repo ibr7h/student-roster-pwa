@@ -87,6 +87,33 @@
       <section class="panel"><div class="attendance-actions no-print"><button class="btn" data-mark-all="present">تحديد غير المسجلين حاضر</button><button class="btn" data-clear-attendance>مسح حالة اليوم</button></div><div class="attendance-list" id="attendanceList"></div></section>
     </section>
 
+
+    <section class="view" id="view-schedule" data-view="schedule">
+      <section class="panel teacher-schedule-panel">
+        <div class="section-head schedule-head">
+          <div><p class="eyebrow">جدول المعلم</p><h2>الجدول الأسبوعي والمناوبة</h2><p class="subtle">اضغط على أي حصة لتعديلها. لكل فصل لون ثابت تلقائيًا.</p></div>
+          <div class="view-actions no-print"><button class="btn" id="addSupervisionBtn">＋ مناوبة / إشراف</button><button class="btn primary" id="printScheduleBtn">⬇ حفظ PDF</button></div>
+        </div>
+        <div class="schedule-meta no-print">
+          <div class="field span2"><label>اسم المعلم</label><input id="scheduleTeacherInput"></div>
+          <div class="field span2"><label>المدرسة</label><input id="scheduleSchoolInput"></div>
+          <div class="field"><label>اسم الجدول</label><input id="scheduleTitleInput"></div>
+        </div>
+        <div id="schedulePrintArea" class="schedule-print-area">
+          <div id="schedulePrintHeader" class="schedule-print-header"></div>
+          <div id="scheduleStats" class="schedule-stats"></div>
+          <div class="schedule-table-wrap">
+            <table class="teacher-schedule-table" id="teacherScheduleTable"></table>
+          </div>
+          <div class="schedule-mobile" id="scheduleMobile"></div>
+          <section class="supervision-section">
+            <div class="supervision-title"><h3>جدول المناوبة والإشراف</h3><small>في الخطة الشهرية يحفظ التاريخ مع كل مناوبة حتى يمكن تكرار اليوم نفسه في أسابيع مختلفة.</small></div>
+            <div id="supervisionList" class="supervision-list"></div>
+          </section>
+        </div>
+      </section>
+    </section>
+
     <section class="view" id="view-reports" data-view="reports">
       <section class="panel class-switch-panel no-print"><div class="classbar" id="reportsClassbar"></div></section>
       <section class="panel">
@@ -105,6 +132,7 @@
     <button data-nav="dashboard" class="active"><span>⌂</span><small>الرئيسية</small></button>
     <button data-nav="assessments"><span>✓</span><small>التقييمات</small></button>
     <button data-nav="attendance"><span>◷</span><small>الحضور</small></button>
+    <button data-nav="schedule"><span>▦</span><small>جدولي</small></button>
     <button data-nav="reports"><span>▤</span><small>التقارير</small></button>
   </nav>
 </div>
@@ -117,6 +145,11 @@
 <dialog class="modal" id="studentsModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">الفصل الحالي</p><h3 id="studentsModalTitle">إدارة الطلاب</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody" id="studentsBody"></div><div class="modalfooter"><button class="btn" id="studentsImportBtn">⇧ استيراد CSV</button><button class="btn primary" id="studentsAddBtn">＋ إضافة طالب</button></div></div></dialog>
 
 <dialog class="modal" id="assessmentModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">التقييمات</p><h3 id="assessmentModalTitle">تقييم جديد</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم التقييم</label><input id="assessmentTitleInput" placeholder="مثال: واجب الوحدة الأولى"></div><div class="field"><label>النوع</label><select id="assessmentTypeInput"><option value="homework">واجب</option><option value="participation">مشاركة</option><option value="quiz">اختبار قصير</option><option value="project">مشروع</option><option value="practical">تطبيق عملي</option><option value="exam">اختبار</option><option value="other">أخرى</option></select></div><div class="field"><label>التاريخ</label><input id="assessmentDateInput" type="date"></div><div class="field"><label>الدرجة العظمى</label><input id="assessmentMaxInput" type="number" min="0.5" max="1000" step="0.5" value="10"></div><div class="field span2"><label>ملاحظة / وصف اختياري</label><input id="assessmentNoteInput" placeholder="مثال: الدرس 1–3"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveAssessmentBtn">حفظ التقييم</button></div></div></dialog>
+
+
+<dialog class="modal schedule-slot-modal" id="scheduleSlotModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">جدول المعلم</p><h3 id="scheduleSlotTitle">تعديل الحصة</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field"><label>نوع الخانة</label><select id="scheduleSlotKind"><option value="class">حصة تدريس</option><option value="standby">انتظار / احتياط</option><option value="empty">فارغ</option></select></div><div class="field"><label>الفصل</label><input id="scheduleSlotClass" placeholder="مثال: 2م أ"></div><div class="field span2"><label>المادة / الوصف</label><input id="scheduleSlotSubject" placeholder="الرقمية"></div><div class="field"><label>بداية الحصة</label><input id="scheduleSlotStart" type="time"></div><div class="field"><label>نهاية الحصة</label><input id="scheduleSlotEnd" type="time"></div><div class="field span2"><label>نص الانتظار / ملاحظة</label><input id="scheduleSlotNote" placeholder="مثال: منتظر 1"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveScheduleSlotBtn">حفظ</button></div></div></dialog>
+
+<dialog class="modal" id="supervisionModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">المناوبة والإشراف</p><h3 id="supervisionModalTitle">إضافة مناوبة</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field"><label>اليوم</label><select id="supervisionDay"><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div><div class="field"><label>التاريخ</label><input id="supervisionDate" placeholder="مثال: 10/10"></div><div class="field"><label>من</label><input id="supervisionStart" type="time"></div><div class="field"><label>إلى</label><input id="supervisionEnd" type="time"></div><div class="field"><label>النوع</label><input id="supervisionType" placeholder="إشراف"></div><div class="field"><label>العنوان</label><input id="supervisionTitle" placeholder="إشراف جديد"></div><div class="field span2"><label>الموقع</label><input id="supervisionLocation" placeholder="البوابة الرئيسية، المقصف"></div></div><div class="modalfooter"><button class="btn danger" id="deleteSupervisionBtn" hidden>حذف</button><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveSupervisionBtn">حفظ</button></div></div></dialog>
 
 <dialog class="modal student-modal" id="studentModal"><div class="modalbox"><div class="modalhead no-print"><div><p class="eyebrow">تقرير فردي</p><h3 id="studentModalTitle">تقرير الطالب</h3></div><button class="iconbtn" data-close>×</button></div><div id="studentReportPrint" class="student-report-print"></div><div class="student-notes no-print"><label for="studentNotes">ملاحظات المعلم</label><textarea id="studentNotes" rows="4" placeholder="اكتب ملاحظة مختصرة عن الطالب…"></textarea></div><div class="modalfooter no-print"><button class="btn" id="printStudentBtn">🖨 طباعة التقرير</button><button class="btn primary" id="saveStudentNotesBtn">حفظ الملاحظات</button></div></div></dialog>
 
