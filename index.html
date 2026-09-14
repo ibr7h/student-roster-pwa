@@ -87,7 +87,6 @@
       <section class="panel"><div class="attendance-actions no-print"><button class="btn" data-mark-all="present">تحديد غير المسجلين حاضر</button><button class="btn" data-clear-attendance>مسح حالة اليوم</button></div><div class="attendance-list" id="attendanceList"></div></section>
     </section>
 
-
     <section class="view" id="view-schedule" data-view="schedule">
       <section class="panel teacher-schedule-panel">
         <div class="section-head schedule-head">
@@ -128,6 +127,11 @@
     </section>
   </main>
 
+  <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
+    Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.
+  </footer>
+
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
     <button data-nav="dashboard" class="active"><span>⌂</span><small>الرئيسية</small></button>
     <button data-nav="assessments"><span>✓</span><small>التقييمات</small></button>
@@ -145,7 +149,6 @@
 <dialog class="modal" id="studentsModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">الفصل الحالي</p><h3 id="studentsModalTitle">إدارة الطلاب</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody" id="studentsBody"></div><div class="modalfooter"><button class="btn" id="studentsImportBtn">⇧ استيراد CSV</button><button class="btn primary" id="studentsAddBtn">＋ إضافة طالب</button></div></div></dialog>
 
 <dialog class="modal" id="assessmentModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">التقييمات</p><h3 id="assessmentModalTitle">تقييم جديد</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم التقييم</label><input id="assessmentTitleInput" placeholder="مثال: واجب الوحدة الأولى"></div><div class="field"><label>النوع</label><select id="assessmentTypeInput"><option value="homework">واجب</option><option value="participation">مشاركة</option><option value="quiz">اختبار قصير</option><option value="project">مشروع</option><option value="practical">تطبيق عملي</option><option value="exam">اختبار</option><option value="other">أخرى</option></select></div><div class="field"><label>التاريخ</label><input id="assessmentDateInput" type="date"></div><div class="field"><label>الدرجة العظمى</label><input id="assessmentMaxInput" type="number" min="0.5" max="1000" step="0.5" value="10"></div><div class="field span2"><label>ملاحظة / وصف اختياري</label><input id="assessmentNoteInput" placeholder="مثال: الدرس 1–3"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveAssessmentBtn">حفظ التقييم</button></div></div></dialog>
-
 
 <dialog class="modal schedule-slot-modal" id="scheduleSlotModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">جدول المعلم</p><h3 id="scheduleSlotTitle">تعديل الحصة</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field"><label>نوع الخانة</label><select id="scheduleSlotKind"><option value="class">حصة تدريس</option><option value="standby">انتظار / احتياط</option><option value="empty">فارغ</option></select></div><div class="field"><label>الفصل</label><input id="scheduleSlotClass" placeholder="مثال: 2م أ"></div><div class="field span2"><label>المادة / الوصف</label><input id="scheduleSlotSubject" placeholder="الرقمية"></div><div class="field"><label>بداية الحصة</label><input id="scheduleSlotStart" type="time"></div><div class="field"><label>نهاية الحصة</label><input id="scheduleSlotEnd" type="time"></div><div class="field span2"><label>نص الانتظار / ملاحظة</label><input id="scheduleSlotNote" placeholder="مثال: منتظر 1"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveScheduleSlotBtn">حفظ</button></div></div></dialog>
 
