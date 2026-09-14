@@ -14,6 +14,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Apply V3.3 upgrade
         run: |
+          python -c "from pathlib import Path;p=Path('scripts/upgrade-v33.py');s=p.read_text(encoding='utf-8');p.write_text(s.replace('re.subn(move_re,move_new,s,count=1,flags=re.S)','re.subn(move_re,lambda m:move_new,s,count=1,flags=re.S)'),encoding='utf-8')"
           python scripts/upgrade-v33.py
           node --check app.js
           node --check sw.js
