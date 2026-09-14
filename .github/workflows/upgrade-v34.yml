@@ -1,0 +1,30 @@
+name: Upgrade V3.4 teacher schedule
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply V3.4 upgrade
+        run: |
+          python scripts/upgrade-v34.py
+          node --check app.js
+          node --check sw.js
+          grep -q 'id="view-schedule"' index.html
+          grep -q 'function renderSchedule()' app.js
+          grep -q 'print-teacher-schedule' styles.css
+          grep -q 'student-roster-pwa-v3.4' sw.js
+      - name: Commit V3.4
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add editable teacher schedule and supervision plan"
+          git push
