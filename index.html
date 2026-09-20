@@ -124,53 +124,121 @@
     </section>
 
     <section class="view" id="view-reports" data-view="reports">
-      <section class="panel class-switch-panel no-print"><div class="classbar" id="reportsClassbar"></div></section>
-
-      <section class="panel reports-home no-print">
-        <div class="section-head">
-          <div><p class="eyebrow">مركز التقارير</p><h2>اختر نوع التقرير</h2><p class="subtle">كل تقرير مستقل عن الآخر وله إعداداته وطباعة A4 الخاصة به.</p></div>
-          <div class="field report-period-global"><label>الفترة العامة</label><select id="reportPeriod"><option value="all">الفصل كاملًا</option></select></div>
+      <section class="reports-shell-head no-print">
+        <div class="reports-title-block">
+          <p class="eyebrow">التقارير</p>
+          <h1>مركز التقارير</h1>
+          <div class="reports-context-line">
+            <span id="reportsContextTitle">الفصل الحالي</span>
+            <small id="reportsContextMeta">—</small>
+          </div>
         </div>
-        <div class="report-type-grid">
-          <button class="report-type-card active" data-report-tab="class"><span class="report-type-icon">▤</span><b>كشف متابعة الفصل</b><small>التقييمات والدرجات والغياب في كشف رسمي.</small></button>
-          <button class="report-type-card" data-report-tab="attendance"><span class="report-type-icon">◷</span><b>سجل الحضور والغياب</b><small>خانة لكل حصة فعلية وفق الجدول والخطة الدراسية.</small></button>
-          <button class="report-type-card" data-report-tab="students"><span class="report-type-icon">◉</span><b>تقارير الطلاب</b><small>تقرير فردي لكل طالب مع التقييمات والحضور.</small></button>
+        <div class="field reports-period-field">
+          <label>الفترة</label>
+          <select id="reportPeriod"><option value="all">الفصل كاملًا</option></select>
         </div>
       </section>
 
-      <section class="panel report-section-panel class-report-panel active" data-report-panel="class">
-        <div class="section-head reports-head no-print">
-          <div><p class="eyebrow">كشف الفصل</p><h2>كشف متابعة الفصل</h2><p class="subtle">A4 بالعرض — مناسب لكشف كامل للفصل.</p></div>
-          <div class="report-controls">
-            <div class="field"><label>تنبيه الدرجة أقل من %</label><input id="gradeAlertThreshold" type="number" min="0" max="100"></div>
-            <div class="field"><label>تنبيه الغياب من</label><input id="absenceAlertThreshold" type="number" min="1" max="100"></div>
+      <section class="panel class-switch-panel reports-class-switch no-print">
+        <div class="reports-filter-label">الفصل</div>
+        <div class="classbar" id="reportsClassbar"></div>
+      </section>
+
+      <section class="reports-home no-print" id="reportsHub">
+        <div class="reports-home-copy">
+          <h2>ماذا تريد أن تُخرج؟</h2>
+          <p>اختر نوع التقرير، ثم اضبط إعداداته وعاينه قبل الطباعة.</p>
+        </div>
+        <div class="report-type-grid">
+          <button class="report-type-card" data-report-open="class">
+            <span class="report-type-icon report-icon-class">▤</span>
+            <span class="report-card-copy"><b>كشف متابعة الفصل</b><small>درجات وتقييمات وغياب الفصل في كشف رسمي واحد.</small></span>
+            <span class="report-card-meta"><em>A4 عرض</em><span>‹</span></span>
+          </button>
+          <button class="report-type-card" data-report-open="attendance">
+            <span class="report-type-icon report-icon-attendance">◷</span>
+            <span class="report-card-copy"><b>سجل الحضور والغياب</b><small>خانة لكل حصة فعلية وفق الجدول والخطة الدراسية.</small></span>
+            <span class="report-card-meta"><em>A4 عرض</em><span>‹</span></span>
+          </button>
+          <button class="report-type-card" data-report-open="students">
+            <span class="report-type-icon report-icon-student">◉</span>
+            <span class="report-card-copy"><b>تقارير الطلاب</b><small>تقرير فردي مفصل للتقييمات والحضور لكل طالب.</small></span>
+            <span class="report-card-meta"><em>A4 عمودي</em><span>‹</span></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel report-section-panel class-report-panel" data-report-panel="class">
+        <div class="report-detail-head no-print">
+          <button class="report-back-btn" data-report-back aria-label="العودة إلى مركز التقارير">→</button>
+          <div class="report-detail-icon report-icon-class">▤</div>
+          <div class="report-detail-title"><small>تقرير فصل</small><h2>كشف متابعة الفصل</h2><p>A4 بالعرض · جميع الطلاب</p></div>
+        </div>
+
+        <div class="report-detail-body no-print">
+          <div class="report-kpis" id="reportKpis"></div>
+          <div class="risk-banner" id="riskBanner"></div>
+
+          <details class="report-settings">
+            <summary>إعدادات التنبيه</summary>
+            <div class="report-settings-grid">
+              <div class="field"><label>تنبيه الدرجة أقل من %</label><input id="gradeAlertThreshold" type="number" min="0" max="100"></div>
+              <div class="field"><label>تنبيه الغياب من</label><input id="absenceAlertThreshold" type="number" min="1" max="100"></div>
+            </div>
+          </details>
+
+          <div class="report-action-bar">
+            <button class="btn" data-preview-toggle="class">👁 معاينة الكشف</button>
             <button class="btn primary" id="printClassReportBtn">🖨 طباعة كشف الفصل</button>
           </div>
         </div>
-        <div class="print-report-header" id="reportPrintHeader"></div>
-        <div class="report-kpis no-print" id="reportKpis"></div>
-        <div class="risk-banner no-print" id="riskBanner"></div>
+
+        <div class="report-preview-box" data-preview-box="class">
+          <div class="report-preview-label no-print">معاينة الطباعة</div>
+          <div class="print-report-header" id="reportPrintHeader"></div>
+        </div>
       </section>
 
       <section class="panel report-section-panel attendance-report-panel" id="attendanceReportPanel" data-report-panel="attendance">
-        <div class="section-head no-print">
-          <div><p class="eyebrow">سجل الحضور</p><h2>سجل متابعة الحضور والغياب</h2><p class="subtle">يُنشأ من عدد حصص المادة الفعلية، ويستبعد الإجازات وأسبوع الاختبارات حسب الإعداد.</p></div>
-          <div class="attendance-report-controls">
-            <div class="field"><label>الفترة</label><select id="attendanceReportPeriod"><option value="all">الفصل كاملًا</option></select></div>
-            <label class="attendance-exam-toggle"><input id="excludeExamWeek" type="checkbox" checked> استبعاد أسبوع الاختبارات الأخير</label>
+        <div class="report-detail-head no-print">
+          <button class="report-back-btn" data-report-back aria-label="العودة إلى مركز التقارير">→</button>
+          <div class="report-detail-icon report-icon-attendance">◷</div>
+          <div class="report-detail-title"><small>سجل رسمي</small><h2>سجل الحضور والغياب</h2><p>A4 بالعرض · حسب الحصص الفعلية</p></div>
+        </div>
+
+        <div class="report-detail-body no-print">
+          <div id="attendanceReportSummary" class="attendance-report-summary"></div>
+          <div class="report-settings-grid attendance-settings-grid">
+            <div class="field"><label>فترة السجل</label><select id="attendanceReportPeriod"><option value="all">الفصل كاملًا</option></select></div>
+            <label class="attendance-exam-toggle"><input id="excludeExamWeek" type="checkbox" checked><span><b>استبعاد أسبوع الاختبارات الأخير</b><small>يمكن إلغاؤه إذا كانت الحصص تستمر أثناء الاختبارات.</small></span></label>
+          </div>
+          <div class="report-action-bar">
+            <button class="btn" data-preview-toggle="attendance">👁 معاينة السجل</button>
             <button class="btn primary" id="printAttendanceReportBtn">🖨 طباعة سجل الحضور</button>
           </div>
         </div>
-        <div id="attendanceReportPreview" class="attendance-report-preview"></div>
+
+        <div class="report-preview-box" data-preview-box="attendance">
+          <div class="report-preview-label no-print">معاينة الطباعة</div>
+          <div id="attendanceReportPreview" class="attendance-report-preview"></div>
+        </div>
       </section>
 
       <section class="panel report-section-panel student-report-panel" data-report-panel="students">
-        <div class="section-head no-print">
-          <div><p class="eyebrow">التقارير الفردية</p><h2>تقارير الطلاب</h2><p class="subtle">اختر طالبًا لعرض تقريره ثم طباعته A4 عموديًا.</p></div>
+        <div class="report-detail-head no-print">
+          <button class="report-back-btn" data-report-back aria-label="العودة إلى مركز التقارير">→</button>
+          <div class="report-detail-icon report-icon-student">◉</div>
+          <div class="report-detail-title"><small>تقارير فردية</small><h2>تقارير الطلاب</h2><p>A4 عمودي · تقرير لكل طالب</p></div>
         </div>
-        <div class="student-report-list" id="studentReportList"></div>
+        <div class="report-detail-body no-print">
+          <div class="student-report-tools">
+            <div class="field report-student-search"><label>بحث عن طالب</label><input id="reportStudentSearch" type="search" placeholder="اكتب اسم الطالب…"></div>
+          </div>
+          <div class="student-report-list" id="studentReportList"></div>
+        </div>
       </section>
     </section>
+</section>
   </main>
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
