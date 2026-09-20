@@ -1,0 +1,33 @@
+name: Upgrade V3.5 logo and A4 reports
+on:
+  push:
+    paths:
+      - '.github/workflows/upgrade-v35.yml'
+permissions:
+  contents: write
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply V3.5
+        run: |
+          python scripts/upgrade-v35.py
+          node --check app.js
+          node --check sw.js
+          test -s assets/moe-logo.png
+          grep -q "official-logo" app.js
+          grep -q "setPrintPage('landscape')" app.js
+          grep -q "width:190mm" styles.css
+          grep -q "width:277mm" styles.css
+          grep -q "student-roster-pwa-v3.5" sw.js
+      - name: Commit V3.5
+        run: |
+          rm -f .github/workflows/inspect-op-logo.yml
+          rm -f .github/workflows/upgrade-v35.yml
+          rm -f scripts/upgrade-v35.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Use operational plan logo and enforce A4 reports"
+          git push
