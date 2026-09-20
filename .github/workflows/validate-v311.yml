@@ -1,0 +1,26 @@
+name: Validate v3.11
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v311.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate v3.11
+        run: |
+          node --check app.js
+          node --check sw.js
+          grep -q "APP_VERSION='3.11.0'" version.js
+          grep -q "v3.11.0" index.html
+          grep -q "function plannedAttendanceSessions" app.js
+          grep -q "plannedWeeks:19" app.js
+          grep -q "plannedWeeks:18" app.js
+          grep -q "function printClassReport(){setPrintPage('landscape')" app.js
+          grep -q "function printAttendanceReport(){setPrintPage('landscape')" app.js
+          grep -q "width:277mm" styles.css
+          grep -q "addEventListener('click',()=>checkForAppUpdate" app.js
+          echo "v3.11 validation passed"
