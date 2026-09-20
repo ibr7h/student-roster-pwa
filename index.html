@@ -85,6 +85,16 @@
         <div class="attendance-stats" id="attendanceStats"></div>
       </section>
       <section class="panel"><div class="attendance-actions no-print"><button class="btn" data-mark-all="present">تحديد غير المسجلين حاضر</button><button class="btn" data-clear-attendance>مسح حالة اليوم</button></div><div class="attendance-list" id="attendanceList"></div></section>
+      <section class="panel attendance-report-panel">
+        <div class="section-head no-print">
+          <div><p class="eyebrow">سجل المتابعة</p><h2>تقرير الحضور والغياب</h2><p class="subtle">اختر شهرًا لعرض الأيام بالتفصيل، أو الفصل كاملًا لملخص كل طالب.</p></div>
+          <div class="attendance-report-controls">
+            <div class="field"><label>الفترة</label><select id="attendanceReportPeriod"><option value="all">الفصل كاملًا</option></select></div>
+            <button class="btn primary" id="printAttendanceReportBtn">🖨 طباعة A4</button>
+          </div>
+        </div>
+        <div id="attendanceReportPreview" class="attendance-report-preview"></div>
+      </section>
     </section>
 
     <section class="view" id="view-schedule" data-view="schedule">
