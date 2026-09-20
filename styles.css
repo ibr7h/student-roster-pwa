@@ -262,3 +262,132 @@
   .attendance-report-controls .field,.attendance-report-controls .btn,.attendance-exam-toggle{width:100%}
   .attendance-report-preview{padding:7px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
+
+/* V4.1 professional reports UX */
+#view-reports{max-width:1180px;margin-inline:auto}
+.reports-shell-head{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:14px;align-items:end;padding:18px 18px 14px;margin-bottom:10px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff 0%,#f8fbfd 100%);box-shadow:0 8px 28px rgba(25,55,80,.055)}
+.reports-title-block{min-width:0}
+.reports-title-block .eyebrow{margin-bottom:2px}
+.reports-title-block h1{margin:0;font-size:25px;letter-spacing:-.4px}
+.reports-context-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.reports-context-line>span{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:var(--brand-soft);color:var(--brand);font-weight:800;font-size:11px}
+.reports-context-line small{color:var(--muted);font-size:11px}
+.reports-period-field{min-width:0}
+.reports-class-switch{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;padding:9px 12px;margin-bottom:12px}
+.reports-filter-label{font-size:11px;font-weight:800;color:var(--muted)}
+.reports-class-switch .classbar{overflow-x:auto;display:flex;gap:7px;padding:2px;scrollbar-width:none}
+.reports-class-switch .classbar::-webkit-scrollbar{display:none}
+
+.reports-home{padding:4px 0 18px}
+.reports-home-copy{padding:4px 2px 10px}
+.reports-home-copy h2{margin:0 0 4px;font-size:17px}
+.reports-home-copy p{margin:0;color:var(--muted);font-size:11px}
+.report-type-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.report-type-card{position:relative;appearance:none;border:1px solid var(--line);border-radius:17px;background:#fff;padding:16px;text-align:right;display:grid;grid-template-columns:46px minmax(0,1fr);grid-template-areas:"icon copy" "meta meta";gap:10px 12px;color:var(--ink);cursor:pointer;box-shadow:0 5px 18px rgba(24,49,70,.045);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;min-height:142px}
+.report-type-card:hover{transform:translateY(-2px);border-color:#a8c0d2;box-shadow:0 10px 28px rgba(24,49,70,.075)}
+.report-type-card:active{transform:scale(.99)}
+.report-type-icon{grid-area:icon;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:21px;font-weight:900}
+.report-icon-class{background:#edf5fb;color:#1e5c89}
+.report-icon-attendance{background:#eef9f3;color:#277552}
+.report-icon-student{background:#f7f1fb;color:#75528a}
+.report-card-copy{grid-area:copy;display:grid;align-content:start;gap:5px;min-width:0}
+.report-card-copy b{font-size:14px;line-height:1.35}
+.report-card-copy small{font-size:10.5px;line-height:1.6;color:var(--muted)}
+.report-card-meta{grid-area:meta;display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid #edf1f4}
+.report-card-meta em{font-style:normal;font-size:9.5px;font-weight:800;color:var(--muted);padding:3px 7px;border-radius:999px;background:#f4f6f8}
+.report-card-meta>span{font-size:19px;color:var(--muted)}
+
+#view-reports:not(.report-detail-mode) .report-section-panel{display:none!important}
+#view-reports.report-detail-mode #reportsHub{display:none!important}
+.report-section-panel{display:none;margin-top:0;border-radius:18px;padding:0;overflow:hidden}
+#view-reports.report-detail-mode .report-section-panel.active{display:block}
+.report-detail-head{display:grid;grid-template-columns:42px 50px minmax(0,1fr);gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:#fff}
+.report-back-btn{appearance:none;border:1px solid var(--line);background:#fff;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:20px;cursor:pointer;color:var(--ink)}
+.report-back-btn:active{background:#f5f7f9}
+.report-detail-icon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:20px;font-weight:900}
+.report-detail-title{min-width:0}
+.report-detail-title small{display:block;color:var(--muted);font-size:9.5px;margin-bottom:1px}
+.report-detail-title h2{margin:0;font-size:17px;line-height:1.3}
+.report-detail-title p{margin:2px 0 0;font-size:10px;color:var(--muted)}
+.report-detail-body{padding:14px 16px 16px;background:#fbfcfd}
+.report-detail-body>.report-kpis{margin:0 0 10px}
+.report-settings{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:10px;overflow:hidden}
+.report-settings summary{cursor:pointer;padding:11px 12px;font-size:11px;font-weight:800;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.report-settings summary::-webkit-details-marker{display:none}
+.report-settings summary::after{content:"＋";font-size:15px;color:var(--muted)}
+.report-settings[open] summary::after{content:"−"}
+.report-settings[open] summary{border-bottom:1px solid var(--line)}
+.report-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:11px 12px}
+.report-action-bar{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.report-preview-box{display:none;margin:0;border-top:1px solid var(--line);padding:14px;background:#eef2f5;overflow-x:auto}
+.report-preview-box.open{display:block}
+.report-preview-label{width:max-content;margin:0 auto 8px;padding:4px 8px;border-radius:999px;background:#dfe6eb;color:#52616c;font-size:9px;font-weight:800}
+.report-preview-box .print-report-header,.report-preview-box .attendance-report-preview{background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-inline:auto}
+.report-preview-box .print-report-header{min-width:920px;padding:10px}
+.report-preview-box .attendance-report-preview{min-width:920px;padding:10px}
+
+.attendance-report-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.attendance-report-summary>div{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px;text-align:center;display:grid;gap:3px}
+.attendance-report-summary span{font-size:9.5px;color:var(--muted)}
+.attendance-report-summary b{font-size:15px}
+.attendance-settings-grid{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(260px,1.2fr);gap:10px}
+.attendance-exam-toggle{margin:0;min-height:100%;align-items:center}
+.attendance-exam-toggle>span{display:grid;gap:2px}
+.attendance-exam-toggle b{font-size:10.5px}
+.attendance-exam-toggle small{font-size:9px;color:var(--muted);line-height:1.45}
+
+.student-report-tools{display:flex;justify-content:flex-end;margin-bottom:10px}
+.report-student-search{width:min(100%,360px)}
+.student-report-list{display:grid;gap:8px}
+.student-report-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:13px;background:#fff;padding:10px 11px}
+.student-report-row.risk-row{border-inline-start:3px solid #bd6b52}
+.student-report-index{width:28px;height:28px;border-radius:9px;background:#f3f6f8;display:grid;place-items:center;font-size:10px;font-weight:800;color:var(--muted)}
+.student-report-person{display:grid;gap:3px;min-width:0}
+.student-report-person b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.student-report-person span{font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.student-report-quick{display:flex;gap:6px}
+.student-report-quick>span{min-width:52px;display:grid;text-align:center;gap:1px;padding:5px 6px;border-radius:9px;background:#f6f8fa}
+.student-report-quick b{font-size:11px}
+.student-report-quick small{font-size:8px;color:var(--muted)}
+.student-report-open{white-space:nowrap}
+
+@media(max-width:760px){
+  #view-reports{padding-bottom:74px}
+  .reports-shell-head{grid-template-columns:1fr;padding:14px 13px 12px;border-radius:15px;gap:10px}
+  .reports-title-block h1{font-size:21px}
+  .reports-period-field{width:100%}
+  .reports-class-switch{grid-template-columns:1fr;gap:6px;padding:8px 10px}
+  .reports-filter-label{display:none}
+  .report-type-grid{grid-template-columns:1fr;gap:9px}
+  .report-type-card{min-height:0;grid-template-columns:42px minmax(0,1fr) 34px;grid-template-areas:"icon copy meta";align-items:center;padding:12px 12px;gap:9px}
+  .report-type-icon{width:42px;height:42px;border-radius:12px;font-size:19px}
+  .report-card-copy b{font-size:13px}
+  .report-card-copy small{font-size:9.5px;line-height:1.45}
+  .report-card-meta{border:0;padding:0;display:grid;place-items:center}
+  .report-card-meta em{display:none}
+  .report-card-meta>span{font-size:20px}
+  .report-section-panel{border-radius:15px}
+  .report-detail-head{grid-template-columns:38px 44px minmax(0,1fr);padding:11px 12px;gap:8px;position:sticky;top:0;z-index:8}
+  .report-back-btn{width:36px;height:36px}
+  .report-detail-icon{width:42px;height:42px;border-radius:12px}
+  .report-detail-title h2{font-size:15px}
+  .report-detail-title p{font-size:9px}
+  .report-detail-body{padding:11px 11px 92px}
+  .report-settings-grid,.attendance-settings-grid{grid-template-columns:1fr}
+  .attendance-report-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .report-action-bar{position:fixed;z-index:30;right:10px;left:10px;bottom:74px;margin:0;padding:8px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.96);box-shadow:0 8px 30px rgba(18,40,58,.14);backdrop-filter:blur(12px)}
+  .report-action-bar .btn{flex:1;min-width:0}
+  .report-preview-box{padding:8px}
+  .student-report-row{grid-template-columns:28px minmax(0,1fr) auto;grid-template-areas:"idx person action" ". quick quick";gap:7px 8px;padding:9px}
+  .student-report-index{grid-area:idx}
+  .student-report-person{grid-area:person}
+  .student-report-quick{grid-area:quick;justify-content:flex-start}
+  .student-report-open{grid-area:action;padding-inline:9px}
+  .report-student-search{width:100%}
+}
+
+@media(max-width:390px){
+  .reports-shell-head{margin-inline:-2px}
+  .report-card-copy small{max-width:220px}
+  .student-report-quick>span{min-width:48px}
+}
