@@ -33,3 +33,5 @@ jobs:
           if bad: raise SystemExit('failed: '+', '.join(bad))
           print('v4.3.1 validation passed')
           PY
+
+# retry after PDF historical marker
