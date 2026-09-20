@@ -126,3 +126,41 @@
 
 /* V3.6 mobile logo containment */
 @media(max-width:680px){.brand-logo-wrap{width:54px!important;height:44px!important;min-width:54px!important;max-width:54px!important;flex-basis:54px!important}.app-brand-logo{width:48px!important;height:38px!important;max-width:48px!important;max-height:38px!important}.brand{min-width:0!important;max-width:65%!important}.brand-text{min-width:0!important}.brand-text b,.brand-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+
+/* V3.7 compact student report header */
+.student-official-header{display:grid;grid-template-columns:1fr 92px 1fr;align-items:center;gap:12px;border-bottom:1.5px solid #1f2937;padding:2px 2px 9px;margin-bottom:8px;color:#111;background:#fff}
+.student-official-gov{display:grid;gap:1px;font-size:11px;line-height:1.45}
+.student-official-gov b{font-size:12px}
+.student-official-logo{display:grid;place-items:center}
+.student-official-logo img{display:block;width:72px;height:58px;object-fit:contain}
+.student-official-title{text-align:center;display:grid;gap:2px;justify-items:center}
+.student-official-title h1{font-size:18px;margin:0;font-weight:800}
+.student-official-title span{font-size:11px;font-weight:700}
+.student-official-title small{font-size:10px;color:#475569}
+.student-identity-strip{display:grid;grid-template-columns:2fr 1.35fr 1.25fr;border:1px solid #9ca3af;margin:0 0 10px;background:#fff}
+.student-identity-strip>div{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;padding:6px 8px;border-inline-end:1px solid #cbd5e1}
+.student-identity-strip>div:last-child{border-inline-end:0}
+.student-identity-strip span{font-size:10px;color:#475569;white-space:nowrap}
+.student-identity-strip b{font-size:11px;color:#111;overflow-wrap:anywhere}
+@media(max-width:680px){
+  .student-official-header{grid-template-columns:1fr 64px 1fr;gap:6px}
+  .student-official-logo img{width:58px;height:48px}
+  .student-official-title h1{font-size:15px}
+  .student-official-gov{font-size:9px}
+  .student-identity-strip{grid-template-columns:1fr}
+  .student-identity-strip>div{border-inline-end:0;border-bottom:1px solid #e2e8f0}
+  .student-identity-strip>div:last-child{border-bottom:0}
+}
+@media print{
+  .student-official-header{grid-template-columns:1fr 26mm 1fr;gap:5mm;padding:0 0 4mm;margin-bottom:3mm;border-bottom:1pt solid #222;break-inside:avoid;page-break-inside:avoid}
+  .student-official-logo img{width:22mm;height:17mm;object-fit:contain}
+  .student-official-gov{font-size:7.5pt;line-height:1.35}
+  .student-official-gov b{font-size:8.5pt}
+  .student-official-title h1{font-size:14pt}
+  .student-official-title span{font-size:8pt}
+  .student-official-title small{font-size:7.5pt}
+  .student-identity-strip{grid-template-columns:2fr 1.35fr 1.25fr;margin-bottom:4mm;border:.8pt solid #666}
+  .student-identity-strip>div{padding:3pt 5pt}
+  .student-identity-strip span{font-size:7.5pt}
+  .student-identity-strip b{font-size:8.5pt}
+}
