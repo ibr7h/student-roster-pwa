@@ -1,0 +1,37 @@
+name: Validate v4.2 landscape attendance PDF
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v42.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate v4.2
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          a=Path('app.js').read_text(encoding='utf-8')
+          h=Path('index.html').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          checks={
+            'version': "APP_VERSION='4.2.0'" in v and 'v4.2.0' in h,
+            'ios detection': 'function isIOSLike()' in a,
+            'pdf builder': 'function buildJpegPdf' in a,
+            'landscape canvas': 'const W=1684,H=1190' in a,
+            'attendance PDF': 'function buildAttendanceLandscapePdf' in a,
+            '11 sessions per page': 'i+=11' in a and 'sessions.slice(i,i+11)' in a,
+            'iOS PDF route': "if(isIOSLike())openAttendanceLandscapePdf()" in a,
+            'desktop print route': "else runPrintSession('print-attendance-report','landscape')" in a,
+            'pdf landscape page': 'const PAGE_W=841.89,PAGE_H=595.28' in a and '/MediaBox [0 0 ' in a,
+            'share support': 'navigator.canShare?.({files:[file]})' in a,
+          }
+          bad=[k for k,val in checks.items() if not val]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.2 validation passed')
+          PY
