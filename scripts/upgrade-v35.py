@@ -14,7 +14,7 @@ m=re.search(r'data:image/png;base64,([A-Za-z0-9+/=]+)', src)
 if not m:
     raise SystemExit('embedded Ministry logo not found')
 logo=base64.b64decode(m.group(1))
-if not logo.startswith(b'\\x89PNG') or len(logo)<100000:
+if logo[:4] != bytes([137,80,78,71]) or len(logo)<100000:
     raise SystemExit('unexpected first embedded image; refusing to use wrong asset')
 (assets/'moe-logo.png').write_bytes(logo)
 
