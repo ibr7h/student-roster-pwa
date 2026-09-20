@@ -391,3 +391,8 @@
   .report-card-copy small{max-width:220px}
   .student-report-quick>span{min-width:48px}
 }
+
+/* V4.3.1 historical attendance recovery */
+.attendance-report-summary>div small{display:block;margin-top:2px;font-size:8px;color:var(--muted);line-height:1.3}
+.attendance-register-table th.att-session-history{background:#fff7df!important}
+.attendance-register-table th.att-session-history b::after{content:"";display:inline}
