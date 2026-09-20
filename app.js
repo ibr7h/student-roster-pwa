@@ -10,6 +10,16 @@ const makeStudent=name=>({id:uid(),name,grades:{},attendance:{},notes:''});
 const makeClass=(name='١ / أ',grade='الأول المتوسط',subject='المهارات الرقمية',students=[])=>({id:uid(),name,grade,subject,students,assessmentEvents:[],selectedAssessmentId:null});
 const SCHEDULE_DAYS=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
 const PERIOD_TIMES={1:['07:00','07:45'],2:['07:45','08:30'],3:['08:45','09:30'],4:['09:45','10:30'],5:['10:30','11:15'],6:['11:15','12:00'],7:['12:00','12:30']};
+const ROSTER_ACADEMIC_TERMS={
+  '1':{label:'الفصل الدراسي الأول',start:'2026-08-23',end:'2027-01-07',plannedWeeks:19},
+  '2':{label:'الفصل الدراسي الثاني',start:'2027-01-17',end:'2027-06-17',plannedWeeks:18}
+};
+const ROSTER_HOLIDAYS=[
+  ['2026-09-23','2026-09-26'],['2026-10-25','2026-10-25'],['2026-11-20','2026-11-28'],['2026-11-29','2026-11-29'],['2027-01-07','2027-01-07'],
+  ['2027-02-19','2027-02-22'],['2027-02-26','2027-03-13'],['2027-04-11','2027-04-11'],['2027-05-07','2027-05-22']
+];
+const AR_DAY_BY_JS=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
 const makeTeacherSchedule=()=>({
   teacherName:'ابراهيم بن حمود بن علي النعمي',school:'مدرسة ابو السلع الابتدائية والمتوسطة',title:'الجدول الأساسي 1',
   slots:{
@@ -24,7 +34,7 @@ const makeTeacherSchedule=()=>({
 let state={
   schemaVersion:SCHEMA_VERSION,
   appMeta:{school:'',region:'',year:'١٤٤٨ هـ',semester:'الفصل الدراسي الأول',teacher:'',principal:''},
-  settings:{gradeAlertThreshold:60,absenceAlertThreshold:3},
+  settings:{gradeAlertThreshold:60,absenceAlertThreshold:3,excludeExamWeek:true},
   classes:[makeClass('١ / أ','الأول المتوسط','المهارات الرقمية',seedStudents.map(makeStudent)),makeClass('١ / ب','الأول المتوسط','المهارات الرقمية',[])],
   activeClassId:null,
   ui:{activeView:'dashboard',dismissedInstall:false,assessmentMonth:'all',reportPeriod:'all'},
@@ -42,7 +52,7 @@ function findStudentClass(id){return state.classes.find(c=>c.students.some(s=>s.
 function findAssessment(id,c=currentClass()){return c?.assessmentEvents?.find(a=>a.id===id)}
 function ensureStudent(s){s.grades ||= {};s.attendance ||= {};s.notes ||= '';return s}
 function ensureAssessment(a){a.id ||= uid();a.title ||= 'تقييم';a.type ||= 'other';a.date ||= '';a.maxScore=Math.max(.5,Number(a.maxScore||a.max||10));a.note ||= '';return a}
-function ensureClass(c){c.grade ||= 'الأول المتوسط';c.subject ||= 'المهارات الرقمية';c.students ||= [];c.students.forEach(ensureStudent);c.assessmentEvents ||= [];c.assessmentEvents.forEach(ensureAssessment);if(!c.selectedAssessmentId||!c.assessmentEvents.some(a=>a.id===c.selectedAssessmentId))c.selectedAssessmentId=c.assessmentEvents[0]?.id||null;return c}
+function ensureClass(c){c.grade ||= 'الأول المتوسط';c.subject ||= 'المهارات الرقمية';c.weeklySessions=Number(c.weeklySessions||(/الرقمية|الحاسب/i.test(c.subject)?2:1));c.students ||= [];c.students.forEach(ensureStudent);c.assessmentEvents ||= [];c.assessmentEvents.forEach(ensureAssessment);if(!c.selectedAssessmentId||!c.assessmentEvents.some(a=>a.id===c.selectedAssessmentId))c.selectedAssessmentId=c.assessmentEvents[0]?.id||null;return c}
 
 function legacyType(field){const n=(field.name||'').toLowerCase();if(/واجب/.test(n))return'homework';if(/مشارك/.test(n))return'participation';if(/اختبار/.test(n))return'quiz';if(/مشروع|بحث/.test(n))return'project';if(/عملي|تطبيق/.test(n))return'practical';return'legacy'}
 function migrate(input){
@@ -51,7 +61,7 @@ function migrate(input){
   x.appMeta ||= {school:'',region:'',year:x.meta?.year||'١٤٤٨ هـ',semester:x.meta?.semester||'الفصل الدراسي الأول',teacher:x.meta?.teacher||'',principal:x.meta?.principal||''};
   x.appMeta.school ||= '';x.appMeta.region ||= '';
   x.settings ||= {gradeAlertThreshold:60,absenceAlertThreshold:3};
-  x.settings.gradeAlertThreshold=Number(x.settings.gradeAlertThreshold??60);x.settings.absenceAlertThreshold=Number(x.settings.absenceAlertThreshold??3);
+  x.settings.gradeAlertThreshold=Number(x.settings.gradeAlertThreshold??60);x.settings.absenceAlertThreshold=Number(x.settings.absenceAlertThreshold??3);x.settings.excludeExamWeek=x.settings.excludeExamWeek!==false;
   x.teacherSchedule ||= makeTeacherSchedule();x.teacherSchedule.slots ||= {};x.teacherSchedule.supervision ||= [];x.teacherSchedule.teacherName ||= 'ابراهيم بن حمود بن علي النعمي';x.teacherSchedule.school ||= 'مدرسة ابو السلع الابتدائية والمتوسطة';x.teacherSchedule.title ||= 'الجدول الأساسي 1';if(!x.appMeta.teacher)x.appMeta.teacher=x.teacherSchedule.teacherName;if(!x.appMeta.school)x.appMeta.school=x.teacherSchedule.school;
   const oldFields=Array.isArray(x.fields)?x.fields:[];
   x.classes.forEach(c=>{
@@ -194,45 +204,94 @@ function renderAttendance(){
 function markAllAttendance(status){const c=currentClass(),date=$('#attendanceDate').value||localDateISO();c.students.forEach(s=>{ensureStudent(s);if(!s.attendance[date])s.attendance[date]=status});renderAttendance();renderDashboard();renderReports();queueSave();toast('تم تحديد غير المسجلين حاضر')}
 function clearAttendanceDay(){const c=currentClass(),date=$('#attendanceDate').value||localDateISO();if(!confirm('مسح حالات الحضور المسجلة لهذا اليوم؟'))return;c.students.forEach(s=>delete s.attendance?.[date]);renderAttendance();renderDashboard();renderReports();queueSave()}
 
-function attendanceMonthsForClass(c){const set=new Set();(c?.students||[]).forEach(st=>Object.keys(st.attendance||{}).forEach(d=>{const m=monthKey(d);if(m)set.add(m)}));return [...set].sort().reverse()}
+function attendanceMonthsForClass(c){
+  const set=new Set();
+  plannedAttendanceSessions(c,'all').forEach(x=>set.add(monthKey(x.date)));
+  (c?.students||[]).forEach(st=>Object.keys(st.attendance||{}).forEach(d=>{const m=monthKey(d);if(m)set.add(m)}));
+  return [...set].filter(Boolean).sort().reverse();
+}
 function attendanceDatesForPeriod(c,period='all'){const set=new Set();(c?.students||[]).forEach(st=>Object.keys(st.attendance||{}).forEach(d=>{if(period==='all'||monthKey(d)===period)set.add(d)}));return [...set].sort()}
 function attendanceMark(v){return ({present:'ح',absent:'غ',late:'ت',excused:'إ'})[v]||'—'}
+function rosterTermKey(){return /الثاني/.test(state.appMeta?.semester||'')?'2':'1'}
+function parseISODateNoon(iso){const [y,m,d]=String(iso).split('-').map(Number);return new Date(y,m-1,d,12,0,0)}
+function isoFromDateLocal(d){return localDateISO(d)}
+function inRange(iso,start,end){return iso>=start&&iso<=end}
+function schoolHoliday(iso){return ROSTER_HOLIDAYS.some(([a,b])=>inRange(iso,a,b))}
+function examWeekRange(term){
+  const cfg=ROSTER_ACADEMIC_TERMS[term];if(!cfg)return null;
+  const end=parseISODateNoon(cfg.end),day=end.getDay(),back=(day+7)%7;
+  const sunday=new Date(end);sunday.setDate(end.getDate()-back);
+  return {start:isoFromDateLocal(sunday),end:cfg.end};
+}
+function classSectionLetter(c){
+  const raw=String(c?.name||'').trim();
+  const letter=(raw.match(/[أبجد]/)||[])[0];if(letter)return letter;
+  const n=Number(latinDigits(raw).match(/\d+/)?.[0]||0);return ({1:'أ',2:'ب',3:'ج',4:'د'})[n]||'';
+}
+function classGradeNumber(c){const g=String(c?.grade||'');if(/الأول|اول/.test(g))return 1;if(/الثاني|ثاني/.test(g))return 2;if(/الثالث|ثالث/.test(g))return 3;return 0}
+function classScheduleCode(c){const g=classGradeNumber(c),sec=classSectionLetter(c);return g&&sec?`${g}م ${sec}`:''}
+function normalizeScheduleCode(v=''){return String(v).replace(/\s+/g,'').replace(/[إآ]/g,'أ')}
+function scheduledSlotsForClass(c){
+  const target=normalizeScheduleCode(classScheduleCode(c)),out=[];
+  Object.entries(state.teacherSchedule?.slots||{}).forEach(([key,v])=>{
+    if(v?.kind!=='class'||normalizeScheduleCode(v.className)!==target)return;
+    const m=key.match(/^(.*)-(\d+)$/);if(m)out.push({day:m[1],period:Number(m[2])})
+  });
+  return out.sort((a,b)=>SCHEDULE_DAYS.indexOf(a.day)-SCHEDULE_DAYS.indexOf(b.day)||a.period-b.period);
+}
+function plannedAttendanceSessions(c,period='all'){
+  const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term];if(!cfg)return[];
+  const slots=scheduledSlotsForClass(c),exam=state.settings.excludeExamWeek!==false?examWeekRange(term):null,out=[];
+  if(slots.length){
+    let d=parseISODateNoon(cfg.start),end=parseISODateNoon(cfg.end);
+    while(d<=end){
+      const iso=isoFromDateLocal(d),day=AR_DAY_BY_JS[d.getDay()];
+      if(!schoolHoliday(iso)&&!(exam&&inRange(iso,exam.start,exam.end))){
+        slots.filter(x=>x.day===day).forEach(x=>out.push({date:iso,day,period:x.period,planned:true}));
+      }
+      d.setDate(d.getDate()+1);
+    }
+  }
+  const filtered=period==='all'?out:out.filter(x=>monthKey(x.date)===period);
+  if(filtered.length)return filtered;
+  return attendanceDatesForPeriod(c,period).map((date,i)=>({date,day:AR_DAY_BY_JS[parseISODateNoon(date).getDay()],period:null,planned:false,seq:i+1}));
+}
+function plannedAttendanceMeta(c,sessions,period='all'){
+  const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term],weekly=scheduledSlotsForClass(c).length||Number(c.weeklySessions||1),exclude=state.settings.excludeExamWeek!==false;
+  return {term,cfg,weekly,teachingWeeks:Math.max(0,(cfg?.plannedWeeks||0)-(exclude?1:0)),sessions:sessions.length,period};
+}
+function attendanceCountsForSessions(st,sessions){
+  const out={present:0,absent:0,late:0,excused:0,total:0};
+  sessions.forEach(x=>{const v=st.attendance?.[x.date];if(out[v]!==undefined){out[v]++;out.total++}});
+  return out;
+}
 function compactClassOfficialHeader(title,c,periodText){
   const m=state.appMeta||{},school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم';
-  return `<header class="compact-class-header" dir="rtl">
-    <div class="compact-class-gov"><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(region)}</span><span>${escapeHtml(school)}</span></div>
-    <div class="compact-class-logo"><img src="./assets/moe-logo.png" alt="شعار وزارة التعليم"></div>
-    <div class="compact-class-title"><h1>${escapeHtml(title)}</h1><span>${escapeHtml(periodText||m.semester||'')}</span><small>${escapeHtml(m.year||'')}</small></div>
-  </header>
-  <div class="compact-class-meta" dir="rtl"><span><b>الصف:</b> ${escapeHtml(c.grade||'—')}</span><span><b>الفصل:</b> ${escapeHtml(c.name||'—')}</span><span><b>المادة:</b> ${escapeHtml(c.subject||'—')}</span></div>`;
+  return `<header class="compact-class-header" dir="rtl"><div class="compact-class-gov"><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(region)}</span><span>${escapeHtml(school)}</span></div><div class="compact-class-logo"><img src="./assets/moe-logo.png" alt="شعار وزارة التعليم"></div><div class="compact-class-title"><h1>${escapeHtml(title)}</h1><span>${escapeHtml(periodText||m.semester||'')}</span><small>${escapeHtml(m.year||'')}</small></div></header><div class="compact-class-meta" dir="rtl"><span><b>الصف:</b> ${escapeHtml(c.grade||'—')}</span><span><b>الفصل:</b> ${escapeHtml(c.name||'—')}</span><span><b>المادة:</b> ${escapeHtml(c.subject||'—')}</span></div>`;
 }
 function attendanceRegisterSheet(c,period='all'){
-  const periodText=period==='all'?state.appMeta.semester:monthLabel(period);
-  if(period==='all'){
-    const rows=(c.students||[]).map((st,i)=>{const a=attendanceCounts(st,'all');return `<tr><td class='att-num'>${arabicNum(i+1)}</td><td class='att-name'>${escapeHtml(st.name)}</td><td>${arabicNum(a.total)}</td><td>${arabicNum(a.present)}</td><td>${arabicNum(a.absent)}</td><td>${arabicNum(a.late)}</td><td>${arabicNum(a.excused)}</td></tr>`}).join('')||'<tr><td colspan=\'7\'>لا يوجد طلاب في الفصل</td></tr>';
-    return `<div class='attendance-official-print portrait-attendance-report'><section class='attendance-print-page'>${compactClassOfficialHeader('ملخص الحضور والغياب',c,periodText)}<table class='attendance-register-table attendance-summary-register'><thead><tr><th>م</th><th>اسم الطالب</th><th>الأيام المسجلة</th><th>حاضر</th><th>غائب</th><th>متأخر</th><th>مستأذن</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</section></div>`;
-  }
-  const dates=attendanceDatesForPeriod(c,period);
-  if(!dates.length)return `<div class='attendance-official-print portrait-attendance-report'><section class='attendance-print-page'>${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class='attendance-empty-print'>لا توجد حالات حضور أو غياب مسجلة في هذه الفترة.</div>${officialReportSignatures()}</section></div>`;
-  const chunks=[];for(let i=0;i<dates.length;i+=9)chunks.push(dates.slice(i,i+9));
-  const pages=chunks.map((chunk,pageIndex)=>{
-    const dayHeads=chunk.map(d=>`<th class='att-day' title='${escapeHtml(formatDate(d))}'>${arabicNum(Number(d.slice(8)))}</th>`).join('');
-    const rows=(c.students||[]).map((st,i)=>{const a=attendanceCounts(st,period),cells=chunk.map(d=>`<td class='att-day att-${escapeHtml(st.attendance?.[d]||'none')}'>${attendanceMark(st.attendance?.[d])}</td>`).join('');return `<tr><td class='att-num'>${arabicNum(i+1)}</td><td class='att-name'>${escapeHtml(st.name)}</td>${cells}<td class='att-total'>${arabicNum(a.present)}</td><td class='att-total'>${arabicNum(a.absent)}</td><td class='att-total'>${arabicNum(a.late)}</td><td class='att-total'>${arabicNum(a.excused)}</td></tr>`}).join('')||`<tr><td colspan='${chunk.length+6}'>لا يوجد طلاب في الفصل</td></tr>`;
-    return `<section class='attendance-print-page'>${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class='attendance-page-note'><span>الأيام: ${arabicNum(Number(chunk[0].slice(8)))} - ${arabicNum(Number(chunk.at(-1).slice(8)))}</span><span>صفحة ${arabicNum(pageIndex+1)} من ${arabicNum(chunks.length)}</span></div><div class='attendance-legend'><span><b>ح</b> حاضر</span><span><b>غ</b> غائب</span><span><b>ت</b> متأخر</span><span><b>إ</b> مستأذن</span><span><b>—</b> غير مسجل</span></div><table class='attendance-register-table'><thead><tr><th class='att-num'>م</th><th class='att-name'>اسم الطالب</th>${dayHeads}<th class='att-total'>ح</th><th class='att-total'>غ</th><th class='att-total'>ت</th><th class='att-total'>إ</th></tr></thead><tbody>${rows}</tbody></table>${pageIndex===chunks.length-1?officialReportSignatures():''}</section>`;
+  const sessions=plannedAttendanceSessions(c,period),meta=plannedAttendanceMeta(c,sessions,period),periodText=period==='all'?state.appMeta.semester:monthLabel(period);
+  if(!sessions.length)return `<div class="attendance-official-print"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-empty-print">لا توجد حصص مخططة أو بيانات حضور في هذه الفترة.</div>${officialReportSignatures()}</section></div>`;
+  const chunks=[];for(let i=0;i<sessions.length;i+=12)chunks.push({start:i,items:sessions.slice(i,i+12)});
+  const planText=period==='all'&&meta.cfg?`أسابيع الخطة: ${arabicNum(meta.cfg.plannedWeeks)} · أسابيع التدريس بعد استبعاد الاختبارات: ${arabicNum(meta.teachingWeeks)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)} · الخانات الفعلية بعد الإجازات: ${arabicNum(meta.sessions)}`:`الخانات في الفترة: ${arabicNum(meta.sessions)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}`;
+  const pages=chunks.map((part,pageIndex)=>{
+    const heads=part.items.map((x,j)=>`<th class="att-session"><b>ح${arabicNum(part.start+j+1)}</b><small>${arabicNum(Number(x.date.slice(8)))}/${arabicNum(Number(x.date.slice(5,7)))}</small></th>`).join('');
+    const rows=(c.students||[]).map((st,i)=>{const all=attendanceCountsForSessions(st,sessions),cells=part.items.map(x=>`<td class="att-session att-${escapeHtml(st.attendance?.[x.date]||'none')}">${attendanceMark(st.attendance?.[x.date])}</td>`).join('');return `<tr><td class="att-num">${arabicNum(i+1)}</td><td class="att-name">${escapeHtml(st.name)}</td>${cells}<td class="att-total">${arabicNum(all.present)}</td><td class="att-total">${arabicNum(all.absent)}</td><td class="att-total">${arabicNum(all.late)}</td><td class="att-total">${arabicNum(all.excused)}</td></tr>`}).join('')||`<tr><td colspan="${part.items.length+6}">لا يوجد طلاب في الفصل</td></tr>`;
+    return `<section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-plan-summary">${planText}</div><div class="attendance-page-note"><span>الحصص ${arabicNum(part.start+1)}–${arabicNum(part.start+part.items.length)}</span><span>صفحة ${arabicNum(pageIndex+1)} من ${arabicNum(chunks.length)}</span></div><div class="attendance-legend"><span><b>ح</b> حاضر</span><span><b>غ</b> غائب</span><span><b>ت</b> متأخر</span><span><b>إ</b> مستأذن</span><span><b>—</b> غير مسجل</span></div><table class="attendance-register-table"><thead><tr><th class="att-num">م</th><th class="att-name">اسم الطالب</th>${heads}<th class="att-total">ح</th><th class="att-total">غ</th><th class="att-total">ت</th><th class="att-total">إ</th></tr></thead><tbody>${rows}</tbody></table>${pageIndex===chunks.length-1?officialReportSignatures():''}</section>`;
   }).join('');
-  return `<div class='attendance-official-print portrait-attendance-report'>${pages}</div>`;
+  return `<div class="attendance-official-print">${pages}</div>`;
 }
 function renderAttendanceRegister(){
   const c=currentClass(),sel=$('#attendanceReportPeriod'),preview=$('#attendanceReportPreview');if(!c||!sel||!preview)return;
-  const months=attendanceMonthsForClass(c),wanted=state.ui.attendanceReportPeriod||months[0]||'all';
-  sel.innerHTML='<option value="all">الفصل كاملًا — ملخص</option>'+months.map(m=>`<option value="${m}">${escapeHtml(monthLabel(m))}</option>`).join('');
-  sel.value=[...sel.options].some(o=>o.value===wanted)?wanted:(months[0]||'all');state.ui.attendanceReportPeriod=sel.value;
+  const months=attendanceMonthsForClass(c),wanted=state.ui.attendanceReportPeriod||'all';
+  sel.innerHTML='<option value="all">الفصل كاملًا</option>'+months.map(m=>`<option value="${m}">${escapeHtml(monthLabel(m))}</option>`).join('');
+  sel.value=[...sel.options].some(o=>o.value===wanted)?wanted:'all';state.ui.attendanceReportPeriod=sel.value;
+  const exam=$('#excludeExamWeek');if(exam){exam.checked=state.settings.excludeExamWeek!==false;exam.onchange=()=>{state.settings.excludeExamWeek=exam.checked;renderAttendanceRegister();queueSave()}}
   preview.innerHTML=attendanceRegisterSheet(c,sel.value);
   sel.onchange=e=>{state.ui.attendanceReportPeriod=e.target.value;renderAttendanceRegister();queueSave()};
   const printBtn=$('#printAttendanceReportBtn');if(printBtn)printBtn.onclick=printAttendanceReport;
 }
-function printAttendanceReport(){setPrintPage('portrait');document.body.classList.add('print-attendance-report');showView('attendance',false);try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-attendance-report');clearPrintPage()}}
-
+function printAttendanceReport(){setPrintPage('landscape');document.body.classList.add('print-attendance-report');showView('attendance',false);try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-attendance-report');clearPrintPage()}}
 
 function officialReportHeader(title,c,periodText,studentName=''){
   const m=state.appMeta||{},school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم',teacher=m.teacher||'—',principal=m.principal||'—';
@@ -262,9 +321,8 @@ function assessmentTypeScore(s,c,period,type){
 }
 function classOfficialSheet(c,period='all'){
   const periodText=period==='all'?state.appMeta.semester:monthLabel(period);
-  const rowsA=c.students.map((st,i)=>`<tr><td class='sheet-num'>${arabicNum(i+1)}</td><td class='sheet-name'>${escapeHtml(st.name)}</td><td>${assessmentTypeScore(st,c,period,'homework')}</td><td>${assessmentTypeScore(st,c,period,'participation')}</td><td>${assessmentTypeScore(st,c,period,'project')}</td><td>${assessmentTypeScore(st,c,period,'practical')}</td></tr>`).join('')||'<tr><td colspan=\'6\'>لا يوجد طلاب في الفصل</td></tr>';
-  const rowsB=c.students.map((st,i)=>{const sc=scoreSummary(st,c,period),at=attendanceCounts(st,period);return `<tr><td class='sheet-num'>${arabicNum(i+1)}</td><td class='sheet-name'>${escapeHtml(st.name)}</td><td>${assessmentTypeScore(st,c,period,'quiz')}</td><td>${assessmentTypeScore(st,c,period,'exam')}</td><td>${sc.gradedMax?`${arabicNum(sc.earned)} / ${arabicNum(sc.gradedMax)}`:'—'}</td><td>${pct(sc.performance)}</td><td>${arabicNum(at.absent)}</td></tr>`}).join('')||'<tr><td colspan=\'7\'>لا يوجد طلاب في الفصل</td></tr>';
-  return `<div class='official-class-print portrait-class-report'><section class='class-print-page'>${compactClassOfficialHeader('كشف متابعة الفصل',c,periodText)}<div class='class-page-label'>التقييمات والأنشطة</div><table class='official-class-sheet portrait-sheet-a'><thead><tr><th>م</th><th>اسم الطالب</th><th>الواجبات</th><th>المشاركة</th><th>المشاريع والبحوث</th><th>التطبيقات العملية</th></tr></thead><tbody>${rowsA}</tbody></table></section><section class='class-print-page class-print-page-second'>${compactClassOfficialHeader('كشف متابعة الفصل',c,periodText)}<div class='class-page-label'>الاختبارات والملخص</div><table class='official-class-sheet portrait-sheet-b'><thead><tr><th>م</th><th>اسم الطالب</th><th>الاختبارات القصيرة</th><th>الاختبارات</th><th>المجموع المرصود</th><th>النسبة</th><th>الغياب</th></tr></thead><tbody>${rowsB}</tbody></table>${officialReportSignatures()}</section></div>`;
+  const rows=c.students.map((st,i)=>{const sc=scoreSummary(st,c,period),at=attendanceCounts(st,period);return `<tr><td class="sheet-num">${arabicNum(i+1)}</td><td class="sheet-name">${escapeHtml(st.name)}</td><td>${assessmentTypeScore(st,c,period,'homework')}</td><td>${assessmentTypeScore(st,c,period,'participation')}</td><td>${assessmentTypeScore(st,c,period,'project')}</td><td>${assessmentTypeScore(st,c,period,'practical')}</td><td>${assessmentTypeScore(st,c,period,'quiz')}</td><td>${assessmentTypeScore(st,c,period,'exam')}</td><td>${sc.gradedMax?`${arabicNum(sc.earned)} / ${arabicNum(sc.gradedMax)}`:'—'}</td><td>${pct(sc.performance)}</td><td>${arabicNum(at.absent)}</td></tr>`}).join('')||'<tr><td colspan="11">لا يوجد طلاب في الفصل</td></tr>';
+  return `<div class="official-class-print landscape-class-report">${compactClassOfficialHeader('كشف متابعة الفصل',c,periodText)}<table class="official-class-sheet"><thead><tr><th>م</th><th>اسم الطالب</th><th>الواجبات</th><th>المشاركة والتفاعل</th><th>المشاريع والبحوث</th><th>التطبيقات العملية</th><th>الاختبارات القصيرة</th><th>الاختبارات</th><th>المجموع المرصود</th><th>النسبة</th><th>الغياب</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</div>`;
 }
 function renderReports(){
   const c=currentClass();if(!c)return;renderMonthOptions($('#reportPeriod'),state.ui.reportPeriod||'all');$('#gradeAlertThreshold').value=state.settings.gradeAlertThreshold;$('#absenceAlertThreshold').value=state.settings.absenceAlertThreshold;const period=$('#reportPeriod').value||'all',events=eventsForPeriod(c,period),students=c.students,risks=students.map(s=>({s,...riskForStudent(s,c,period)})),riskList=risks.filter(x=>x.isRisk);const perf=risks.map(x=>x.score.performance).filter(x=>x!==null),avg=perf.length?perf.reduce((a,b)=>a+b,0)/perf.length:null,absence=risks.reduce((n,x)=>n+x.attendance.absent,0);
@@ -286,7 +344,7 @@ function openStudentReport(id){
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
 function printStudent(){setPrintPage('portrait');document.body.classList.add('print-student');try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-student');clearPrintPage()}}
-function printClassReport(){setPrintPage('portrait');document.body.classList.add('print-class-summary');showView('reports',false);try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-class-summary');clearPrintPage()}}
+function printClassReport(){setPrintPage('landscape');document.body.classList.add('print-class-summary');showView('reports',false);try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-class-summary');clearPrintPage()}}
 
 function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const ch=text[i],n=text[i+1];if(ch==='"'&&q&&n==='"'){cell+='"';i++}else if(ch==='"'){q=!q}else if(ch===','&&!q){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=ch}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function csvHeaderIndex(headers,names){return headers.findIndex(h=>names.some(n=>h.toLowerCase()===n.toLowerCase()))}
@@ -382,10 +440,10 @@ function renderInstallNote(){const isIOS=/iphone|ipad|ipod/i.test(navigator.user
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');if(nav)showView(nav.dataset.nav);if(e.target.matches('[data-close]'))e.target.closest('dialog').close();if(e.target.matches('[data-mark-all]'))markAllAttendance(e.target.dataset.markAll);if(e.target.matches('[data-clear-attendance]'))clearAttendanceDay()});
 $('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};$('#studentSearch').oninput=e=>{searchTerm=e.target.value;renderAssessments()};$('#addStudentBtn').onclick=addStudent;$('#assessmentAddStudentBtn').onclick=addStudent;$('#manageStudentsBtn').onclick=openStudents;$('#manageStudentsBtnTop').onclick=openStudents;$('#studentsAddBtn').onclick=()=>{addStudent();renderStudentsModal()};$('#studentsImportBtn').onclick=()=>$('#csvInput').click();$('#importBtn').onclick=()=>$('#csvInput').click();$('#csvInput').onchange=e=>{if(e.target.files[0])importCSV(e.target.files[0]);e.target.value=''};$('#exportCsvBtn').onclick=exportCurrentClassCSV;
-$('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn').onclick=printAttendanceReport;
+$('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn')?.addEventListener('click',printAttendanceReport);
 $('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
-$('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};$('#openAttendanceReportBtn').onclick=()=>{showView('attendance');requestAnimationFrame(()=>$('#attendanceReportPanel')?.scrollIntoView({behavior:'smooth',block:'start'}))};$('#gradeAlertThreshold').onchange=e=>{state.settings.gradeAlertThreshold=Math.max(0,Math.min(100,Number(e.target.value)||60));renderAll();queueSave()};$('#absenceAlertThreshold').onchange=e=>{state.settings.absenceAlertThreshold=Math.max(1,Number(e.target.value)||3);renderAll();queueSave()};$('#printClassReportBtn').onclick=printClassReport;$('#saveStudentNotesBtn').onclick=saveStudentNotes;$('#printStudentBtn').onclick=printStudent;$('#dismissInstall').onclick=()=>{state.ui.dismissedInstall=true;renderInstallNote();queueSave()};
+$('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};$('#openAttendanceReportBtn')?.addEventListener('click',()=>{showView('attendance');requestAnimationFrame(()=>$('#attendanceReportPanel')?.scrollIntoView({behavior:'smooth',block:'start'}))});$('#gradeAlertThreshold').onchange=e=>{state.settings.gradeAlertThreshold=Math.max(0,Math.min(100,Number(e.target.value)||60));renderAll();queueSave()};$('#absenceAlertThreshold').onchange=e=>{state.settings.absenceAlertThreshold=Math.max(1,Number(e.target.value)||3);renderAll();queueSave()};$('#printClassReportBtn').onclick=printClassReport;$('#saveStudentNotesBtn').onclick=saveStudentNotes;$('#printStudentBtn').onclick=printStudent;$('#dismissInstall').onclick=()=>{state.ui.dismissedInstall=true;renderInstallNote();queueSave()};
 window.addEventListener('afterprint',()=>{document.body.classList.remove('print-student','print-class-summary','print-teacher-schedule','print-attendance-report');clearPrintPage()});
-$('#checkUpdateBtn').onclick=()=>checkForAppUpdate({manual:true});
+$('#checkUpdateBtn')?.addEventListener('click',()=>checkForAppUpdate({manual:true}));
 load();
 initAppUpdater();
