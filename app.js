@@ -1,4 +1,6 @@
 const SCHEMA_VERSION=3;
+const APP_VERSION=globalThis.APP_VERSION||'0.0.0';
+let swRegistration=null,updateReloading=false,updateBannerTimer=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const uid=()=>crypto.randomUUID?.() || ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
 const clone=x=>typeof structuredClone==='function'?structuredClone(x):JSON.parse(JSON.stringify(x));
@@ -317,6 +319,64 @@ function exportCurrentClassCSV(){const c=currentClass(),events=c.assessmentEvent
 function download(name,text,type='application/json'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();const url=a.href;a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function backup(){const copy=clone(state);copy.exportedAt=new Date().toISOString();download(`student-roster-backup-${localDateISO()}.json`,JSON.stringify(copy,null,2))}
 async function restore(file){try{const x=JSON.parse(await file.text()),m=migrate(x);if(!m)throw 0;if(!confirm('سيتم استبدال السجلات الحالية بالنسخة الاحتياطية. متابعة؟'))return;state=m;await save();renderAll();showView('dashboard',false);toast('تمت الاستعادة')}catch{toast('ملف النسخة الاحتياطية غير صالح')}}
+
+function compareVersions(a,b){
+  const pa=String(a||'0').replace(/^v/i,'').split('.').map(x=>Number(x)||0),pb=String(b||'0').replace(/^v/i,'').split('.').map(x=>Number(x)||0),n=Math.max(pa.length,pb.length);
+  for(let i=0;i<n;i++){const d=(pa[i]||0)-(pb[i]||0);if(d)return d>0?1:-1}return 0
+}
+function setVersionUI(){
+  if($('#versionBadge'))$('#versionBadge').textContent='v'+APP_VERSION;
+  if($('#footerVersion'))$('#footerVersion').textContent='v'+APP_VERSION;
+}
+function showUpdateBanner(title,text,autoHide=0){
+  const b=$('#updateBanner');if(!b)return;
+  $('#updateBannerTitle').textContent=title;$('#updateBannerText').textContent=text;b.hidden=false;
+  if(updateBannerTimer)clearTimeout(updateBannerTimer);
+  if(autoHide)updateBannerTimer=setTimeout(()=>{b.hidden=true},autoHide)
+}
+async function fetchPublishedVersion(){
+  try{
+    const r=await fetch('./version.js?check='+Date.now(),{cache:'no-store',headers:{'cache-control':'no-cache'}});
+    if(!r.ok)return null;const txt=await r.text(),m=txt.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);return m?.[1]||null
+  }catch{return null}
+}
+async function checkForAppUpdate({manual=false}={}){
+  if(!navigator.onLine){if(manual)showUpdateBanner('لا يوجد اتصال','سأفحص التحديث عند عودة الاتصال.',2500);return}
+  if(manual)showUpdateBanner('فحص التحديثات','جارٍ التحقق من أحدث إصدار…');
+  const latest=await fetchPublishedVersion(),newer=latest&&compareVersions(latest,APP_VERSION)>0;
+  if(newer)showUpdateBanner('إصدار جديد v'+latest,'جارٍ تنزيل التحديث وتفعيله تلقائيًا…');
+  try{await swRegistration?.update()}catch{}
+  if(swRegistration?.waiting){try{swRegistration.waiting.postMessage({type:'SKIP_WAITING'})}catch{}}
+  if(manual&&!newer)showUpdateBanner('التطبيق محدث','أنت تستخدم أحدث إصدار v'+APP_VERSION+'.',2200)
+}
+async function initAppUpdater(){
+  setVersionUI();
+  try{
+    const key='student-roster-app-version',prev=localStorage.getItem(key);
+    if(prev&&prev!==APP_VERSION)setTimeout(()=>toast('تم تحديث التطبيق إلى الإصدار v'+APP_VERSION),500);
+    localStorage.setItem(key,APP_VERSION)
+  }catch{}
+  if(!('serviceWorker'in navigator))return;
+  const hadController=!!navigator.serviceWorker.controller;
+  try{
+    swRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+    swRegistration.addEventListener('updatefound',()=>{
+      const worker=swRegistration.installing;if(!worker||!navigator.serviceWorker.controller)return;
+      showUpdateBanner('يوجد تحديث جديد','جارٍ تنزيل الإصدار الجديد…');
+      worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&swRegistration.waiting){showUpdateBanner('التحديث جاهز','يتم تفعيل الإصدار الجديد الآن…');try{swRegistration.waiting.postMessage({type:'SKIP_WAITING'})}catch{}}})
+    });
+    let canReload=hadController;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(!canReload){canReload=true;return}
+      if(updateReloading)return;updateReloading=true;showUpdateBanner('تم تثبيت التحديث','إعادة فتح التطبيق على الإصدار الجديد…');setTimeout(()=>location.reload(),350)
+    });
+    await checkForAppUpdate();
+    setInterval(()=>checkForAppUpdate(),30*60*1000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForAppUpdate()});
+    window.addEventListener('online',()=>checkForAppUpdate())
+  }catch{}
+}
+
 function renderInstallNote(){const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;$('#installNote').style.display=isIOS&&!standalone&&!state.ui.dismissedInstall?'block':'none'}
 
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');if(nav)showView(nav.dataset.nav);if(e.target.matches('[data-close]'))e.target.closest('dialog').close();if(e.target.matches('[data-mark-all]'))markAllAttendance(e.target.dataset.markAll);if(e.target.matches('[data-clear-attendance]'))clearAttendanceDay()});
@@ -326,5 +386,6 @@ $('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$(
 $('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
 $('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};$('#openAttendanceReportBtn').onclick=()=>{showView('attendance');requestAnimationFrame(()=>$('#attendanceReportPanel')?.scrollIntoView({behavior:'smooth',block:'start'}))};$('#gradeAlertThreshold').onchange=e=>{state.settings.gradeAlertThreshold=Math.max(0,Math.min(100,Number(e.target.value)||60));renderAll();queueSave()};$('#absenceAlertThreshold').onchange=e=>{state.settings.absenceAlertThreshold=Math.max(1,Number(e.target.value)||3);renderAll();queueSave()};$('#printClassReportBtn').onclick=printClassReport;$('#saveStudentNotesBtn').onclick=saveStudentNotes;$('#printStudentBtn').onclick=printStudent;$('#dismissInstall').onclick=()=>{state.ui.dismissedInstall=true;renderInstallNote();queueSave()};
 window.addEventListener('afterprint',()=>{document.body.classList.remove('print-student','print-class-summary','print-teacher-schedule','print-attendance-report');clearPrintPage()});
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+$('#checkUpdateBtn').onclick=()=>checkForAppUpdate({manual:true});
 load();
+initAppUpdater();
