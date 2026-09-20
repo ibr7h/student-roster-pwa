@@ -101,3 +101,94 @@
   body.print-teacher-schedule .teacher-schedule-table{width:277mm!important;max-width:277mm!important;border-collapse:collapse!important;table-layout:fixed!important}
   body.print-teacher-schedule .teacher-schedule-table th,body.print-teacher-schedule .teacher-schedule-table td{font-size:7pt!important;padding:2pt!important;overflow:hidden!important}
 }
+
+/* V4.3 safe landscape fit */
+@media print{
+  body.print-class-summary [data-report-panel="class"],
+  body.print-class-summary #reportPrintHeader,
+  body.print-class-summary .landscape-class-report,
+  body.print-class-summary .official-class-sheet{
+    width:273mm!important;
+    max-width:273mm!important;
+    min-width:0!important;
+  }
+  body.print-class-summary .official-class-sheet{
+    table-layout:fixed!important;
+  }
+  body.print-class-summary .official-class-sheet th,
+  body.print-class-summary .official-class-sheet td{
+    font-size:6.4pt!important;
+    padding:2pt 1.1pt!important;
+    line-height:1.1!important;
+  }
+  body.print-class-summary .official-class-sheet .sheet-num{width:6mm!important}
+  body.print-class-summary .official-class-sheet .sheet-name{width:45mm!important}
+  body.print-class-summary .official-signatures{
+    margin-top:3mm!important;
+    padding-top:2mm!important;
+  }
+
+  body.print-attendance-report [data-report-panel="attendance"],
+  body.print-attendance-report .attendance-report-preview,
+  body.print-attendance-report .attendance-official-print,
+  body.print-attendance-report .attendance-print-page,
+  body.print-attendance-report .attendance-register-table{
+    width:273mm!important;
+    max-width:273mm!important;
+    min-width:0!important;
+  }
+  body.print-attendance-report .attendance-print-page{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  body.print-attendance-report .attendance-register-table{
+    table-layout:fixed!important;
+  }
+  body.print-attendance-report .attendance-register-table .att-num{
+    width:6mm!important;
+  }
+  body.print-attendance-report .attendance-register-table .att-name{
+    width:43mm!important;
+  }
+  body.print-attendance-report .attendance-register-table .att-total{
+    width:7mm!important;
+  }
+  body.print-attendance-report .attendance-register-table .att-session{
+    width:auto!important;
+    min-width:0!important;
+  }
+  body.print-attendance-report .attendance-register-table th,
+  body.print-attendance-report .attendance-register-table td{
+    font-size:5.15pt!important;
+    padding:.9pt .25pt!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+  body.print-attendance-report .attendance-register-table .att-name{
+    font-size:5.6pt!important;
+    white-space:normal!important;
+  }
+  body.print-attendance-report .attendance-register-table .att-session b{
+    font-size:5pt!important;
+  }
+  body.print-attendance-report .attendance-register-table .att-session small{
+    font-size:4.3pt!important;
+  }
+  body.print-attendance-report .attendance-plan-summary{
+    font-size:6pt!important;
+    padding:1.4pt 3pt!important;
+    margin:.8mm 0 1mm!important;
+  }
+  body.print-attendance-report .attendance-page-note,
+  body.print-attendance-report .attendance-legend{
+    font-size:5.8pt!important;
+    margin:.7mm 0!important;
+  }
+  body.print-attendance-report .official-signatures{
+    margin-top:2.5mm!important;
+    padding-top:2mm!important;
+  }
+  body.print-attendance-report .official-signatures span{font-size:6.8pt!important}
+  body.print-attendance-report .official-signatures b{font-size:7.8pt!important}
+  body.print-attendance-report .official-signatures em{font-size:6.2pt!important}
+}
