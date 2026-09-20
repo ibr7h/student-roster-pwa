@@ -368,3 +368,20 @@
   body.print-attendance-report .attendance-summary-register .att-name{width:55mm!important}
   body.print-attendance-report .official-signatures{margin-top:5mm!important}
 }
+
+/* V3.10 version + automatic update UI */
+.brand-title-line{display:flex;align-items:center;gap:7px;min-width:0}
+.version-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);font-size:9px;font-weight:800;line-height:1;white-space:nowrap}
+.footer-version{font-size:10px}
+.update-banner{position:sticky;top:62px;z-index:39;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#eef7ff;border:1px solid #b8d7ef;border-radius:12px;padding:9px 11px;margin:6px 0 10px;box-shadow:0 8px 24px rgba(23,63,95,.08)}
+.update-banner[hidden]{display:none!important}
+.update-banner-copy{display:grid;gap:2px;min-width:0}
+.update-banner-copy b{font-size:12px}
+.update-banner-copy span{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+@media(max-width:680px){
+  .brand-title-line{gap:5px}
+  .version-badge{font-size:8px;padding:2px 5px}
+  .update-banner{top:56px;align-items:stretch;flex-direction:column}
+  .update-banner .btn{width:100%}
+}
+@media print{.version-badge,.update-banner,.footer-version{display:none!important}}
