@@ -1,0 +1,37 @@
+name: Validate v4.3 landscape reports
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v43.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate v4.3
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          a=Path('app.js').read_text(encoding='utf-8')
+          p=Path('print.css').read_text(encoding='utf-8')
+          h=Path('index.html').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          checks={
+            'version': "APP_VERSION='4.3.0'" in v and 'v4.3.0' in h,
+            'attendance one page html': 'one-page-attendance' in a and 'صفحة واحدة' in a,
+            'attendance one page pdf': 'const page=attendancePdfPage' in a and 'return buildJpegPdf([page])' in a,
+            'all sessions pdf': '{start:0,items:sessions}' in a,
+            'class pdf builder': 'function buildClassLandscapePdf()' in a,
+            'class ios pdf': "if(isIOSLike())openClassLandscapePdf()" in a,
+            'attendance ios pdf': "if(isIOSLike())openAttendanceLandscapePdf()" in a,
+            'safe class width': 'width:273mm!important' in p,
+            'compact attendance': 'font-size:5.15pt!important' in p,
+          }
+          bad=[k for k,val in checks.items() if not val]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.3 validation passed')
+          PY
