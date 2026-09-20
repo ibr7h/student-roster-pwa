@@ -277,6 +277,13 @@ function scheduledSlotsForClass(c){
   });
   return out.sort((a,b)=>SCHEDULE_DAYS.indexOf(a.day)-SCHEDULE_DAYS.indexOf(b.day)||a.period-b.period);
 }
+function storedAttendanceDatesForPeriod(c,period='all'){
+  const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term];
+  return attendanceDatesForPeriod(c,period).filter(date=>{
+    if(period!=='all'||!cfg)return true;
+    return inRange(date,cfg.start,cfg.end)
+  })
+}
 function plannedAttendanceSessions(c,period='all'){
   const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term];if(!cfg)return[];
   const slots=scheduledSlotsForClass(c),exam=state.settings.excludeExamWeek!==false?examWeekRange(term):null,out=[];
@@ -285,18 +292,24 @@ function plannedAttendanceSessions(c,period='all'){
     while(d<=end){
       const iso=isoFromDateLocal(d),day=AR_DAY_BY_JS[d.getDay()];
       if(!schoolHoliday(iso)&&!(exam&&inRange(iso,exam.start,exam.end))){
-        slots.filter(x=>x.day===day).forEach(x=>out.push({date:iso,day,period:x.period,planned:true}));
+        slots.filter(x=>x.day===day).forEach(x=>out.push({date:iso,day,period:x.period,planned:true,historical:false}));
       }
       d.setDate(d.getDate()+1);
     }
   }
-  const filtered=period==='all'?out:out.filter(x=>monthKey(x.date)===period);
-  if(filtered.length)return filtered;
-  return attendanceDatesForPeriod(c,period).map((date,i)=>({date,day:AR_DAY_BY_JS[parseISODateNoon(date).getDay()],period:null,planned:false,seq:i+1}));
+  const merged=(period==='all'?out:out.filter(x=>monthKey(x.date)===period)).slice();
+  const plannedDates=new Set(merged.map(x=>x.date));
+  storedAttendanceDatesForPeriod(c,period).forEach(date=>{
+    if(plannedDates.has(date))return;
+    merged.push({date,day:AR_DAY_BY_JS[parseISODateNoon(date).getDay()],period:null,planned:false,historical:true})
+  });
+  merged.sort((a,b)=>a.date.localeCompare(b.date)||(Number(a.period)||99)-(Number(b.period)||99));
+  return merged
 }
 function plannedAttendanceMeta(c,sessions,period='all'){
   const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term],weekly=scheduledSlotsForClass(c).length||Number(c.weeklySessions||1),exclude=state.settings.excludeExamWeek!==false;
-  return {term,cfg,weekly,teachingWeeks:Math.max(0,(cfg?.plannedWeeks||0)-(exclude?1:0)),sessions:sessions.length,period};
+  const plannedSessions=sessions.filter(x=>x.planned).length,historicalSessions=sessions.filter(x=>x.historical).length;
+  return {term,cfg,weekly,teachingWeeks:Math.max(0,(cfg?.plannedWeeks||0)-(exclude?1:0)),sessions:sessions.length,plannedSessions,historicalSessions,period};
 }
 function attendanceCountsForSessions(st,sessions){
   const out={present:0,absent:0,late:0,excused:0,total:0};
@@ -310,9 +323,9 @@ function compactClassOfficialHeader(title,c,periodText){
 function attendanceRegisterSheet(c,period='all'){
   const sessions=plannedAttendanceSessions(c,period),meta=plannedAttendanceMeta(c,sessions,period),periodText=period==='all'?state.appMeta.semester:monthLabel(period);
   if(!sessions.length)return `<div class="attendance-official-print"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-empty-print">لا توجد حصص مخططة أو بيانات حضور في هذه الفترة.</div>${officialReportSignatures()}</section></div>`;
-  const heads=sessions.map((x,j)=>`<th class="att-session"><b>ح${arabicNum(j+1)}</b><small>${arabicNum(Number(x.date.slice(8)))}/${arabicNum(Number(x.date.slice(5,7)))}</small></th>`).join('');
+  const heads=sessions.map((x,j)=>`<th class="att-session ${x.historical?'att-session-history':''}" title="${x.historical?'سجل سابق محفوظ':''}"><b>ح${arabicNum(j+1)}${x.historical?'*':''}</b><small>${arabicNum(Number(x.date.slice(8)))}/${arabicNum(Number(x.date.slice(5,7)))}</small></th>`).join('');
   const rows=(c.students||[]).map((st,i)=>{const all=attendanceCountsForSessions(st,sessions),cells=sessions.map(x=>`<td class="att-session att-${escapeHtml(st.attendance?.[x.date]||'none')}">${attendanceMark(st.attendance?.[x.date])}</td>`).join('');return `<tr><td class="att-num">${arabicNum(i+1)}</td><td class="att-name">${escapeHtml(st.name)}</td>${cells}<td class="att-total">${arabicNum(all.present)}</td><td class="att-total">${arabicNum(all.absent)}</td><td class="att-total">${arabicNum(all.late)}</td><td class="att-total">${arabicNum(all.excused)}</td></tr>`}).join('')||`<tr><td colspan="${sessions.length+6}">لا يوجد طلاب في الفصل</td></tr>`;
-  const planText=period==='all'&&meta.cfg?`أسابيع الخطة: ${arabicNum(meta.cfg.plannedWeeks)} · أسابيع التدريس بعد استبعاد الاختبارات: ${arabicNum(meta.teachingWeeks)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)} · الخانات الفعلية بعد الإجازات: ${arabicNum(meta.sessions)}`:`الخانات في الفترة: ${arabicNum(meta.sessions)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}`;
+  const historyText=meta.historicalSessions?` · سجلات سابقة محفوظة: ${arabicNum(meta.historicalSessions)}`:'';const planText=period==='all'&&meta.cfg?`أسابيع الخطة: ${arabicNum(meta.cfg.plannedWeeks)} · أسابيع التدريس بعد استبعاد الاختبارات: ${arabicNum(meta.teachingWeeks)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)} · الخانات المخططة: ${arabicNum(meta.plannedSessions)}${historyText}`:`الخانات المخططة: ${arabicNum(meta.plannedSessions)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}${historyText}`;
   return `<div class="attendance-official-print one-page-attendance"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-plan-summary">${planText}</div><div class="attendance-page-note"><span>الحصص ١–${arabicNum(sessions.length)}</span><span>صفحة واحدة</span></div><div class="attendance-legend"><span><b>ح</b> حاضر</span><span><b>غ</b> غائب</span><span><b>ت</b> متأخر</span><span><b>إ</b> مستأذن</span><span><b>—</b> غير مسجل</span></div><table class="attendance-register-table"><thead><tr><th class="att-num">م</th><th class="att-name">اسم الطالب</th>${heads}<th class="att-total">ح</th><th class="att-total">غ</th><th class="att-total">ت</th><th class="att-total">إ</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</section></div>`;
 }
 function renderAttendanceRegister(){
@@ -322,7 +335,7 @@ function renderAttendanceRegister(){
   sel.value=[...sel.options].some(o=>o.value===wanted)?wanted:'all';state.ui.attendanceReportPeriod=sel.value;
   const exam=$('#excludeExamWeek');if(exam){exam.checked=state.settings.excludeExamWeek!==false;exam.onchange=()=>{state.settings.excludeExamWeek=exam.checked;renderAttendanceRegister();queueSave()}}
   const sessions=plannedAttendanceSessions(c,sel.value),meta=plannedAttendanceMeta(c,sessions,sel.value),summary=$('#attendanceReportSummary');
-  if(summary)summary.innerHTML=`<div><span>حصص أسبوعية</span><b>${arabicNum(meta.weekly)}</b></div><div><span>أسابيع التدريس</span><b>${arabicNum(meta.teachingWeeks)}</b></div><div><span>الخانات الفعلية</span><b>${arabicNum(meta.sessions)}</b></div><div><span>أسبوع الاختبارات</span><b>${state.settings.excludeExamWeek!==false?'مستبعد':'محسوب'}</b></div>`;
+  if(summary)summary.innerHTML=`<div><span>حصص أسبوعية</span><b>${arabicNum(meta.weekly)}</b></div><div><span>أسابيع التدريس</span><b>${arabicNum(meta.teachingWeeks)}</b></div><div><span>خانات السجل</span><b>${arabicNum(meta.sessions)}</b>${meta.historicalSessions?`<small>منها ${arabicNum(meta.historicalSessions)} سجل سابق</small>`:''}</div><div><span>أسبوع الاختبارات</span><b>${state.settings.excludeExamWeek!==false?'مستبعد':'محسوب'}</b></div>`;
   preview.innerHTML=attendanceRegisterSheet(c,sel.value);
   sel.onchange=e=>{state.ui.attendanceReportPeriod=e.target.value;renderAttendanceRegister();queueSave()};
   const printBtn=$('#printAttendanceReportBtn');if(printBtn){printBtn.textContent=isIOSLike()?'🖨 PDF بالعرض للطباعة':'🖨 طباعة سجل الحضور';printBtn.onclick=printAttendanceReport;}
@@ -399,7 +412,7 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
 
   const planY=201,planH=34;
   ctx.fillStyle='#f6f7f8';ctx.fillRect(M,planY,W-2*M,planH);ctx.strokeStyle='#a0a6ad';ctx.strokeRect(M,planY,W-2*M,planH);
-  const planText=meta.cfg?`أسابيع الخطة: ${arabicNum(meta.cfg.plannedWeeks)}  ·  أسابيع التدريس: ${arabicNum(meta.teachingWeeks)}  ·  حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}  ·  الخانات الفعلية: ${arabicNum(meta.sessions)}`:`حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}  ·  الخانات الفعلية: ${arabicNum(meta.sessions)}`;
+  const hist=meta.historicalSessions?`  ·  سجلات سابقة: ${arabicNum(meta.historicalSessions)}`:'';const planText=meta.cfg?`أسابيع الخطة: ${arabicNum(meta.cfg.plannedWeeks)}  ·  أسابيع التدريس: ${arabicNum(meta.teachingWeeks)}  ·  حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}  ·  الخانات المخططة: ${arabicNum(meta.plannedSessions)}${hist}`:`حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}  ·  الخانات المخططة: ${arabicNum(meta.plannedSessions)}${hist}`;
   attendancePdfText(ctx,planText,center,planY+planH/2,14,'700','center');
 
   attendancePdfText(ctx,`الحصص ١–${arabicNum(allSessions.length)}`,right,252,14,'700');
