@@ -1,0 +1,36 @@
+name: Validate V3.9 print reports
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v39.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check source and print layout markers
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          h=Path('index.html').read_text(encoding='utf-8')
+          a=Path('app.js').read_text(encoding='utf-8')
+          c=Path('styles.css').read_text(encoding='utf-8')
+          checks=[
+            ('attendanceReportPanel',h),
+            ('openAttendanceReportBtn',h),
+            ("i+=9",a),
+            ("class-print-page-second",a),
+            ("setPrintPage('portrait')",a),
+            ("student-summary-strip",a),
+            ("V3.9 iPhone-safe portrait A4 reports",c),
+            ("width:190mm",c),
+            ("student-roster-pwa-v3.9",Path('sw.js').read_text(encoding='utf-8')),
+          ]
+          missing=[x for x,t in checks if x not in t]
+          if missing: raise SystemExit('missing: '+', '.join(missing))
+          print('V3.9 validation passed')
+          PY
