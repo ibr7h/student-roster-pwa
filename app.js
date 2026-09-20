@@ -426,7 +426,7 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
   attendancePdfCell(ctx,x-nameW,tableY,nameW,headH,'اسم الطالب',{align:'right',size:16,weight:'700',fill:'#eef0f2'});x-=nameW;
   part.items.forEach((sess,j)=>{
     const sx=x-sessionW;ctx.fillStyle='#eef0f2';ctx.fillRect(sx,tableY,sessionW,headH);ctx.strokeStyle='#5f6670';ctx.strokeRect(sx,tableY,sessionW,headH);
-    attendancePdfText(ctx,`ح${arabicNum(part.start+j+1)}`,sx+sessionW/2,tableY+17,sessionTitleSize,'700','center');
+    attendancePdfText(ctx,`ح${arabicNum(part.start+j+1)}${sess.historical?'*':''}`,sx+sessionW/2,tableY+17,sessionTitleSize,'700','center');
     attendancePdfText(ctx,`${arabicNum(Number(sess.date.slice(8)))}/${arabicNum(Number(sess.date.slice(5,7))) }`,sx+sessionW/2,tableY+38,dateSize,'400','center');x-=sessionW
   });
   [['ح',totalW],['غ',totalW],['ت',totalW],['إ',totalW]].forEach(([lab,w])=>{attendancePdfCell(ctx,x-w,tableY,w,headH,lab,{size:14,weight:'700',fill:'#eef0f2'});x-=w});
