@@ -31,3 +31,5 @@ jobs:
           git add -A
           git commit -m "Use operational plan logo and enforce A4 reports"
           git push
+
+# retry with fixed PNG signature
