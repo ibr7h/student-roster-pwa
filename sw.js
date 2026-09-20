@@ -1,7 +1,7 @@
-// release 3.11.0
+// release 4.0.0
 importScripts('./version.js');
 const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'3.10.0');
-const ASSETS=['./','./index.html','./styles.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
+const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()))
