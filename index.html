@@ -18,7 +18,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><b>سجلات الطلاب</b><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v—</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -30,6 +30,11 @@
   <div id="installNote" class="install-note no-print">
     <b>تثبيت التطبيق على iPhone:</b> من Safari اختر مشاركة ← إضافة إلى الشاشة الرئيسية.
     <button class="iconbtn" id="dismissInstall" aria-label="إخفاء">×</button>
+  </div>
+
+  <div id="updateBanner" class="update-banner no-print" hidden role="status" aria-live="polite">
+    <div class="update-banner-copy"><b id="updateBannerTitle">يوجد تحديث جديد</b><span id="updateBannerText">جارٍ تنزيل أحدث إصدار…</span></div>
+    <button class="btn compact" id="checkUpdateBtn">فحص الآن</button>
   </div>
 
   <main>
@@ -139,7 +144,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">—</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
@@ -167,6 +172,7 @@
 <dialog class="modal student-modal" id="studentModal"><div class="modalbox"><div class="modalhead no-print"><div><p class="eyebrow">تقرير فردي</p><h3 id="studentModalTitle">تقرير الطالب</h3></div><button class="iconbtn" data-close>×</button></div><div id="studentReportPrint" class="student-report-print"></div><div class="student-notes no-print"><label for="studentNotes">ملاحظات المعلم</label><textarea id="studentNotes" rows="4" placeholder="اكتب ملاحظة مختصرة عن الطالب…"></textarea></div><div class="modalfooter no-print"><button class="btn" id="printStudentBtn">🖨 طباعة التقرير</button><button class="btn primary" id="saveStudentNotesBtn">حفظ الملاحظات</button></div></div></dialog>
 
 <div class="toast no-print" id="toast"></div>
+<script src="version.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
