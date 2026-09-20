@@ -84,17 +84,17 @@
         <div class="section-head attendance-head"><div><p class="eyebrow">الحضور اليومي</p><h2 id="attendanceHeading">تسجيل الحضور والغياب</h2></div><div class="attendance-date-wrap"><label for="attendanceDate">التاريخ</label><input id="attendanceDate" type="date"></div></div>
         <div class="attendance-stats" id="attendanceStats"></div>
       </section>
-      <section class="panel"><div class="attendance-actions no-print"><button class="btn" data-mark-all="present">تحديد غير المسجلين حاضر</button><button class="btn" data-clear-attendance>مسح حالة اليوم</button></div><div class="attendance-list" id="attendanceList"></div></section>
-      <section class="panel attendance-report-panel">
-        <div class="section-head no-print">
-          <div><p class="eyebrow">سجل المتابعة</p><h2>تقرير الحضور والغياب</h2><p class="subtle">اختر شهرًا لعرض الأيام بالتفصيل، أو الفصل كاملًا لملخص كل طالب.</p></div>
-          <div class="attendance-report-controls">
+      <section class="panel attendance-report-panel" id="attendanceReportPanel">
+        <div class="section-head">
+          <div><p class="eyebrow">السجل الرسمي</p><h2>سجل متابعة الحضور والغياب</h2><p class="subtle">يظهر هنا مباشرة دون الحاجة للنزول أسفل قائمة الطلاب.</p></div>
+          <div class="attendance-report-controls no-print">
             <div class="field"><label>الفترة</label><select id="attendanceReportPeriod"><option value="all">الفصل كاملًا</option></select></div>
             <button class="btn primary" id="printAttendanceReportBtn">🖨 طباعة A4</button>
           </div>
         </div>
         <div id="attendanceReportPreview" class="attendance-report-preview"></div>
       </section>
+      <section class="panel"><div class="attendance-actions no-print"><button class="btn" data-mark-all="present">تحديد غير المسجلين حاضر</button><button class="btn" data-clear-attendance>مسح حالة اليوم</button></div><div class="attendance-list" id="attendanceList"></div></section>
     </section>
 
     <section class="view" id="view-schedule" data-view="schedule">
@@ -128,7 +128,7 @@
       <section class="panel">
         <div class="section-head reports-head">
           <div><p class="eyebrow">التقارير</p><h2>تحليل الأداء والحضور</h2><p class="subtle">اختر شهرًا أو اعرض الفصل كاملًا. التنبيه يعتمد على حدود تستطيع تعديلها.</p></div>
-          <div class="report-controls no-print"><div class="field"><label>الفترة</label><select id="reportPeriod"><option value="all">الفصل كاملًا</option></select></div><div class="field"><label>تنبيه الدرجة أقل من %</label><input id="gradeAlertThreshold" type="number" min="0" max="100"></div><div class="field"><label>تنبيه الغياب من</label><input id="absenceAlertThreshold" type="number" min="1" max="100"></div><button class="btn" id="printClassReportBtn">🖨 طباعة</button></div>
+          <div class="report-controls no-print"><div class="field"><label>الفترة</label><select id="reportPeriod"><option value="all">الفصل كاملًا</option></select></div><div class="field"><label>تنبيه الدرجة أقل من %</label><input id="gradeAlertThreshold" type="number" min="0" max="100"></div><div class="field"><label>تنبيه الغياب من</label><input id="absenceAlertThreshold" type="number" min="1" max="100"></div><button class="btn" id="openAttendanceReportBtn">◷ سجل الحضور والغياب</button><button class="btn primary" id="printClassReportBtn">🖨 كشف الفصل A4</button></div>
         </div>
         <div class="print-report-header" id="reportPrintHeader"></div><div class="report-kpis" id="reportKpis"></div>
         <div class="risk-banner" id="riskBanner"></div>
