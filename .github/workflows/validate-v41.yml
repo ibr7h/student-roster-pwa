@@ -1,0 +1,47 @@
+name: Validate v4.1 reports UX
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v41.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate v4.1
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          h=Path('index.html').read_text(encoding='utf-8')
+          a=Path('app.js').read_text(encoding='utf-8')
+          s=Path('styles.css').read_text(encoding='utf-8')
+          p=Path('print.css').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          ids=re.findall(r'\bid="([^"]+)"',h)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          if dup: raise SystemExit('duplicate ids: '+','.join(dup))
+          bad_for_each=re.findall(r'(?<!\$)\$\([^;\n]+\)\.forEach',a)
+          if bad_for_each: raise SystemExit('bad selector forEach: '+repr(bad_for_each[:5]))
+          checks={
+            'version': "APP_VERSION='4.1.0'" in v and 'v4.1.0' in h,
+            'report hub': 'id="reportsHub"' in h and h.count('data-report-open=')==3,
+            'report detail panels': all(f'data-report-panel="{x}"' in h for x in ['class','attendance','students']),
+            'report back': h.count('data-report-back')==3,
+            'preview toggles': all(f'data-preview-toggle="{x}"' in h for x in ['class','attendance']),
+            'context': 'reportsContextTitle' in h and 'reportsContextMeta' in h,
+            'student search': 'reportStudentSearch' in h and 'reportStudentSearchTerm' in a,
+            'hub behavior': 'function showReportsHub' in a and 'function toggleReportPreview' in a,
+            'no old tabs': 'data-report-tab' not in h and "openAttendanceReportBtn" not in h,
+            'single print system': '@media print' not in s and len(re.findall(r'@media\s+print',p))==1,
+            'preview prints': 'body.print-class-summary .report-preview-box' in p and 'body.print-attendance-report .report-preview-box' in p,
+            'landscape print': "setPrintPage('landscape')" in a,
+          }
+          bad=[k for k,val in checks.items() if not val]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.1 reports UX validation passed')
+          PY
