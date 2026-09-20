@@ -1,0 +1,37 @@
+name: Validate v4.1.1 print session
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v411.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate print session safety
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          a=Path('app.js').read_text(encoding='utf-8')
+          h=Path('index.html').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          checks={
+            'version': "APP_VERSION='4.1.1'" in v and 'v4.1.1' in h,
+            'print session': 'function runPrintSession' in a and 'function cleanupPrintSession' in a,
+            'attendance safe print': "runPrintSession('print-attendance-report','landscape')" in a,
+            'class safe print': "runPrintSession('print-class-summary','landscape')" in a,
+            'student safe print': "runPrintSession('print-student','portrait')" in a,
+            'schedule safe print': "runPrintSession('print-teacher-schedule','landscape')" in a,
+            'visibility cleanup': "visibilitychange" in a and 'printSessionSawHidden' in a,
+            'media cleanup': "matchMedia?.('print')" in a and 'onPrintMediaChange' in a,
+            'focus cleanup': "window.addEventListener('focus'" in a,
+            'duplicate guard': "if(printSessionActive){toast(" in a,
+          }
+          bad=[k for k,val in checks.items() if not val]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.1.1 print session validation passed')
+          PY
