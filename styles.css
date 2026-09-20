@@ -270,3 +270,101 @@
   body.print-attendance-report .attendance-summary-register .att-name{width:45%!important}
   body.print-attendance-report .official-signatures{margin-top:5mm!important}
 }
+
+/* V3.9 iPhone-safe portrait A4 reports */
+.student-official-header{grid-template-columns:minmax(0,1.05fr) 78px minmax(0,1.2fr)!important}
+.student-official-title{min-width:0!important}
+.student-official-title h1{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.2!important;max-width:100%!important;font-size:16px!important}
+.student-summary-strip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #9ca3af;margin:0 0 10px;background:#fff}
+.student-summary-strip>div{display:grid;gap:2px;text-align:center;padding:7px 4px;border-inline-end:1px solid #cbd5e1}
+.student-summary-strip>div:last-child{border-inline-end:0}
+.student-summary-strip span{font-size:10px;color:#475569}
+.student-summary-strip b{font-size:14px;color:#111}
+.student-attendance-summary{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #cbd5e1;margin-bottom:7px;background:#fff}
+.student-attendance-summary span{text-align:center;padding:5px 3px;font-size:10px;border-inline-end:1px solid #e2e8f0}
+.student-attendance-summary span:last-child{border-inline-end:0}
+.student-attendance-summary b{display:inline;margin-inline-start:3px;font-size:11px}
+.class-page-label,.attendance-page-note{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;font-weight:800;margin:4px 0 6px;color:#334155}
+.class-print-page,.attendance-print-page{width:100%;max-width:100%;min-width:0}
+.attendance-print-page+.attendance-print-page,.class-print-page-second{break-before:page;page-break-before:always}
+.portrait-class-report,.portrait-attendance-report{width:100%;max-width:100%;min-width:0}
+
+@media(max-width:680px){
+  .student-official-header{grid-template-columns:minmax(0,1fr) 56px minmax(0,1.15fr)!important}
+  .student-official-title h1{font-size:13px!important}
+  .student-summary-strip,.student-attendance-summary{grid-template-columns:repeat(2,1fr)}
+  .student-summary-strip>div:nth-child(2),.student-attendance-summary span:nth-child(2){border-inline-end:0}
+  .student-summary-strip>div:nth-child(-n+2),.student-attendance-summary span:nth-child(-n+2){border-bottom:1px solid #e2e8f0}
+}
+
+@media print{
+  body.print-student #studentModal,
+  body.print-student #studentModal .modalbox,
+  body.print-student #studentReportPrint{width:190mm!important;max-width:190mm!important;min-width:190mm!important;margin:0 auto!important}
+  body.print-student .student-official-header{grid-template-columns:minmax(0,1fr) 22mm minmax(0,1.15fr)!important;gap:3mm!important}
+  body.print-student .student-official-title h1{font-size:12pt!important;line-height:1.15!important}
+  body.print-student .student-summary-strip{grid-template-columns:repeat(4,1fr)!important;margin-bottom:3mm!important}
+  body.print-student .student-summary-strip>div{padding:3pt 2pt!important}
+  body.print-student .student-summary-strip span{font-size:7pt!important}
+  body.print-student .student-summary-strip b{font-size:9pt!important}
+  body.print-student .student-attendance-summary{grid-template-columns:repeat(4,1fr)!important;margin-bottom:2.5mm!important}
+  body.print-student .student-attendance-summary span{font-size:7pt!important;padding:2.5pt!important}
+  body.print-student .report-section{margin-top:5pt!important}
+  body.print-student .report-section h3{font-size:9pt!important;margin-bottom:3pt!important}
+  body.print-student .official-signatures{margin-top:7mm!important}
+
+  body.print-class-summary #reportPrintHeader,
+  body.print-class-summary #view-reports>.panel{width:190mm!important;max-width:190mm!important;min-width:190mm!important;margin:0 auto!important;padding:0!important;overflow:visible!important}
+  body.print-class-summary .portrait-class-report{width:190mm!important;max-width:190mm!important}
+  body.print-class-summary .class-print-page{width:190mm!important;max-width:190mm!important}
+  body.print-class-summary .compact-class-header{grid-template-columns:minmax(0,1fr) 22mm minmax(0,1fr)!important;gap:3mm!important;padding:0 0 3mm!important;margin-bottom:2mm!important}
+  body.print-class-summary .compact-class-logo img{width:18mm!important;height:15mm!important}
+  body.print-class-summary .compact-class-gov{font-size:6.8pt!important;line-height:1.25!important}
+  body.print-class-summary .compact-class-gov b{font-size:7.6pt!important}
+  body.print-class-summary .compact-class-title h1{font-size:12pt!important}
+  body.print-class-summary .compact-class-title span{font-size:7pt!important}
+  body.print-class-summary .compact-class-title small{font-size:6.5pt!important}
+  body.print-class-summary .compact-class-meta{margin-bottom:2.5mm!important}
+  body.print-class-summary .compact-class-meta span{font-size:7pt!important;padding:2pt 3pt!important}
+  body.print-class-summary .class-page-label{font-size:7.5pt!important;margin:1.5mm 0 2mm!important}
+  body.print-class-summary .official-class-sheet{width:190mm!important;max-width:190mm!important;table-layout:fixed!important;font-size:7.2pt!important}
+  body.print-class-summary .official-class-sheet th,
+  body.print-class-summary .official-class-sheet td{font-size:7.2pt!important;line-height:1.2!important;padding:3pt 2pt!important;white-space:normal!important;overflow-wrap:anywhere!important}
+  body.print-class-summary .portrait-sheet-a th:nth-child(1),
+  body.print-class-summary .portrait-sheet-a td:nth-child(1),
+  body.print-class-summary .portrait-sheet-b th:nth-child(1),
+  body.print-class-summary .portrait-sheet-b td:nth-child(1){width:8mm!important}
+  body.print-class-summary .portrait-sheet-a th:nth-child(2),
+  body.print-class-summary .portrait-sheet-a td:nth-child(2),
+  body.print-class-summary .portrait-sheet-b th:nth-child(2),
+  body.print-class-summary .portrait-sheet-b td:nth-child(2){width:55mm!important;text-align:right!important}
+  body.print-class-summary .portrait-sheet-a th:nth-child(n+3),
+  body.print-class-summary .portrait-sheet-a td:nth-child(n+3){width:auto!important}
+  body.print-class-summary .portrait-sheet-b th:nth-child(n+3),
+  body.print-class-summary .portrait-sheet-b td:nth-child(n+3){width:auto!important}
+  body.print-class-summary .official-signatures{margin-top:5mm!important}
+
+  body.print-attendance-report #view-attendance>.attendance-report-panel,
+  body.print-attendance-report .attendance-report-preview{width:190mm!important;max-width:190mm!important;min-width:190mm!important;margin:0 auto!important;padding:0!important;overflow:visible!important}
+  body.print-attendance-report .portrait-attendance-report,
+  body.print-attendance-report .attendance-print-page{width:190mm!important;max-width:190mm!important;min-width:190mm!important}
+  body.print-attendance-report .compact-class-header{grid-template-columns:minmax(0,1fr) 22mm minmax(0,1fr)!important;gap:3mm!important;padding:0 0 3mm!important;margin-bottom:2mm!important}
+  body.print-attendance-report .compact-class-logo img{width:18mm!important;height:15mm!important}
+  body.print-attendance-report .compact-class-gov{font-size:6.8pt!important;line-height:1.25!important}
+  body.print-attendance-report .compact-class-title h1{font-size:11.5pt!important}
+  body.print-attendance-report .compact-class-title span{font-size:7pt!important}
+  body.print-attendance-report .compact-class-title small{font-size:6.5pt!important}
+  body.print-attendance-report .compact-class-meta{margin-bottom:2mm!important}
+  body.print-attendance-report .compact-class-meta span{font-size:6.8pt!important;padding:2pt 3pt!important}
+  body.print-attendance-report .attendance-page-note{font-size:7pt!important;margin:1mm 0!important}
+  body.print-attendance-report .attendance-legend{font-size:6.5pt!important;margin:1mm 0 1.5mm!important;gap:3mm!important}
+  body.print-attendance-report .attendance-register-table{width:190mm!important;max-width:190mm!important;table-layout:fixed!important}
+  body.print-attendance-report .attendance-register-table th,
+  body.print-attendance-report .attendance-register-table td{font-size:6.7pt!important;padding:2.2pt 1pt!important;line-height:1.1!important;white-space:normal!important;overflow-wrap:anywhere!important}
+  body.print-attendance-report .attendance-register-table .att-num{width:7mm!important}
+  body.print-attendance-report .attendance-register-table .att-name{width:45mm!important;min-width:0!important;text-align:right!important}
+  body.print-attendance-report .attendance-register-table .att-total{width:9mm!important;min-width:0!important}
+  body.print-attendance-report .attendance-register-table .att-day{width:auto!important;min-width:0!important}
+  body.print-attendance-report .attendance-summary-register .att-name{width:55mm!important}
+  body.print-attendance-report .official-signatures{margin-top:5mm!important}
+}
