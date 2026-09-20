@@ -1,6 +1,7 @@
 const SCHEMA_VERSION=3;
 const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.1.0';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null;
+let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const uid=()=>crypto.randomUUID?.() || ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
 const clone=x=>typeof structuredClone==='function'?structuredClone(x):JSON.parse(JSON.stringify(x));
@@ -227,7 +228,7 @@ function renderSupervisions(){const list=$('#supervisionList');if(!list)return;c
 function openSupervision(id=null){editingSupervisionId=id;const x=id?(state.teacherSchedule.supervision||[]).find(v=>v.id===id):null;$('#supervisionModalTitle').textContent=x?'تعديل المناوبة':'إضافة مناوبة';$('#supervisionDay').value=x?.day||'الأحد';$('#supervisionDate').value=x?.date||'';$('#supervisionStart').value=x?.start||'';$('#supervisionEnd').value=x?.end||'';$('#supervisionType').value=x?.type||'إشراف';$('#supervisionTitle').value=x?.title||'';$('#supervisionLocation').value=x?.location||'';$('#deleteSupervisionBtn').hidden=!x;$('#supervisionModal').showModal()}
 function saveSupervision(){const obj={day:$('#supervisionDay').value,date:$('#supervisionDate').value.trim(),start:$('#supervisionStart').value,end:$('#supervisionEnd').value,type:$('#supervisionType').value.trim(),title:$('#supervisionTitle').value.trim()||'إشراف',location:$('#supervisionLocation').value.trim()};if(editingSupervisionId){const x=state.teacherSchedule.supervision.find(v=>v.id===editingSupervisionId);if(x)Object.assign(x,obj)}else state.teacherSchedule.supervision.push({id:uid(),...obj});$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حفظ المناوبة')}
 function deleteSupervision(){if(!editingSupervisionId)return;if(!confirm('حذف هذه المناوبة؟'))return;state.teacherSchedule.supervision=state.teacherSchedule.supervision.filter(v=>v.id!==editingSupervisionId);$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حذف المناوبة')}
-function printTeacherSchedule(){setPrintPage('landscape');document.body.classList.add('print-teacher-schedule');requestAnimationFrame(()=>window.print())}
+function printTeacherSchedule(){runPrintSession('print-teacher-schedule','landscape')}
 
 function renderAttendance(){
   const c=currentClass();if(!c)return;
@@ -330,7 +331,7 @@ function renderAttendanceRegister(){
   sel.onchange=e=>{state.ui.attendanceReportPeriod=e.target.value;renderAttendanceRegister();queueSave()};
   const printBtn=$('#printAttendanceReportBtn');if(printBtn)printBtn.onclick=printAttendanceReport;
 }
-function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);setPrintPage('landscape');document.body.classList.add('print-attendance-report');try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-attendance-report');clearPrintPage()}}
+function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);runPrintSession('print-attendance-report','landscape')}
 
 function officialReportHeader(title,c,periodText,studentName=''){
   const m=state.appMeta||{},school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم',teacher=m.teacher||'—',principal=m.principal||'—';
@@ -352,6 +353,19 @@ function studentOfficialHeader(c,periodText,studentName=''){
 function officialReportSignatures(){return `<footer class="official-signatures"><div><span>معلم المادة</span><b>${escapeHtml(state.appMeta.teacher||'—')}</b><em>التوقيع: __________________</em></div><div><span>مدير المدرسة</span><b>${escapeHtml(state.appMeta.principal||'—')}</b><em>التوقيع: __________________</em></div></footer>`}
 function setPrintPage(orientation='portrait'){let el=document.getElementById('dynamicPrintPage');if(!el){el=document.createElement('style');el.id='dynamicPrintPage';document.head.appendChild(el)}el.textContent=`@page{size:A4 ${orientation};margin:10mm}`}
 function clearPrintPage(){document.getElementById('dynamicPrintPage')?.remove()}
+const PRINT_BODY_CLASSES=['print-student','print-class-summary','print-teacher-schedule','print-attendance-report'];
+function cleanupPrintSession(){
+  PRINT_BODY_CLASSES.forEach(c=>document.body.classList.remove(c));
+  clearPrintPage();
+  printSessionActive=false;printSessionClass='';printSessionStartedAt=0;printSessionSawHidden=false;printMediaEntered=false;
+}
+function runPrintSession(printClass,orientation='portrait'){
+  if(printSessionActive){toast('الطباعة مفتوحة بالفعل. أغلق معاينة الطباعة أولًا.');return}
+  printSessionActive=true;printSessionClass=printClass;printSessionStartedAt=Date.now();printSessionSawHidden=false;printMediaEntered=false;
+  PRINT_BODY_CLASSES.forEach(c=>document.body.classList.remove(c));
+  setPrintPage(orientation);document.body.classList.add(printClass);
+  try{window.print()}catch(e){cleanupPrintSession();toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.')}
+}
 
 function assessmentTypeScore(s,c,period,type){
   const events=eventsForPeriod(c,period).filter(a=>a.type===type);let earned=0,max=0,count=0;
@@ -398,8 +412,8 @@ function openStudentReport(id){
   $('#studentNotes').value=st.notes||'';if(!$('#studentModal').open)$('#studentModal').showModal();
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
-function printStudent(){setPrintPage('portrait');document.body.classList.add('print-student');try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-student');clearPrintPage()}}
-function printClassReport(){showView('reports',false);setReportTab('class',false,true);setPrintPage('landscape');document.body.classList.add('print-class-summary');try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-class-summary');clearPrintPage()}}
+function printStudent(){runPrintSession('print-student','portrait')}
+function printClassReport(){showView('reports',false);setReportTab('class',false,true);runPrintSession('print-class-summary','landscape')}
 
 function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const ch=text[i],n=text[i+1];if(ch==='"'&&q&&n==='"'){cell+='"';i++}else if(ch==='"'){q=!q}else if(ch===','&&!q){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=ch}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function csvHeaderIndex(headers,names){return headers.findIndex(h=>names.some(n=>h.toLowerCase()===n.toLowerCase()))}
@@ -508,7 +522,20 @@ $('#printClassReportBtn').onclick=printClassReport;
 $('#saveStudentNotesBtn').onclick=saveStudentNotes;
 $('#printStudentBtn').onclick=printStudent;
 $('#dismissInstall').onclick=()=>{state.ui.dismissedInstall=true;renderInstallNote();queueSave()};
-window.addEventListener('afterprint',()=>{document.body.classList.remove('print-student','print-class-summary','print-teacher-schedule','print-attendance-report');clearPrintPage()});
+window.addEventListener('beforeprint',()=>{if(printSessionActive)printMediaEntered=true});
+window.addEventListener('afterprint',()=>{if(printSessionActive)cleanupPrintSession()});
+document.addEventListener('visibilitychange',()=>{
+  if(!printSessionActive)return;
+  if(document.visibilityState==='hidden')printSessionSawHidden=true;
+  else if(document.visibilityState==='visible'&&printSessionSawHidden)setTimeout(()=>{if(printSessionActive)cleanupPrintSession()},250)
+});
+window.addEventListener('pageshow',()=>{if(printSessionActive&&printSessionSawHidden)setTimeout(()=>{if(printSessionActive)cleanupPrintSession()},250)});
+window.addEventListener('focus',()=>{if(printSessionActive&&(printSessionSawHidden||printMediaEntered)&&Date.now()-printSessionStartedAt>800)setTimeout(()=>{if(printSessionActive)cleanupPrintSession()},300)});
+try{
+  const printMq=window.matchMedia?.('print');
+  const onPrintMediaChange=e=>{if(!printSessionActive)return;if(e.matches)printMediaEntered=true;else if(printMediaEntered)setTimeout(()=>{if(printSessionActive)cleanupPrintSession()},150)};
+  if(printMq?.addEventListener)printMq.addEventListener('change',onPrintMediaChange);else if(printMq?.addListener)printMq.addListener(onPrintMediaChange)
+}catch{}
 $('#checkUpdateBtn')?.addEventListener('click',()=>checkForAppUpdate({manual:true}));
 load();
 initAppUpdater();
