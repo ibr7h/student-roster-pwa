@@ -1,0 +1,35 @@
+name: Validate v4.3.1 attendance recovery
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v431.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate attendance recovery
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          a=Path('app.js').read_text(encoding='utf-8')
+          h=Path('index.html').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          checks={
+            'version': "APP_VERSION='4.3.1'" in v and 'v4.3.1' in h,
+            'stored dates helper': 'function storedAttendanceDatesForPeriod' in a,
+            'merge stored records': 'storedAttendanceDatesForPeriod(c,period).forEach' in a,
+            'historical flag': 'historical:true' in a,
+            'planned retained': 'planned:true,historical:false' in a,
+            'historical meta': 'historicalSessions=sessions.filter' in a,
+            'preview marker': "x.historical?'*':''" in a,
+            'pdf marker': "sess.historical?'*':''" in a,
+          }
+          bad=[k for k,v in checks.items() if not v]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.3.1 validation passed')
+          PY
