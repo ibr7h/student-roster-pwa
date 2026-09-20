@@ -385,3 +385,61 @@
   .update-banner .btn{width:100%}
 }
 @media print{.version-badge,.update-banner,.footer-version{display:none!important}}
+
+/* V3.11 landscape class report + planned attendance sessions */
+.attendance-exam-toggle{display:flex;align-items:center;gap:6px;min-height:44px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px;white-space:nowrap}
+.attendance-exam-toggle input{width:18px;height:18px}
+.attendance-plan-summary{font-size:10px;font-weight:700;line-height:1.5;text-align:center;padding:5px 8px;margin:4px 0 6px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc}
+.attendance-register-table .att-session{min-width:34px}
+.attendance-register-table .att-session b,.attendance-register-table .att-session small{display:block}
+.attendance-register-table .att-session small{font-size:8px;font-weight:500;color:#475569;margin-top:2px}
+
+@media(max-width:680px){
+  .attendance-exam-toggle{width:100%;justify-content:flex-start;white-space:normal}
+  .attendance-register-table .att-session{min-width:38px}
+}
+
+@media print{
+  body.print-class-summary #reportPrintHeader,
+  body.print-class-summary #view-reports>.panel{
+    width:277mm!important;max-width:277mm!important;min-width:277mm!important;margin:0 auto!important;padding:0!important;overflow:visible!important
+  }
+  body.print-class-summary .landscape-class-report{width:277mm!important;max-width:277mm!important;min-width:277mm!important}
+  body.print-class-summary .compact-class-header{grid-template-columns:minmax(0,1fr) 24mm minmax(0,1fr)!important;gap:4mm!important;padding:0 0 3mm!important;margin-bottom:2mm!important}
+  body.print-class-summary .compact-class-logo img{width:20mm!important;height:16mm!important}
+  body.print-class-summary .compact-class-title h1{font-size:13pt!important}
+  body.print-class-summary .compact-class-gov{font-size:7pt!important;line-height:1.25!important}
+  body.print-class-summary .compact-class-meta{margin-bottom:2.5mm!important}
+  body.print-class-summary .official-class-sheet{width:277mm!important;max-width:277mm!important;table-layout:fixed!important}
+  body.print-class-summary .official-class-sheet th,
+  body.print-class-summary .official-class-sheet td{font-size:7pt!important;line-height:1.15!important;padding:2.4pt 1.5pt!important;white-space:normal!important;overflow-wrap:anywhere!important}
+  body.print-class-summary .official-class-sheet .sheet-num{width:7mm!important}
+  body.print-class-summary .official-class-sheet .sheet-name{width:50mm!important;text-align:right!important}
+  body.print-class-summary .official-class-sheet th:nth-child(n+3),
+  body.print-class-summary .official-class-sheet td:nth-child(n+3){width:auto!important}
+  body.print-class-summary .official-signatures{margin-top:4mm!important}
+
+  body.print-attendance-report #view-attendance>.attendance-report-panel,
+  body.print-attendance-report .attendance-report-preview,
+  body.print-attendance-report .attendance-official-print,
+  body.print-attendance-report .attendance-print-page{
+    width:277mm!important;max-width:277mm!important;min-width:277mm!important;margin:0 auto!important;padding:0!important;overflow:visible!important
+  }
+  body.print-attendance-report .compact-class-header{grid-template-columns:minmax(0,1fr) 24mm minmax(0,1fr)!important;gap:4mm!important;padding:0 0 3mm!important;margin-bottom:2mm!important}
+  body.print-attendance-report .compact-class-logo img{width:20mm!important;height:16mm!important}
+  body.print-attendance-report .compact-class-title h1{font-size:12.5pt!important}
+  body.print-attendance-report .compact-class-gov{font-size:7pt!important;line-height:1.25!important}
+  body.print-attendance-report .compact-class-meta{margin-bottom:2mm!important}
+  body.print-attendance-report .attendance-plan-summary{font-size:6.8pt!important;padding:2pt 4pt!important;margin:1mm 0 1.5mm!important;border-radius:0!important}
+  body.print-attendance-report .attendance-page-note{font-size:6.8pt!important;margin:1mm 0!important}
+  body.print-attendance-report .attendance-legend{font-size:6.4pt!important;margin:1mm 0 1.5mm!important;gap:3mm!important}
+  body.print-attendance-report .attendance-register-table{width:277mm!important;max-width:277mm!important;table-layout:fixed!important}
+  body.print-attendance-report .attendance-register-table th,
+  body.print-attendance-report .attendance-register-table td{font-size:6.6pt!important;padding:2pt .8pt!important;line-height:1.05!important;white-space:normal!important;overflow-wrap:anywhere!important}
+  body.print-attendance-report .attendance-register-table .att-num{width:7mm!important}
+  body.print-attendance-report .attendance-register-table .att-name{width:48mm!important;min-width:0!important;text-align:right!important}
+  body.print-attendance-report .attendance-register-table .att-total{width:9mm!important;min-width:0!important}
+  body.print-attendance-report .attendance-register-table .att-session{width:auto!important;min-width:0!important}
+  body.print-attendance-report .attendance-register-table .att-session small{font-size:5.5pt!important}
+  body.print-attendance-report .official-signatures{margin-top:4mm!important}
+}
