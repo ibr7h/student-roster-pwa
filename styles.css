@@ -106,3 +106,20 @@
 
 @media print{
   body.print-teacher-schedule{background:#fff!important}.print-teacher-schedule .app-shell{max-width:none!important;padding:0!important}.print-teacher-schedule .view{display:none!important}.print-teacher-schedule #view-schedule{display:block!important}.print-teacher-schedule #view-schedule>.panel{border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}.print-teacher-schedule .schedule-head,.print-teacher-schedule .schedule-meta,.print-teacher-schedule .schedule-mobile{display:none!important}.print-teacher-schedule .schedule-table-wrap{display:block!important;border:0!important;overflow:visible!important}.print-teacher-schedule .teacher-schedule-table{min-width:0!important;width:100%!important;table-layout:fixed!important}.print-teacher-schedule .teacher-schedule-table th,.print-teacher-schedule .teacher-schedule-table td{border:.7pt solid #444!important;padding:2.5pt!important}.print-teacher-schedule .teacher-schedule-table thead th:first-child{width:18mm}.print-teacher-schedule .schedule-cell{min-height:21mm!important;border-radius:3pt!important;padding:3pt!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.print-teacher-schedule .schedule-cell b{font-size:9pt}.print-teacher-schedule .schedule-cell span{font-size:7.5pt}.print-teacher-schedule .schedule-cell small{font-size:6.5pt}.print-teacher-schedule .schedule-print-header{font-size:9pt}.print-teacher-schedule .schedule-print-header h1{font-size:15pt}.print-teacher-schedule .schedule-stats{margin:4pt 0 7pt}.print-teacher-schedule .schedule-stats>div{padding:3pt 8pt}.print-teacher-schedule .supervision-section{margin-top:9pt}.print-teacher-schedule .supervision-title small{display:none}.print-teacher-schedule .supervision-list{gap:0;border:.7pt solid #444}.print-teacher-schedule .supervision-card{grid-template-columns:35mm 1fr!important;border:0!important;border-bottom:.7pt solid #777!important;border-radius:0!important;padding:4pt 5pt!important;break-inside:avoid}.print-teacher-schedule .supervision-card:last-child{border-bottom:0!important}.print-teacher-schedule .supervision-card .btn{display:none!important}.print-teacher-schedule .supervision-card span{color:#222!important}@page{size:A4 landscape;margin:8mm}}
+
+/* V3.5 official logo + strict A4 reports */
+.brand-logo-wrap{background:#fff!important;overflow:hidden;padding:3px;border:1px solid var(--line)}
+.app-brand-logo{display:block;width:100%;height:100%;object-fit:contain}
+.official-logo{display:block;width:74px;max-width:100%;height:62px;object-fit:contain;margin:0 auto 2px}
+.schedule-logo-center{display:grid!important;place-items:center;align-content:center}
+.schedule-official-logo{display:block;width:86px;height:70px;object-fit:contain;margin:0 auto 2px}
+
+@media print{
+  body.print-student #studentReportPrint{width:190mm!important;max-width:190mm!important;margin:0 auto!important}
+  body.print-class-summary #reportPrintHeader,
+  body.print-class-summary #view-reports>.panel{width:277mm!important;max-width:277mm!important;margin-inline:auto!important}
+  body.print-teacher-schedule #schedulePrintArea{width:277mm!important;max-width:277mm!important;margin:0 auto!important}
+  .official-logo{width:28mm!important;height:23mm!important;object-fit:contain!important}
+  .schedule-official-logo{width:30mm!important;height:24mm!important;object-fit:contain!important}
+  .app-brand-logo{display:none!important}
+}
