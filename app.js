@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=3;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.3.0';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.3.1';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
