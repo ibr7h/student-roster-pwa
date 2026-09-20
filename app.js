@@ -41,7 +41,7 @@ let state={
   teacherSchedule:makeTeacherSchedule()
 };
 state.activeClassId=state.classes[0].id;
-let saveTimer=null,openStudentId=null,editingAssessmentId=null,searchTerm='';
+let saveTimer=null,openStudentId=null,editingAssessmentId=null,searchTerm='',reportStudentSearchTerm='';
 
 function localDateISO(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function monthKey(date){return /^\d{4}-\d{2}/.test(date||'')?String(date).slice(0,7):''}
@@ -118,16 +118,46 @@ function riskForStudent(s,c,period='all'){const sc=scoreSummary(s,c,period),at=a
 function monthsForClass(c){const set=new Set();(c.assessmentEvents||[]).forEach(a=>{const m=monthKey(a.date);if(m)set.add(m)});c.students.forEach(s=>Object.keys(s.attendance||{}).forEach(d=>{const m=monthKey(d);if(m)set.add(m)}));return [...set].sort().reverse()}
 
 function renderAll(){renderAppMeta();renderClassBars();renderDashboard();renderAssessments();renderAttendance();renderSchedule();renderReports();renderInstallNote()}
-function showView(name,saveUi=true){if(!['dashboard','assessments','attendance','schedule','reports'].includes(name))name='dashboard';state.ui.activeView=name;$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));$('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));if(name==='assessments')renderAssessments();if(name==='attendance')renderAttendance();if(name==='schedule')renderSchedule();if(name==='reports')renderReports();window.scrollTo({top:0,behavior:'instant'});if(saveUi)queueSave()}
-function setReportTab(tab='class',saveUi=true){
+function showView(name,saveUi=true){
+  if(!['dashboard','assessments','attendance','schedule','reports'].includes(name))name='dashboard';
+  state.ui.activeView=name;
+  $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
+  $$('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
+  if(name==='assessments')renderAssessments();
+  if(name==='attendance')renderAttendance();
+  if(name==='schedule')renderSchedule();
+  if(name==='reports'){renderReports();showReportsHub(false)}
+  window.scrollTo({top:0,behavior:'instant'});
+  if(saveUi)queueSave()
+}
+function showReportsHub(saveUi=false){
+  const view=$('#view-reports');if(!view)return;
+  view.classList.remove('report-detail-mode');
+  $$('[data-report-panel]').forEach(p=>p.classList.remove('active'));
+  $$('[data-preview-box]').forEach(p=>p.classList.remove('open'));
+  if(saveUi)queueSave()
+}
+function setReportTab(tab='class',saveUi=true,openDetail=true){
   if(!['class','attendance','students'].includes(tab))tab='class';
   state.ui.reportTab=tab;
-  $('[data-report-tab]').forEach(b=>b.classList.toggle('active',b.dataset.reportTab===tab));
-  $('[data-report-panel]').forEach(p=>p.classList.toggle('active',p.dataset.reportPanel===tab));
-  if(saveUi)queueSave();
+  const view=$('#view-reports');if(view)view.classList.toggle('report-detail-mode',openDetail);
+  $$('[data-report-panel]').forEach(p=>p.classList.toggle('active',openDetail&&p.dataset.reportPanel===tab));
+  if(openDetail)requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}));
+  if(saveUi)queueSave()
+}
+function toggleReportPreview(type){
+  const box=$(`[data-preview-box="${type}"]`);if(!box)return;
+  box.classList.toggle('open');
+  const btn=$(`[data-preview-toggle="${type}"]`);
+  if(btn)btn.textContent=box.classList.contains('open')?'إخفاء المعاينة':'👁 معاينة '+(type==='attendance'?'السجل':'الكشف')
 }
 
-function setActiveClass(id){if(!findClass(id))return;state.activeClassId=id;searchTerm='';state.ui.assessmentMonth='all';state.ui.reportPeriod='all';const c=currentClass();if(c&&!c.selectedAssessmentId&&c.assessmentEvents[0])c.selectedAssessmentId=c.assessmentEvents[0].id;renderAll();queueSave()}
+function setActiveClass(id){
+  if(!findClass(id))return;
+  state.activeClassId=id;searchTerm='';reportStudentSearchTerm='';state.ui.assessmentMonth='all';state.ui.reportPeriod='all';
+  const c=currentClass();if(c&&!c.selectedAssessmentId&&c.assessmentEvents[0])c.selectedAssessmentId=c.assessmentEvents[0].id;
+  renderAll();if(state.ui.activeView==='reports')showReportsHub(false);queueSave()
+}
 
 function renderAppMeta(){$$('[data-app-meta]').forEach(inp=>{const k=inp.dataset.appMeta;if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';inp.oninput=()=>{state.appMeta[k]=inp.value;queueSave()}})}
 function classChipMarkup(c){return `<button class="chip ${c.id===state.activeClassId?'active':''}" data-class-switch="${c.id}">${escapeHtml(c.grade)} · ${escapeHtml(c.name)}</button>`}
@@ -294,11 +324,13 @@ function renderAttendanceRegister(){
   sel.innerHTML='<option value="all">الفصل كاملًا</option>'+months.map(m=>`<option value="${m}">${escapeHtml(monthLabel(m))}</option>`).join('');
   sel.value=[...sel.options].some(o=>o.value===wanted)?wanted:'all';state.ui.attendanceReportPeriod=sel.value;
   const exam=$('#excludeExamWeek');if(exam){exam.checked=state.settings.excludeExamWeek!==false;exam.onchange=()=>{state.settings.excludeExamWeek=exam.checked;renderAttendanceRegister();queueSave()}}
+  const sessions=plannedAttendanceSessions(c,sel.value),meta=plannedAttendanceMeta(c,sessions,sel.value),summary=$('#attendanceReportSummary');
+  if(summary)summary.innerHTML=`<div><span>حصص أسبوعية</span><b>${arabicNum(meta.weekly)}</b></div><div><span>أسابيع التدريس</span><b>${arabicNum(meta.teachingWeeks)}</b></div><div><span>الخانات الفعلية</span><b>${arabicNum(meta.sessions)}</b></div><div><span>أسبوع الاختبارات</span><b>${state.settings.excludeExamWeek!==false?'مستبعد':'محسوب'}</b></div>`;
   preview.innerHTML=attendanceRegisterSheet(c,sel.value);
   sel.onchange=e=>{state.ui.attendanceReportPeriod=e.target.value;renderAttendanceRegister();queueSave()};
   const printBtn=$('#printAttendanceReportBtn');if(printBtn)printBtn.onclick=printAttendanceReport;
 }
-function printAttendanceReport(){setReportTab('attendance',false);setPrintPage('landscape');document.body.classList.add('print-attendance-report');showView('reports',false);try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-attendance-report');clearPrintPage()}}
+function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);setPrintPage('landscape');document.body.classList.add('print-attendance-report');try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-attendance-report');clearPrintPage()}}
 
 function officialReportHeader(title,c,periodText,studentName=''){
   const m=state.appMeta||{},school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم',teacher=m.teacher||'—',principal=m.principal||'—';
@@ -332,11 +364,27 @@ function classOfficialSheet(c,period='all'){
   return `<div class="official-class-print landscape-class-report">${compactClassOfficialHeader('كشف متابعة الفصل',c,periodText)}<table class="official-class-sheet"><thead><tr><th>م</th><th>اسم الطالب</th><th>الواجبات</th><th>المشاركة والتفاعل</th><th>المشاريع والبحوث</th><th>التطبيقات العملية</th><th>الاختبارات القصيرة</th><th>الاختبارات</th><th>المجموع المرصود</th><th>النسبة</th><th>الغياب</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</div>`;
 }
 function renderReports(){
-  const c=currentClass();if(!c)return;renderMonthOptions($('#reportPeriod'),state.ui.reportPeriod||'all');$('#gradeAlertThreshold').value=state.settings.gradeAlertThreshold;$('#absenceAlertThreshold').value=state.settings.absenceAlertThreshold;const period=$('#reportPeriod').value||'all',events=eventsForPeriod(c,period),students=c.students,risks=students.map(s=>({s,...riskForStudent(s,c,period)})),riskList=risks.filter(x=>x.isRisk);const perf=risks.map(x=>x.score.performance).filter(x=>x!==null),avg=perf.length?perf.reduce((a,b)=>a+b,0)/perf.length:null,absence=risks.reduce((n,x)=>n+x.attendance.absent,0);
-  $('#reportPrintHeader').innerHTML=classOfficialSheet(c,period);$('#reportKpis').innerHTML=`<div class="stat"><b>${arabicNum(events.length)}</b><span>تقييم في الفترة</span></div><div class="stat ok"><b>${pct(avg)}</b><span>متوسط الأداء المرصود</span></div><div class="stat bad"><b>${arabicNum(absence)}</b><span>إجمالي الغياب</span></div><div class="stat warn"><b>${arabicNum(riskList.length)}</b><span>يحتاجون متابعة</span></div>`;
-  $('#riskBanner').innerHTML=riskList.length?`<div class="risk-box"><b>تنبيه متابعة: ${arabicNum(riskList.length)} طالب</b><span>الطالب يظهر هنا إذا انخفض أداؤه المرصود عن ${arabicNum(state.settings.gradeAlertThreshold)}٪ أو بلغ غيابه ${arabicNum(state.settings.absenceAlertThreshold)} أيام في الفترة المحددة.</span></div>`:`<div class="risk-box clear"><b>لا توجد تنبيهات وفق الحدود الحالية</b><span>يمكنك تعديل حدود التنبيه من أعلى التقرير.</span></div>`;
-  $('#studentReportList').innerHTML=students.length?risks.map((x,i)=>{const r=x,sc=r.score,at=r.attendance;return `<div class="student-report-row ${r.isRisk?'risk-row':''}"><div>${arabicNum(i+1)}</div><div><b>${escapeHtml(r.s.name)} ${r.isRisk?'<span class="risk-dot" title="يحتاج متابعة">!</span>':''}</b><div class="subtle">${r.isRisk?escapeHtml(r.reasons.join(' · ')):`${arabicNum(sc.gradedCount)} من ${arabicNum(sc.eventCount)} تقييمات مرصودة`}</div></div><div class="metric"><b>${pct(sc.performance)}</b><span>الأداء</span></div><div class="metric"><b>${pct(sc.completion)}</b><span>اكتمال الرصد</span></div><div class="metric hide-tablet"><b>${arabicNum(at.absent)}</b><span>غياب</span></div><button class="btn" data-report="${r.s.id}">عرض التقرير</button></div>`}).join(''):`<div class="empty-state"><b>لا توجد تقارير بعد</b>أضف طلابًا إلى الفصل.</div>`;$('#studentReportList [data-report]').forEach(b=>b.onclick=()=>openStudentReport(b.dataset.report));renderAttendanceRegister();setReportTab(state.ui.reportTab||'class',false)
+  const c=currentClass();if(!c)return;
+  renderMonthOptions($('#reportPeriod'),state.ui.reportPeriod||'all');
+  $('#gradeAlertThreshold').value=state.settings.gradeAlertThreshold;
+  $('#absenceAlertThreshold').value=state.settings.absenceAlertThreshold;
+  if($('#reportsContextTitle'))$('#reportsContextTitle').textContent=`${c.grade} · ${c.name}`;
+  if($('#reportsContextMeta'))$('#reportsContextMeta').textContent=c.subject||'';
+  const period=$('#reportPeriod').value||'all',events=eventsForPeriod(c,period),allStudents=c.students;
+  const risks=allStudents.map(st=>({s:st,...riskForStudent(st,c,period)})),riskList=risks.filter(x=>x.isRisk);
+  const perf=risks.map(x=>x.score.performance).filter(x=>x!==null),avg=perf.length?perf.reduce((a,b)=>a+b,0)/perf.length:null,absence=risks.reduce((n,x)=>n+x.attendance.absent,0);
+
+  $('#reportPrintHeader').innerHTML=classOfficialSheet(c,period);
+  $('#reportKpis').innerHTML=`<div class="stat"><b>${arabicNum(events.length)}</b><span>تقييم</span></div><div class="stat ok"><b>${pct(avg)}</b><span>متوسط الأداء</span></div><div class="stat bad"><b>${arabicNum(absence)}</b><span>غياب</span></div><div class="stat warn"><b>${arabicNum(riskList.length)}</b><span>يحتاج متابعة</span></div>`;
+  $('#riskBanner').innerHTML=riskList.length?`<div class="risk-box"><b>${arabicNum(riskList.length)} طالب يحتاج متابعة</b><span>وفق حدود الدرجة والغياب الحالية.</span></div>`:`<div class="risk-box clear"><b>لا توجد تنبيهات حالية</b><span>وفق الحدود المحددة.</span></div>`;
+
+  const key=studentNameKey(reportStudentSearchTerm),shown=key?risks.filter(x=>studentNameKey(x.s.name).includes(key)):risks;
+  $('#studentReportList').innerHTML=shown.length?shown.map((x,i)=>{const sc=x.score,at=x.attendance;return `<div class="student-report-row ${x.isRisk?'risk-row':''}"><div class="student-report-index">${arabicNum(i+1)}</div><div class="student-report-person"><b>${escapeHtml(x.s.name)}</b><span>${x.isRisk?escapeHtml(x.reasons.join(' · ')):`${arabicNum(sc.gradedCount)} من ${arabicNum(sc.eventCount)} تقييمات`}</span></div><div class="student-report-quick"><span><b>${pct(sc.performance)}</b><small>الأداء</small></span><span><b>${arabicNum(at.absent)}</b><small>غياب</small></span></div><button class="btn student-report-open" data-report="${x.s.id}">فتح التقرير</button></div>`}).join(''):`<div class="empty-state"><b>لا توجد نتائج</b>${key?'غيّر عبارة البحث.':'أضف طلابًا إلى الفصل.'}</div>`;
+  $$('#studentReportList [data-report]').forEach(b=>b.onclick=()=>openStudentReport(b.dataset.report));
+  renderAttendanceRegister();
+  if($('#view-reports')?.classList.contains('report-detail-mode'))setReportTab(state.ui.reportTab||'class',false,true);else showReportsHub(false)
 }
+
 function trendChart(s,c,period){const pts=eventsForPeriod(c,period).filter(a=>a.date&&s.grades?.[a.id]!==undefined&&s.grades?.[a.id]!==null&&a.maxScore>0).sort((a,b)=>a.date.localeCompare(b.date)).map(a=>({a,p:Number(s.grades[a.id])/a.maxScore*100}));if(pts.length<2)return `<div class="trend-empty">يحتاج الرسم إلى تقييمين مؤرخين على الأقل.</div>`;const w=560,h=160,pad=26,dx=(w-pad*2)/(pts.length-1),coords=pts.map((x,i)=>({x:pad+i*dx,y:h-pad-(Math.max(0,Math.min(100,x.p))/100)*(h-pad*2),...x})),poly=coords.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');return `<div class="trend-wrap"><svg class="trend-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="تطور مستوى الطالب"><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h-pad}"/><line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}"/><line class="mid" x1="${pad}" y1="${h/2}" x2="${w-pad}" y2="${h/2}"/><polyline points="${poly}" fill="none"/><g>${coords.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4"><title>${escapeHtml(p.a.title)}: ${Math.round(p.p)}%</title></circle>`).join('')}</g><text x="4" y="${pad+4}">١٠٠٪</text><text x="8" y="${h-pad+4}">٠٪</text></svg><div class="trend-labels"><span>${escapeHtml(formatDate(pts[0].a.date))}</span><span>${escapeHtml(formatDate(pts.at(-1).a.date))}</span></div></div>`}
 function studentAssessmentRows(s,c,period){const events=eventsForPeriod(c,period).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));return events.map(a=>{const v=s.grades?.[a.id],has=v!==undefined&&v!==null&&v!=='',pr=has&&a.maxScore?Number(v)/a.maxScore*100:null;return `<tr><td>${escapeHtml(formatDate(a.date))}</td><td>${escapeHtml(typeLabel(a.type))}</td><td>${escapeHtml(a.title)}</td><td>${has?`${arabicNum(v)} / ${arabicNum(a.maxScore)}`:'—'}</td><td>${pct(pr)}</td></tr>`}).join('')||'<tr><td colspan="5">لا توجد تقييمات في هذه الفترة</td></tr>'}
 function recentAttendanceRows(s,period){return Object.entries(s.attendance||{}).filter(([d])=>period==='all'||monthKey(d)===period).sort((a,b)=>b[0].localeCompare(a[0])).map(([d,v])=>`<tr><td>${escapeHtml(formatDate(d))}</td><td>${escapeHtml(statusLabel(v))}</td></tr>`).join('')||'<tr><td colspan="2">لا توجد بيانات حضور في هذه الفترة</td></tr>'}
@@ -351,7 +399,7 @@ function openStudentReport(id){
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
 function printStudent(){setPrintPage('portrait');document.body.classList.add('print-student');try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-student');clearPrintPage()}}
-function printClassReport(){setReportTab('class',false);setPrintPage('landscape');document.body.classList.add('print-class-summary');showView('reports',false);try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-class-summary');clearPrintPage()}}
+function printClassReport(){showView('reports',false);setReportTab('class',false,true);setPrintPage('landscape');document.body.classList.add('print-class-summary');try{window.print()}catch(e){toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.');document.body.classList.remove('print-class-summary');clearPrintPage()}}
 
 function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const ch=text[i],n=text[i+1];if(ch==='"'&&q&&n==='"'){cell+='"';i++}else if(ch==='"'){q=!q}else if(ch===','&&!q){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=ch}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function csvHeaderIndex(headers,names){return headers.findIndex(h=>names.some(n=>h.toLowerCase()===n.toLowerCase()))}
@@ -449,7 +497,17 @@ $('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};$('#studentSearch').oninput=e=>{searchTerm=e.target.value;renderAssessments()};$('#addStudentBtn').onclick=addStudent;$('#assessmentAddStudentBtn').onclick=addStudent;$('#manageStudentsBtn').onclick=openStudents;$('#manageStudentsBtnTop').onclick=openStudents;$('#studentsAddBtn').onclick=()=>{addStudent();renderStudentsModal()};$('#studentsImportBtn').onclick=()=>$('#csvInput').click();$('#importBtn').onclick=()=>$('#csvInput').click();$('#csvInput').onchange=e=>{if(e.target.files[0])importCSV(e.target.files[0]);e.target.value=''};$('#exportCsvBtn').onclick=exportCurrentClassCSV;
 $('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn')?.addEventListener('click',printAttendanceReport);
 $('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
-$('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};$('[data-report-tab]').forEach(b=>b.onclick=()=>setReportTab(b.dataset.reportTab));$('#openAttendanceReportBtn')?.addEventListener('click',()=>{showView('attendance');requestAnimationFrame(()=>$('#attendanceReportPanel')?.scrollIntoView({behavior:'smooth',block:'start'}))});$('#gradeAlertThreshold').onchange=e=>{state.settings.gradeAlertThreshold=Math.max(0,Math.min(100,Number(e.target.value)||60));renderAll();queueSave()};$('#absenceAlertThreshold').onchange=e=>{state.settings.absenceAlertThreshold=Math.max(1,Number(e.target.value)||3);renderAll();queueSave()};$('#printClassReportBtn').onclick=printClassReport;$('#saveStudentNotesBtn').onclick=saveStudentNotes;$('#printStudentBtn').onclick=printStudent;$('#dismissInstall').onclick=()=>{state.ui.dismissedInstall=true;renderInstallNote();queueSave()};
+$('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};
+$$('[data-report-open]').forEach(b=>b.onclick=()=>setReportTab(b.dataset.reportOpen));
+$$('[data-report-back]').forEach(b=>b.onclick=()=>showReportsHub());
+$$('[data-preview-toggle]').forEach(b=>b.onclick=()=>toggleReportPreview(b.dataset.previewToggle));
+$('#reportStudentSearch').oninput=e=>{reportStudentSearchTerm=e.target.value;renderReports()};
+$('#gradeAlertThreshold').onchange=e=>{state.settings.gradeAlertThreshold=Math.max(0,Math.min(100,Number(e.target.value)||60));renderReports();queueSave()};
+$('#absenceAlertThreshold').onchange=e=>{state.settings.absenceAlertThreshold=Math.max(1,Number(e.target.value)||3);renderReports();queueSave()};
+$('#printClassReportBtn').onclick=printClassReport;
+$('#saveStudentNotesBtn').onclick=saveStudentNotes;
+$('#printStudentBtn').onclick=printStudent;
+$('#dismissInstall').onclick=()=>{state.ui.dismissedInstall=true;renderInstallNote();queueSave()};
 window.addEventListener('afterprint',()=>{document.body.classList.remove('print-student','print-class-summary','print-teacher-schedule','print-attendance-report');clearPrintPage()});
 $('#checkUpdateBtn')?.addEventListener('click',()=>checkForAppUpdate({manual:true}));
 load();
