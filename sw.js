@@ -1,4 +1,4 @@
-// release 4.1.0
+// release 4.1.1
 importScripts('./version.js');
 const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'3.10.0');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
