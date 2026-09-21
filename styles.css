@@ -476,3 +476,39 @@
   .db-catalog-item{grid-template-columns:1fr auto}
   .db-catalog-item small{grid-column:1/-1}
 }
+
+/* V4.5 dedicated admin page */
+.admin-top-btn{display:inline-flex;align-items:center;gap:6px}
+#view-admin{max-width:1180px;margin-inline:auto}
+.admin-hero{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px}
+.admin-hero-copy h1{margin:3px 0 6px;font-size:25px}
+.admin-hero-copy p:not(.eyebrow){margin:0;color:var(--muted);line-height:1.6}
+.admin-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:13px}
+.admin-card{min-width:0}
+.admin-action-list{display:grid;gap:8px}
+.admin-action-row{appearance:none;width:100%;border:1px solid var(--line);background:#fff;border-radius:13px;padding:11px 12px;display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:right;color:var(--ink);cursor:pointer}
+.admin-action-row:active{transform:translateY(1px)}
+.admin-action-row:hover{border-color:#a9bfce}
+.admin-action-icon{width:40px;height:40px;border-radius:11px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-size:18px;font-weight:900}
+.admin-action-row>span:nth-child(2){display:grid;gap:2px}
+.admin-action-row b{font-size:12px}
+.admin-action-row small{font-size:9.5px;color:var(--muted);line-height:1.45}
+.admin-action-row em{font-style:normal;font-size:19px;color:var(--muted)}
+.admin-data-safety{margin-top:0}
+.admin-about-card{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.admin-about-card h2{margin:3px 0 4px}
+.admin-about-meta{display:flex;flex-wrap:wrap;gap:7px}
+.admin-about-meta span{display:inline-flex;align-items:center;gap:4px;padding:6px 8px;border:1px solid var(--line);border-radius:999px;background:#f8fafb;font-size:9.5px;color:var(--muted)}
+.admin-about-meta b{color:var(--ink)}
+@media(max-width:760px){
+  .admin-top-btn span{display:none}
+  .admin-top-btn{width:42px;justify-content:center;padding-inline:0}
+  .admin-hero{display:grid;padding:15px}
+  .admin-hero-copy h1{font-size:21px}
+  .admin-hero>.btn{width:100%}
+  .admin-grid{grid-template-columns:1fr}
+  .admin-action-row{grid-template-columns:40px minmax(0,1fr) 24px}
+  .admin-about-card{display:grid}
+  .admin-about-meta{display:grid;grid-template-columns:1fr}
+  .admin-about-meta span{border-radius:10px}
+}
