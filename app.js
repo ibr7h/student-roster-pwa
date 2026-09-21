@@ -90,12 +90,124 @@ function migrate(input){
 const db={
   memory:{},
   async open(){return new Promise((res,rej)=>{try{const r=indexedDB.open('studentRosterPWA',1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('kv'))r.result.createObjectStore('kv')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})},
-  async get(k){try{const d=await this.open();return await new Promise((res,rej)=>{const t=d.transaction('kv','readonly').objectStore('kv').get(k);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error)})}catch{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return this.memory[k]??null}}},
+  async getIndexed(k){const d=await this.open();return await new Promise((res,rej)=>{const t=d.transaction('kv','readonly').objectStore('kv').get(k);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error)})},
+  async get(k){
+    try{
+      const indexed=await this.getIndexed(k);
+      if(indexed!==undefined&&indexed!==null)return indexed;
+    }catch{}
+    try{const raw=localStorage.getItem(k);if(raw)return JSON.parse(raw)}catch{}
+    return this.memory[k]??null
+  },
   async set(k,v){try{const d=await this.open();await new Promise((res,rej)=>{const t=d.transaction('kv','readwrite').objectStore('kv').put(v,k);t.onsuccess=()=>res();t.onerror=()=>rej(t.error)})}catch{try{localStorage.setItem(k,JSON.stringify(v))}catch{this.memory[k]=clone(v)}}}
 };
-async function save(){state.schemaVersion=SCHEMA_VERSION;const el=$('#saveStatus');if(el)el.textContent='جارٍ الحفظ…';await db.set('state',state);if(el)el.textContent='محفوظ على هذا الجهاز'}
+function attendanceRecordCount(source){
+  return (source?.classes||[]).reduce((n,c)=>n+(c.students||[]).reduce((m,st)=>m+Object.keys(st.attendance||{}).length,0),0)
+}
+function attendanceSnapshot(source){
+  return {kind:'student-roster-attendance-snapshot',createdAt:new Date().toISOString(),classes:(source?.classes||[]).map(c=>({id:c.id,name:c.name,grade:c.grade,subject:c.subject,students:(c.students||[]).map(st=>({id:st.id,name:st.name,attendance:clone(st.attendance||{})}))}))}
+}
+function persistAttendanceSnapshot(source){
+  try{
+    const snap=attendanceSnapshot(source),json=JSON.stringify(snap);
+    const current=localStorage.getItem('student-roster-attendance-snapshot-1');
+    if(current===json)return;
+    for(let i=5;i>=2;i--){const prev=localStorage.getItem('student-roster-attendance-snapshot-'+(i-1));if(prev)localStorage.setItem('student-roster-attendance-snapshot-'+i,prev)}
+    localStorage.setItem('student-roster-attendance-snapshot-1',json)
+  }catch{}
+}
+function persistAttendanceMirror(source){
+  try{localStorage.setItem('student-roster-attendance-mirror',JSON.stringify(attendanceSnapshot(source)))}catch{}
+}
+function localAttendanceCandidates(){
+  const out=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);if(!key)continue;
+      const raw=localStorage.getItem(key);if(!raw)continue;
+      try{
+        const parsed=JSON.parse(raw);
+        if(parsed&&Array.isArray(parsed.classes)&&attendanceRecordCount(parsed)>0)out.push({key,state:parsed,count:attendanceRecordCount(parsed)})
+      }catch{}
+    }
+  }catch{}
+  return out
+}
+function sameClassForRecovery(a,b){
+  if(a?.id&&b?.id&&a.id===b.id)return true;
+  return gradeImportKey(a?.grade||'')===gradeImportKey(b?.grade||'')&&sectionImportKey(a?.name||'')===sectionImportKey(b?.name||'')
+}
+function sameStudentForRecovery(a,b){
+  if(a?.id&&b?.id&&a.id===b.id)return true;
+  return studentNameKey(a?.name||'')===studentNameKey(b?.name||'')
+}
+function mergeAttendanceFromSource(target,source){
+  let added=0,conflicts=0,matchedStudents=0,sourceEntries=attendanceRecordCount(source);
+  for(const sc of source?.classes||[]){
+    const tc=(target.classes||[]).find(c=>sameClassForRecovery(c,sc));if(!tc)continue;
+    for(const ss of sc.students||[]){
+      const ts=(tc.students||[]).find(st=>sameStudentForRecovery(st,ss));if(!ts)continue;
+      matchedStudents++;ensureStudent(ts);
+      for(const [date,status] of Object.entries(ss.attendance||{})){
+        if(!['present','absent','late','excused'].includes(status))continue;
+        if(ts.attendance[date]===undefined){ts.attendance[date]=status;added++}
+        else if(ts.attendance[date]!==status)conflicts++
+      }
+    }
+  }
+  return {added,conflicts,matchedStudents,sourceEntries}
+}
+async function recoverAttendanceFromLocalSources({silent=false}={}){
+  const candidates=localAttendanceCandidates();let added=0,conflicts=0,sources=0;
+  for(const cand of candidates){
+    const result=mergeAttendanceFromSource(state,cand.state);
+    if(result.added){added+=result.added;conflicts+=result.conflicts;sources++}
+  }
+  if(added){await db.set('state',state);persistAttendanceMirror(state);if(!silent)toast('تمت استعادة '+arabicNum(added)+' سجل حضور قديم')}
+  return {added,conflicts,sources,candidates,current:attendanceRecordCount(state)}
+}
+function storageRecoverySummary(result){
+  const el=$('#storageRecoveryStatus');if(!el)return;
+  const candidateRecords=(result.candidates||[]).reduce((n,x)=>n+x.count,0);
+  el.innerHTML=`<div><span>السجلات الحالية</span><b>${arabicNum(result.current||0)}</b></div><div><span>نسخ محلية مكتشفة</span><b>${arabicNum((result.candidates||[]).length)}</b></div><div><span>سجلات داخل النسخ</span><b>${arabicNum(candidateRecords)}</b></div><div><span>تمت استعادتها الآن</span><b>${arabicNum(result.added||0)}</b></div>${result.conflicts?`<p>وجدت ${arabicNum(result.conflicts)} حالة مختلفة في تاريخ موجود أصلًا؛ تم الاحتفاظ بالقيمة الحالية ولم تُستبدل.</p>`:''}`
+}
+async function scanAndRecoverAttendance(){
+  const result=await recoverAttendanceFromLocalSources({silent:true});
+  storageRecoverySummary(result);
+  if(result.added){renderAll();queueSave();toast('تمت استعادة '+arabicNum(result.added)+' سجل حضور')}
+  else toast(result.candidates.length?'لا توجد سجلات أقدم مفقودة في التخزين المحلي':'لم توجد نسخة حضور محلية إضافية')
+}
+async function restoreAttendanceOnly(file){
+  try{
+    const parsed=JSON.parse(await file.text());
+    if(!parsed||!Array.isArray(parsed.classes))throw 0;
+    const before=attendanceRecordCount(state),probe=mergeAttendanceFromSource(clone(state),parsed);
+    if(!probe.added){toast('لا توجد سجلات حضور مفقودة في هذا الملف');return}
+    if(!confirm(`سيتم دمج ${arabicNum(probe.added)} سجل حضور مفقود من الملف دون استبدال الدرجات أو السجلات الحالية. متابعة؟`))return;
+    persistAttendanceSnapshot(state);
+    const result=mergeAttendanceFromSource(state,parsed);
+    await db.set('state',state);persistAttendanceMirror(state);renderAll();showView('dashboard',false);
+    storageRecoverySummary({current:attendanceRecordCount(state),candidates:[],added:result.added,conflicts:result.conflicts});
+    toast('تمت استعادة '+arabicNum(attendanceRecordCount(state)-before)+' سجل حضور')
+  }catch{toast('تعذر قراءة ملف النسخة الاحتياطية')}
+}
+async function save(){
+  state.schemaVersion=SCHEMA_VERSION;const el=$('#saveStatus');if(el)el.textContent='جارٍ الحفظ…';
+  try{const previous=await db.getIndexed('state');if(previous)persistAttendanceSnapshot(previous)}catch{}
+  await db.set('state',state);persistAttendanceMirror(state);if(el)el.textContent='محفوظ على هذا الجهاز'
+}
 function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(save,220)}
-async function load(){const stored=await db.get('state');if(stored){const migrated=migrate(stored);if(migrated)state=migrated}state.classes.forEach(ensureClass);if(!state.activeClassId&&state.classes[0])state.activeClassId=state.classes[0].id;const q=new URLSearchParams(location.search).get('view');if(['dashboard','assessments','attendance','schedule','reports'].includes(q))state.ui.activeView=q;$('#attendanceDate').value=localDateISO();renderAll();showView(state.ui.activeView||'dashboard',false)}
+async function load(){
+  const stored=await db.get('state');if(stored){const migrated=migrate(stored);if(migrated)state=migrated}
+  state.classes.forEach(ensureClass);
+  const recovery=await recoverAttendanceFromLocalSources({silent:true});
+  if(recovery.added)persistAttendanceMirror(state);
+  if(!state.activeClassId&&state.classes[0])state.activeClassId=state.classes[0].id;
+  const q=new URLSearchParams(location.search).get('view');if(['dashboard','assessments','attendance','schedule','reports'].includes(q))state.ui.activeView=q;
+  $('#attendanceDate').value=localDateISO();renderAll();showView(state.ui.activeView||'dashboard',false);
+  storageRecoverySummary(recovery);
+  if(recovery.added)setTimeout(()=>toast('استعاد التطبيق '+arabicNum(recovery.added)+' سجل حضور قديم تلقائيًا'),500)
+}
 
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2100)}
 function arabicNum(n){return Number(n||0).toLocaleString('ar-SA',{maximumFractionDigits:2})}
