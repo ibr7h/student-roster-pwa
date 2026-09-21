@@ -66,6 +66,27 @@
           <div class="view-actions"><button class="btn" id="recoveryScanBtn">فحص التخزين</button><button class="btn" id="attendanceRecoveryFileBtn">استعادة الحضور من Backup</button></div>
         </div>
         <div id="storageRecoveryStatus" class="storage-recovery-status"><span>لم يتم الفحص بعد.</span></div>
+
+        <div class="db-diagnostic-divider"></div>
+        <div class="db-diagnostic-head">
+          <div><p class="eyebrow">تشخيص متقدم — قراءة فقط</p><h3>تشخيص قاعدة بيانات الحضور</h3><p class="subtle">يعرض ما هو محفوظ فعليًا في IndexedDB ويقارن الغياب مع CSV قديم دون تعديل أي سجل.</p></div>
+          <div class="view-actions">
+            <button class="btn primary" id="dbDiagnosticBtn">فحص قاعدة البيانات</button>
+            <button class="btn" id="attendanceReferenceCsvBtn">مقارنة مع CSV قديم</button>
+          </div>
+        </div>
+        <div class="db-diagnostic-controls">
+          <div class="field"><label>الفصل المراد فحصه</label><select id="attendanceDiagnosticClass"></select></div>
+          <label class="diagnostic-filter"><input id="diagnosticOnlyDifferences" type="checkbox"> إظهار الاختلافات فقط</label>
+        </div>
+        <div id="dbDiagnosticSummary" class="db-diagnostic-summary"><span>اضغط «فحص قاعدة البيانات» لعرض البنية والسجلات الفعلية.</span></div>
+        <div id="attendanceReferenceSummary" class="attendance-reference-summary" hidden></div>
+        <div class="db-diagnostic-table-wrap">
+          <table class="db-diagnostic-table">
+            <thead><tr><th>الطالب</th><th>التواريخ والحالات المخزنة</th><th>غياب DB</th><th>تأخر DB</th><th>غياب CSV</th><th>التأخر CSV</th><th>المقارنة</th></tr></thead>
+            <tbody id="dbDiagnosticRows"><tr><td colspan="7">لم يتم الفحص بعد.</td></tr></tbody>
+          </table>
+        </div>
       </section>
     </section>
 
@@ -265,6 +286,7 @@
 <input id="csvInput" type="file" accept=".csv,text/csv" hidden>
 <input id="restoreInput" type="file" accept="application/json,.json" hidden>
 <input id="attendanceRecoveryInput" type="file" accept="application/json,.json" hidden>
+<input id="attendanceReferenceCsvInput" type="file" accept=".csv,text/csv" hidden>
 
 <dialog class="modal" id="classesModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">الإعدادات</p><h3>إدارة الفصول</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody" id="classesBody"></div><div class="row add-class-row"><input id="newClassName" placeholder="مثال: ٣ / ب"><input id="newClassGrade" placeholder="مثال: الثالث المتوسط"><input id="newClassSubject" placeholder="المادة"><button class="btn primary" id="addClassBtn">إضافة</button></div></div></dialog>
 
