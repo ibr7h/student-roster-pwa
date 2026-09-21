@@ -23,8 +23,7 @@
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
-      <button class="btn compact" id="backupBtn">⬇ <span>نسخة احتياطية</span></button>
-      <button class="btn compact" id="restoreBtn">⬆ <span>استعادة</span></button>
+      <button class="btn compact admin-top-btn" data-nav="admin" aria-label="فتح الإدارة">⚙ <span>الإدارة</span></button>
     </div>
   </header>
 
@@ -46,21 +45,49 @@
       </div>
       <div class="kpi-grid" id="dashboardKpis"></div>
       <section class="panel">
-        <div class="section-head"><div><p class="eyebrow">الفصول</p><h2>سجلاتي</h2></div><button class="btn no-print" id="manageClassesBtn">إدارة الفصول</button></div>
+        <div class="section-head"><div><p class="eyebrow">الفصول</p><h2>سجلاتي</h2></div></div>
         <div class="class-cards" id="classCards"></div>
       </section>
-      <section class="panel dashboard-settings">
-        <div class="section-head"><div><p class="eyebrow">بيانات الكليشة</p><h2>بيانات المدرسة والمعلم</h2></div></div>
-        <div class="meta-grid dashboard-meta">
-          <div class="field"><label>المدرسة</label><input data-app-meta="school" placeholder="اسم المدرسة"></div>
-          <div class="field"><label>المنطقة / مكتب التعليم</label><input data-app-meta="region" placeholder="المنطقة التعليمية"></div>
-          <div class="field"><label>العام الدراسي</label><input data-app-meta="year" placeholder="١٤٤٨ هـ"></div>
-          <div class="field"><label>الفصل الدراسي</label><input data-app-meta="semester" placeholder="الفصل الدراسي الأول"></div>
-          <div class="field"><label>معلم المادة</label><input data-app-meta="teacher" placeholder="اسم المعلم"></div>
-          <div class="field"><label>مدير المدرسة</label><input data-app-meta="principal" placeholder="اسم المدير"></div>
-        </div>
+      <section class="admin-shortcut panel no-print">
+        <div><p class="eyebrow">الإدارة</p><h2>الإعدادات والأدوات الإدارية</h2><p class="subtle">تم نقل الإعدادات والنسخ الاحتياطي وأدوات تشخيص البيانات إلى صفحة مستقلة.</p></div>
+        <button class="btn" data-nav="admin">⚙ فتح الإدارة</button>
       </section>
-      <section class="panel data-safety-panel no-print">
+    </section>
+
+    <section class="view" id="view-admin" data-view="admin">
+      <section class="admin-hero panel no-print">
+        <div class="admin-hero-copy"><p class="eyebrow">الإدارة</p><h1>إدارة التطبيق والبيانات</h1><p>إعدادات المدرسة والفصول، النسخ الاحتياطي، والاستعادة وتشخيص قاعدة البيانات.</p></div>
+        <button class="btn" data-nav="dashboard">← العودة للرئيسية</button>
+      </section>
+
+      <div class="admin-grid no-print">
+        <section class="panel admin-card admin-profile-card">
+          <div class="section-head">
+            <div><p class="eyebrow">الإعدادات الأساسية</p><h2>بيانات المدرسة والمعلم</h2><p class="subtle">تظهر هذه البيانات في الكليشة والتقارير المطبوعة.</p></div>
+          </div>
+          <div class="meta-grid dashboard-meta">
+            <div class="field"><label>المدرسة</label><input data-app-meta="school" placeholder="اسم المدرسة"></div>
+            <div class="field"><label>المنطقة / مكتب التعليم</label><input data-app-meta="region" placeholder="المنطقة التعليمية"></div>
+            <div class="field"><label>العام الدراسي</label><input data-app-meta="year" placeholder="١٤٤٨ هـ"></div>
+            <div class="field"><label>الفصل الدراسي</label><input data-app-meta="semester" placeholder="الفصل الدراسي الأول"></div>
+            <div class="field"><label>معلم المادة</label><input data-app-meta="teacher" placeholder="اسم المعلم"></div>
+            <div class="field"><label>مدير المدرسة</label><input data-app-meta="principal" placeholder="اسم المدير"></div>
+          </div>
+        </section>
+
+        <section class="panel admin-card">
+          <div class="section-head">
+            <div><p class="eyebrow">إدارة السجلات</p><h2>الفصول والنسخ الاحتياطي</h2><p class="subtle">الأدوات التي تغيّر بنية السجلات أو تنشئ نسخة كاملة منها.</p></div>
+          </div>
+          <div class="admin-action-list">
+            <button class="admin-action-row" id="manageClassesBtn"><span class="admin-action-icon">▦</span><span><b>إدارة الفصول</b><small>إضافة وتعديل وحذف الفصول والمواد.</small></span><em>‹</em></button>
+            <button class="admin-action-row" id="backupBtn"><span class="admin-action-icon">↓</span><span><b>إنشاء نسخة احتياطية</b><small>حفظ نسخة JSON كاملة من السجلات.</small></span><em>‹</em></button>
+            <button class="admin-action-row" id="restoreBtn"><span class="admin-action-icon">↑</span><span><b>استعادة نسخة احتياطية</b><small>استبدال السجلات الحالية بملف Backup.</small></span><em>‹</em></button>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel data-safety-panel admin-data-safety no-print">
         <div class="section-head">
           <div><p class="eyebrow">سلامة البيانات</p><h2>فحص واستعادة سجل الحضور</h2><p class="subtle">يفحص النسخة الحالية وأي نسخ محلية قديمة دون حذف الدرجات أو الطلاب.</p></div>
           <div class="view-actions"><button class="btn" id="recoveryScanBtn">فحص التخزين</button><button class="btn" id="attendanceRecoveryFileBtn">استعادة الحضور من Backup</button></div>
@@ -88,9 +115,14 @@
           </table>
         </div>
       </section>
+
+      <section class="panel admin-about-card no-print">
+        <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.4.0</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+      </section>
     </section>
 
-    <section class="view" id="view-assessments" data-view="assessments">
+    <section class="view" id="view-assessments"<section class="view" id="view-assessments" data-view="assessments">
       <section class="panel class-switch-panel no-print"><div class="classbar" id="assessmentClassbar"></div></section>
       <section class="panel">
         <div class="section-head assessment-head">
