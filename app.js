@@ -2,6 +2,7 @@ const SCHEMA_VERSION=3;
 const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.3.2';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
+let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const uid=()=>crypto.randomUUID?.() || ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
 const clone=x=>typeof structuredClone==='function'?structuredClone(x):JSON.parse(JSON.stringify(x));
@@ -191,6 +192,144 @@ async function restoreAttendanceOnly(file){
     toast('تمت استعادة '+arabicNum(attendanceRecordCount(state)-before)+' سجل حضور')
   }catch{toast('تعذر قراءة ملف النسخة الاحتياطية')}
 }
+
+function renderDiagnosticClassOptions(preferredId=''){
+  const sel=$('#attendanceDiagnosticClass');if(!sel)return;
+  const previous=preferredId||sel.value||state.activeClassId||state.classes[0]?.id||'';
+  sel.innerHTML=(state.classes||[]).map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.grade||'')} — ${escapeHtml(c.name||'')} — ${escapeHtml(c.subject||'')}</option>`).join('');
+  if([...sel.options].some(o=>o.value===previous))sel.value=previous;
+}
+function diagnosticClass(){
+  const id=$('#attendanceDiagnosticClass')?.value;
+  return findClass(id)||currentClass()
+}
+function attendanceRawEntries(st,cutoff=''){
+  return Object.entries(st?.attendance||{})
+    .filter(([date,status])=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&['present','absent','late','excused'].includes(status)&&(!cutoff||date<=cutoff))
+    .sort((a,b)=>a[0].localeCompare(b[0]))
+}
+function attendanceRawCounts(st,cutoff=''){
+  const out={present:0,absent:0,late:0,excused:0,total:0};
+  attendanceRawEntries(st,cutoff).forEach(([,status])=>{out[status]++;out.total++});
+  return out
+}
+function referenceDateFromFilename(name=''){
+  const m=String(name).match(/(20\d{2}-\d{2}-\d{2})/);return m?.[1]||''
+}
+function parseAttendanceReferenceCsv(text,fileName=''){
+  const rows=parseCSV(String(text||'').replace(/^\uFEFF/,''));
+  if(!rows.length)throw new Error('empty');
+  const headers=rows[0].map(x=>normalizeImportText(x));
+  const nameIdx=csvHeaderIndex(headers,['الاسم','اسم الطالب','name']);
+  const absentIdx=csvHeaderIndex(headers,['الغياب','غائب','absent']);
+  const lateIdx=csvHeaderIndex(headers,['التأخر','متأخر','late']);
+  if(nameIdx<0||absentIdx<0)throw new Error('headers');
+  const map=new Map(),items=[];
+  rows.slice(1).forEach(row=>{
+    const name=normalizeImportText(row[nameIdx]);if(!name)return;
+    const item={name,absent:Number(latinDigits(row[absentIdx]||'0'))||0,late:lateIdx>=0?(Number(latinDigits(row[lateIdx]||'0'))||0):0};
+    map.set(studentNameKey(name),item);items.push(item)
+  });
+  return {fileName,cutoff:referenceDateFromFilename(fileName),map,items}
+}
+function bestClassForAttendanceReference(ref){
+  let best=null,bestScore=-1;
+  for(const c of state.classes||[]){
+    const names=new Set((c.students||[]).map(st=>studentNameKey(st.name)));
+    let score=0;for(const k of ref.map.keys())if(names.has(k))score++;
+    if(score>bestScore){best={classId:c.id,score,total:names.size};bestScore=score}
+  }
+  return best
+}
+function attendanceDiagnosticComparison(st,ref){
+  const current=attendanceRawCounts(st),cutoff=ref?.cutoff||'',atRef=attendanceRawCounts(st,cutoff),csv=ref?.map.get(studentNameKey(st.name))||null;
+  if(!ref)return {current,atRef,csv:null,kind:'none',label:'بدون CSV مرجعي'};
+  if(!csv)return {current,atRef,csv:null,kind:'missing-csv',label:'غير موجود في CSV'};
+  const absentDiff=atRef.absent-csv.absent,lateDiff=atRef.late-csv.late;
+  if(absentDiff===0&&lateDiff===0)return {current,atRef,csv,kind:'match',label:'مطابق'};
+  const parts=[];
+  if(absentDiff<0)parts.push(`غياب ناقص ${arabicNum(Math.abs(absentDiff))}`);
+  if(absentDiff>0)parts.push(`غياب DB أكثر ${arabicNum(absentDiff)}`);
+  if(lateDiff<0)parts.push(`تأخر ناقص ${arabicNum(Math.abs(lateDiff))}`);
+  if(lateDiff>0)parts.push(`تأخر DB أكثر ${arabicNum(lateDiff)}`);
+  return {current,atRef,csv,kind:'diff',label:parts.join(' · ')}
+}
+function attendanceEntryChip(date,status){
+  const day=AR_DAY_BY_JS[parseISODateNoon(date).getDay()]||'',label=statusLabel(status),cls='diag-'+status;
+  return `<span class="diagnostic-entry ${cls}"><b>${escapeHtml(date)}</b><small>${escapeHtml(day)} · ${escapeHtml(label)}</small></span>`
+}
+function renderAttendanceDiagnosticRows(){
+  const body=$('#dbDiagnosticRows'),c=diagnosticClass();if(!body||!c)return;
+  const ref=attendanceReferenceCsv,onlyDiff=$('#diagnosticOnlyDifferences')?.checked;
+  const rows=(c.students||[]).map(st=>({st,cmp:attendanceDiagnosticComparison(st,ref)})).filter(x=>!onlyDiff||x.cmp.kind==='diff'||x.cmp.kind==='missing-csv');
+  body.innerHTML=rows.length?rows.map(({st,cmp})=>{
+    const entries=attendanceRawEntries(st),chips=entries.length?entries.map(([d,v])=>attendanceEntryChip(d,v)).join(''):'<span class="diagnostic-empty">لا توجد تواريخ حضور محفوظة</span>';
+    const dbAbsent=ref?.cutoff?`<b>${arabicNum(cmp.atRef.absent)}</b><small>حتى ${escapeHtml(ref.cutoff)}</small><em>الإجمالي الآن ${arabicNum(cmp.current.absent)}</em>`:`<b>${arabicNum(cmp.current.absent)}</b>`;
+    const dbLate=ref?.cutoff?`<b>${arabicNum(cmp.atRef.late)}</b><small>حتى ${escapeHtml(ref.cutoff)}</small><em>الإجمالي الآن ${arabicNum(cmp.current.late)}</em>`:`<b>${arabicNum(cmp.current.late)}</b>`;
+    return `<tr class="diagnostic-row ${cmp.kind}"><td class="diagnostic-student"><b>${escapeHtml(st.name)}</b><small>${arabicNum(entries.length)} سجل</small></td><td><div class="diagnostic-entries">${chips}</div></td><td class="diagnostic-count">${dbAbsent}</td><td class="diagnostic-count">${dbLate}</td><td class="diagnostic-count">${cmp.csv?arabicNum(cmp.csv.absent):'—'}</td><td class="diagnostic-count">${cmp.csv?arabicNum(cmp.csv.late):'—'}</td><td><span class="diagnostic-result ${cmp.kind}">${escapeHtml(cmp.label)}</span></td></tr>`
+  }).join(''):'<tr><td colspan="7">لا توجد نتائج وفق الفلتر الحالي.</td></tr>';
+}
+async function idbStoreKeys(dbHandle,storeName){
+  try{
+    return await new Promise((resolve,reject)=>{
+      const store=dbHandle.transaction(storeName,'readonly').objectStore(storeName);
+      if(store.getAllKeys){const req=store.getAllKeys();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error);return}
+      const keys=[],req=store.openKeyCursor();req.onsuccess=()=>{const cur=req.result;if(cur){keys.push(cur.key);cur.continue()}else resolve(keys)};req.onerror=()=>reject(req.error)
+    })
+  }catch{return[]}
+}
+async function inspectCurrentOriginDatabases(){
+  const catalog=[];
+  try{
+    const listed=typeof indexedDB.databases==='function'?await indexedDB.databases():[{name:'studentRosterPWA',version:1}];
+    for(const meta of listed||[]){
+      if(!meta?.name)continue;
+      try{
+        const handle=await new Promise((resolve,reject)=>{const req=indexedDB.open(meta.name);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+        const stores=[...handle.objectStoreNames],storeInfo=[];
+        for(const store of stores)storeInfo.push({name:store,keys:await idbStoreKeys(handle,store)});
+        catalog.push({name:meta.name,version:handle.version,stores:storeInfo});handle.close()
+      }catch{catalog.push({name:meta.name,version:meta.version||'?',stores:[]})}
+    }
+  }catch{}
+  if(!catalog.some(x=>x.name==='studentRosterPWA')){
+    try{const handle=await db.open(),stores=[...handle.objectStoreNames],storeInfo=[];for(const store of stores)storeInfo.push({name:store,keys:await idbStoreKeys(handle,store)});catalog.push({name:'studentRosterPWA',version:handle.version,stores:storeInfo});handle.close()}catch{}
+  }
+  return catalog
+}
+function localRosterStorageKeys(){
+  const out=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(/student-roster|attendance|^state$/i.test(k)))out.push(k)}}catch{}return out.sort()
+}
+async function runAttendanceDatabaseDiagnostic(){
+  const summary=$('#dbDiagnosticSummary');if(summary)summary.innerHTML='<span>جارٍ قراءة قاعدة البيانات…</span>';
+  renderDiagnosticClassOptions();
+  const catalog=await inspectCurrentOriginDatabases(),c=diagnosticClass(),classes=state.classes||[],students=classes.reduce((n,x)=>n+(x.students?.length||0),0),records=attendanceRecordCount(state),lsKeys=localRosterStorageKeys();
+  attendanceDiagnosticLastScan={catalog,classes:classes.length,students,records,origin:location.origin,localStorageKeys:lsKeys};
+  const dbText=catalog.length?catalog.map(d=>`<div class="db-catalog-item"><b>${escapeHtml(d.name)}</b><span>v${escapeHtml(d.version)}</span><small>${d.stores.length?d.stores.map(st=>`${escapeHtml(st.name)} [${st.keys.map(k=>escapeHtml(String(k))).join(', ')||'بدون مفاتيح'}]`).join(' · '):'تعذر قراءة المخازن'}</small></div>`).join(''):'<div class="db-catalog-item"><b>تعذر تعداد قواعد IndexedDB</b><small>تمت قراءة الحالة الحالية من التطبيق فقط.</small></div>';
+  if(summary)summary.innerHTML=`<div class="db-diagnostic-kpis"><div><span>قواعد IndexedDB</span><b>${arabicNum(catalog.length)}</b></div><div><span>الفصول</span><b>${arabicNum(classes.length)}</b></div><div><span>الطلاب</span><b>${arabicNum(students)}</b></div><div><span>سجلات attendance</span><b>${arabicNum(records)}</b></div></div><div class="db-origin-row"><span>نطاق التخزين الحالي</span><code>${escapeHtml(location.origin)}</code></div><div class="db-catalog">${dbText}</div><div class="db-local-keys"><span>مفاتيح localStorage المرتبطة بالسجل</span><code>${lsKeys.length?lsKeys.map(escapeHtml).join(' · '):'لا توجد'}</code></div><p class="diagnostic-note">الفحص أعلاه قراءة فقط؛ لم يتم تعديل أي حالة حضور.</p>`;
+  renderAttendanceDiagnosticRows();
+  toast('اكتمل فحص قاعدة بيانات الحضور')
+}
+function renderAttendanceReferenceSummary(){
+  const el=$('#attendanceReferenceSummary');if(!el)return;
+  const ref=attendanceReferenceCsv;if(!ref){el.hidden=true;el.innerHTML='';return}
+  const c=diagnosticClass(),students=c?.students||[],studentKeys=new Set(students.map(st=>studentNameKey(st.name)));
+  const matched=ref.items.filter(x=>studentKeys.has(studentNameKey(x.name))).length,missing=ref.items.length-matched;
+  const expectedAbsent=ref.items.reduce((n,x)=>n+x.absent,0),expectedLate=ref.items.reduce((n,x)=>n+x.late,0);
+  let dbAbsent=0,dbLate=0,matches=0,diffs=0;
+  students.forEach(st=>{const cmp=attendanceDiagnosticComparison(st,ref);if(cmp.csv){dbAbsent+=cmp.atRef.absent;dbLate+=cmp.atRef.late;if(cmp.kind==='match')matches++;else diffs++}});
+  el.hidden=false;el.innerHTML=`<div class="reference-title"><b>${escapeHtml(ref.fileName)}</b><span>${ref.cutoff?'المقارنة حتى '+escapeHtml(ref.cutoff):'المقارنة مع الإجمالي الحالي'}</span></div><div class="reference-kpis"><div><span>طلاب CSV المطابقون</span><b>${arabicNum(matched)} / ${arabicNum(ref.items.length)}</b></div><div><span>غياب CSV</span><b>${arabicNum(expectedAbsent)}</b></div><div><span>غياب DB للمطابقين</span><b>${arabicNum(dbAbsent)}</b></div><div><span>طلاب متطابقون</span><b>${arabicNum(matches)}</b></div><div><span>طلاب مختلفون</span><b>${arabicNum(diffs)}</b></div><div><span>أسماء CSV غير موجودة</span><b>${arabicNum(missing)}</b></div></div>`;
+}
+async function loadAttendanceReferenceCsv(file){
+  try{
+    attendanceReferenceCsv=parseAttendanceReferenceCsv(await file.text(),file.name);
+    const best=bestClassForAttendanceReference(attendanceReferenceCsv);
+    if(best?.classId)renderDiagnosticClassOptions(best.classId);
+    renderAttendanceReferenceSummary();renderAttendanceDiagnosticRows();
+    toast(`تم تحميل CSV ومطابقة ${arabicNum(best?.score||0)} طالبًا`)
+  }catch{attendanceReferenceCsv=null;renderAttendanceReferenceSummary();toast('تعذر قراءة CSV: يجب أن يحتوي الاسم والغياب')}
+}
+
 async function save(){
   state.schemaVersion=SCHEMA_VERSION;const el=$('#saveStatus');if(el)el.textContent='جارٍ الحفظ…';
   try{const previous=await db.getIndexed('state');if(previous)persistAttendanceSnapshot(previous)}catch{}
@@ -230,7 +369,7 @@ function classAttendanceForDate(c,date){const out={present:0,absent:0,late:0,exc
 function riskForStudent(s,c,period='all'){const sc=scoreSummary(s,c,period),at=attendanceCounts(s,period),reasons=[];if(sc.performance!==null&&sc.performance<state.settings.gradeAlertThreshold)reasons.push(`المستوى ${pct(sc.performance)}`);if(at.absent>=state.settings.absenceAlertThreshold)reasons.push(`${arabicNum(at.absent)} غياب`);return {isRisk:reasons.length>0,reasons,score:sc,attendance:at}}
 function monthsForClass(c){const set=new Set();(c.assessmentEvents||[]).forEach(a=>{const m=monthKey(a.date);if(m)set.add(m)});c.students.forEach(s=>Object.keys(s.attendance||{}).forEach(d=>{const m=monthKey(d);if(m)set.add(m)}));return [...set].sort().reverse()}
 
-function renderAll(){renderAppMeta();renderClassBars();renderDashboard();renderAssessments();renderAttendance();renderSchedule();renderReports();renderInstallNote()}
+function renderAll(){renderAppMeta();renderClassBars();renderDashboard();renderAssessments();renderAttendance();renderSchedule();renderReports();renderInstallNote();renderDiagnosticClassOptions()}
 function showView(name,saveUi=true){
   if(!['dashboard','assessments','attendance','schedule','reports'].includes(name))name='dashboard';
   state.ui.activeView=name;
@@ -791,7 +930,7 @@ function renderInstallNote(){const isIOS=/iphone|ipad|ipod/i.test(navigator.user
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');if(nav)showView(nav.dataset.nav);if(e.target.matches('[data-close]'))e.target.closest('dialog').close();if(e.target.matches('[data-mark-all]'))markAllAttendance(e.target.dataset.markAll);if(e.target.matches('[data-clear-attendance]'))clearAttendanceDay()});
 $('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};$('#studentSearch').oninput=e=>{searchTerm=e.target.value;renderAssessments()};$('#addStudentBtn').onclick=addStudent;$('#assessmentAddStudentBtn').onclick=addStudent;$('#manageStudentsBtn').onclick=openStudents;$('#manageStudentsBtnTop').onclick=openStudents;$('#studentsAddBtn').onclick=()=>{addStudent();renderStudentsModal()};$('#studentsImportBtn').onclick=()=>$('#csvInput').click();$('#importBtn').onclick=()=>$('#csvInput').click();$('#csvInput').onchange=e=>{if(e.target.files[0])importCSV(e.target.files[0]);e.target.value=''};$('#exportCsvBtn').onclick=exportCurrentClassCSV;
-$('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#recoveryScanBtn').onclick=scanAndRecoverAttendance;$('#attendanceRecoveryFileBtn').onclick=()=>$('#attendanceRecoveryInput').click();$('#attendanceRecoveryInput').onchange=e=>{if(e.target.files[0])restoreAttendanceOnly(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn')?.addEventListener('click',printAttendanceReport);
+$('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#recoveryScanBtn').onclick=scanAndRecoverAttendance;$('#dbDiagnosticBtn').onclick=runAttendanceDatabaseDiagnostic;$('#attendanceReferenceCsvBtn').onclick=()=>$('#attendanceReferenceCsvInput').click();$('#attendanceReferenceCsvInput').onchange=e=>{if(e.target.files[0])loadAttendanceReferenceCsv(e.target.files[0]);e.target.value=''};$('#attendanceDiagnosticClass').onchange=()=>{renderAttendanceReferenceSummary();renderAttendanceDiagnosticRows()};$('#diagnosticOnlyDifferences').onchange=renderAttendanceDiagnosticRows;$('#attendanceRecoveryFileBtn').onclick=()=>$('#attendanceRecoveryInput').click();$('#attendanceRecoveryInput').onchange=e=>{if(e.target.files[0])restoreAttendanceOnly(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn')?.addEventListener('click',printAttendanceReport);
 $('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
 $('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};
 $$('[data-report-open]').forEach(b=>b.onclick=()=>setReportTab(b.dataset.reportOpen));
