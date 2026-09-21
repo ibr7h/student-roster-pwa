@@ -2,7 +2,7 @@ const SCHEMA_VERSION=3;
 const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.3.2';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
-let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null;
+let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const uid=()=>crypto.randomUUID?.() || ('id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
 const clone=x=>typeof structuredClone==='function'?structuredClone(x):JSON.parse(JSON.stringify(x));
@@ -193,15 +193,17 @@ async function restoreAttendanceOnly(file){
   }catch{toast('تعذر قراءة ملف النسخة الاحتياطية')}
 }
 
+function diagnosticSourceState(){return attendanceDiagnosticDbState||state}
 function renderDiagnosticClassOptions(preferredId=''){
   const sel=$('#attendanceDiagnosticClass');if(!sel)return;
-  const previous=preferredId||sel.value||state.activeClassId||state.classes[0]?.id||'';
-  sel.innerHTML=(state.classes||[]).map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.grade||'')} — ${escapeHtml(c.name||'')} — ${escapeHtml(c.subject||'')}</option>`).join('');
+  const source=diagnosticSourceState(),classes=source?.classes||[];
+  const previous=preferredId||sel.value||source?.activeClassId||state.activeClassId||classes[0]?.id||'';
+  sel.innerHTML=classes.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.grade||'')} — ${escapeHtml(c.name||'')} — ${escapeHtml(c.subject||'')}</option>`).join('');
   if([...sel.options].some(o=>o.value===previous))sel.value=previous;
 }
 function diagnosticClass(){
-  const id=$('#attendanceDiagnosticClass')?.value;
-  return findClass(id)||currentClass()
+  const source=diagnosticSourceState(),id=$('#attendanceDiagnosticClass')?.value;
+  return (source?.classes||[]).find(c=>c.id===id)||(source?.classes||[])[0]||currentClass()
 }
 function attendanceRawEntries(st,cutoff=''){
   return Object.entries(st?.attendance||{})
@@ -234,7 +236,7 @@ function parseAttendanceReferenceCsv(text,fileName=''){
 }
 function bestClassForAttendanceReference(ref){
   let best=null,bestScore=-1;
-  for(const c of state.classes||[]){
+  for(const c of diagnosticSourceState()?.classes||[]){
     const names=new Set((c.students||[]).map(st=>studentNameKey(st.name)));
     let score=0;for(const k of ref.map.keys())if(names.has(k))score++;
     if(score>bestScore){best={classId:c.id,score,total:names.size};bestScore=score}
@@ -302,11 +304,12 @@ function localRosterStorageKeys(){
 }
 async function runAttendanceDatabaseDiagnostic(){
   const summary=$('#dbDiagnosticSummary');if(summary)summary.innerHTML='<span>جارٍ قراءة قاعدة البيانات…</span>';
+  try{attendanceDiagnosticDbState=await db.getIndexed('state')||null}catch{attendanceDiagnosticDbState=null}
   renderDiagnosticClassOptions();
-  const catalog=await inspectCurrentOriginDatabases(),c=diagnosticClass(),classes=state.classes||[],students=classes.reduce((n,x)=>n+(x.students?.length||0),0),records=attendanceRecordCount(state),lsKeys=localRosterStorageKeys();
-  attendanceDiagnosticLastScan={catalog,classes:classes.length,students,records,origin:location.origin,localStorageKeys:lsKeys};
+  const source=diagnosticSourceState(),catalog=await inspectCurrentOriginDatabases(),c=diagnosticClass(),classes=source?.classes||[],students=classes.reduce((n,x)=>n+(x.students?.length||0),0),records=attendanceRecordCount(source),lsKeys=localRosterStorageKeys();
+  attendanceDiagnosticLastScan={catalog,classes:classes.length,students,records,origin:location.origin,localStorageKeys:lsKeys,usingIndexedDb:!!attendanceDiagnosticDbState};
   const dbText=catalog.length?catalog.map(d=>`<div class="db-catalog-item"><b>${escapeHtml(d.name)}</b><span>v${escapeHtml(d.version)}</span><small>${d.stores.length?d.stores.map(st=>`${escapeHtml(st.name)} [${st.keys.map(k=>escapeHtml(String(k))).join(', ')||'بدون مفاتيح'}]`).join(' · '):'تعذر قراءة المخازن'}</small></div>`).join(''):'<div class="db-catalog-item"><b>تعذر تعداد قواعد IndexedDB</b><small>تمت قراءة الحالة الحالية من التطبيق فقط.</small></div>';
-  if(summary)summary.innerHTML=`<div class="db-diagnostic-kpis"><div><span>قواعد IndexedDB</span><b>${arabicNum(catalog.length)}</b></div><div><span>الفصول</span><b>${arabicNum(classes.length)}</b></div><div><span>الطلاب</span><b>${arabicNum(students)}</b></div><div><span>سجلات attendance</span><b>${arabicNum(records)}</b></div></div><div class="db-origin-row"><span>نطاق التخزين الحالي</span><code>${escapeHtml(location.origin)}</code></div><div class="db-catalog">${dbText}</div><div class="db-local-keys"><span>مفاتيح localStorage المرتبطة بالسجل</span><code>${lsKeys.length?lsKeys.map(escapeHtml).join(' · '):'لا توجد'}</code></div><p class="diagnostic-note">الفحص أعلاه قراءة فقط؛ لم يتم تعديل أي حالة حضور.</p>`;
+  if(summary)summary.innerHTML=`<div class="db-diagnostic-kpis"><div><span>قواعد IndexedDB</span><b>${arabicNum(catalog.length)}</b></div><div><span>الفصول</span><b>${arabicNum(classes.length)}</b></div><div><span>الطلاب</span><b>${arabicNum(students)}</b></div><div><span>سجلات attendance</span><b>${arabicNum(records)}</b></div></div><div class="db-origin-row"><span>نطاق التخزين الحالي</span><code>${escapeHtml(location.origin)}</code></div><div class="db-catalog">${dbText}</div><div class="db-local-keys"><span>مفاتيح localStorage المرتبطة بالسجل</span><code>${lsKeys.length?lsKeys.map(escapeHtml).join(' · '):'لا توجد'}</code></div><p class="diagnostic-note">الفحص أعلاه قراءة فقط؛ لم يتم تعديل أي حالة حضور. مصدر جدول الطلاب: ${attendanceDiagnosticDbState?'IndexedDB → kv → state':'حالة التطبيق الحالية (تعذر قراءة state مباشرة من IndexedDB)'}.</p>`;
   renderAttendanceDiagnosticRows();
   toast('اكتمل فحص قاعدة بيانات الحضور')
 }
