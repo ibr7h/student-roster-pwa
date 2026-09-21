@@ -60,6 +60,13 @@
           <div class="field"><label>مدير المدرسة</label><input data-app-meta="principal" placeholder="اسم المدير"></div>
         </div>
       </section>
+      <section class="panel data-safety-panel no-print">
+        <div class="section-head">
+          <div><p class="eyebrow">سلامة البيانات</p><h2>فحص واستعادة سجل الحضور</h2><p class="subtle">يفحص النسخة الحالية وأي نسخ محلية قديمة دون حذف الدرجات أو الطلاب.</p></div>
+          <div class="view-actions"><button class="btn" id="recoveryScanBtn">فحص التخزين</button><button class="btn" id="attendanceRecoveryFileBtn">استعادة الحضور من Backup</button></div>
+        </div>
+        <div id="storageRecoveryStatus" class="storage-recovery-status"><span>لم يتم الفحص بعد.</span></div>
+      </section>
     </section>
 
     <section class="view" id="view-assessments" data-view="assessments">
@@ -257,6 +264,7 @@
 
 <input id="csvInput" type="file" accept=".csv,text/csv" hidden>
 <input id="restoreInput" type="file" accept="application/json,.json" hidden>
+<input id="attendanceRecoveryInput" type="file" accept="application/json,.json" hidden>
 
 <dialog class="modal" id="classesModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">الإعدادات</p><h3>إدارة الفصول</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody" id="classesBody"></div><div class="row add-class-row"><input id="newClassName" placeholder="مثال: ٣ / ب"><input id="newClassGrade" placeholder="مثال: الثالث المتوسط"><input id="newClassSubject" placeholder="المادة"><button class="btn primary" id="addClassBtn">إضافة</button></div></div></dialog>
 
