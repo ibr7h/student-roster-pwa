@@ -345,7 +345,7 @@ async function load(){
   const recovery=await recoverAttendanceFromLocalSources({silent:true});
   if(recovery.added)persistAttendanceMirror(state);
   if(!state.activeClassId&&state.classes[0])state.activeClassId=state.classes[0].id;
-  const q=new URLSearchParams(location.search).get('view');if(['dashboard','assessments','attendance','schedule','reports'].includes(q))state.ui.activeView=q;
+  const q=new URLSearchParams(location.search).get('view');if(['dashboard','admin','assessments','attendance','schedule','reports'].includes(q))state.ui.activeView=q;
   $('#attendanceDate').value=localDateISO();renderAll();showView(state.ui.activeView||'dashboard',false);
   storageRecoverySummary(recovery);
   if(recovery.added)setTimeout(()=>toast('استعاد التطبيق '+arabicNum(recovery.added)+' سجل حضور قديم تلقائيًا'),500)
@@ -374,7 +374,7 @@ function monthsForClass(c){const set=new Set();(c.assessmentEvents||[]).forEach(
 
 function renderAll(){renderAppMeta();renderClassBars();renderDashboard();renderAssessments();renderAttendance();renderSchedule();renderReports();renderInstallNote();renderDiagnosticClassOptions()}
 function showView(name,saveUi=true){
-  if(!['dashboard','assessments','attendance','schedule','reports'].includes(name))name='dashboard';
+  if(!['dashboard','admin','assessments','attendance','schedule','reports'].includes(name))name='dashboard';
   state.ui.activeView=name;
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
   $$('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
@@ -382,6 +382,7 @@ function showView(name,saveUi=true){
   if(name==='attendance')renderAttendance();
   if(name==='schedule')renderSchedule();
   if(name==='reports'){renderReports();showReportsHub(false)}
+  if(name==='admin'){renderAppMeta();renderDiagnosticClassOptions();if($('#adminVersion'))$('#adminVersion').textContent='v'+APP_VERSION}
   window.scrollTo({top:0,behavior:'instant'});
   if(saveUi)queueSave()
 }
@@ -878,6 +879,7 @@ function compareVersions(a,b){
 function setVersionUI(){
   if($('#versionBadge'))$('#versionBadge').textContent='v'+APP_VERSION;
   if($('#footerVersion'))$('#footerVersion').textContent='v'+APP_VERSION;
+  if($('#adminVersion'))$('#adminVersion').textContent='v'+APP_VERSION;
 }
 function showUpdateBanner(title,text,autoHide=0){
   const b=$('#updateBanner');if(!b)return;
