@@ -1,4 +1,4 @@
-// release 4.7.1 assessment-edit-scope
+// release 4.8.0 quick-grading
 importScripts('./version.js');
 const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.6.0');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
