@@ -1,0 +1,43 @@
+name: Validate v4.6 update splash
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v46.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate v4.6 updater
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          h=Path('index.html').read_text(encoding='utf-8')
+          a=Path('app.js').read_text(encoding='utf-8')
+          s=Path('sw.js').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          ids=re.findall(r'\bid="([^"]+)"',h)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          if dup: raise SystemExit('duplicate ids: '+','.join(dup))
+          checks={
+            'version': "APP_VERSION='4.6.0'" in v and 'v4.6.0' in h,
+            'splash markup': all(x in h for x in ['updateSplash','updateSplashProgress','updateSplashPercent','updateSplashDetail','updateSplashVersion']),
+            'splash logic': 'function showUpdateSplash' in a and 'function updateSplashFromWorker' in a,
+            'worker progress listener': "data.type!=='UPDATE_PROGRESS'" in a,
+            'progress broadcast': "type:'UPDATE_PROGRESS'" in s and 'function broadcastUpdate' in s,
+            'sequential precache': 'cacheAssetWithProgress' in s and 'for(let i=0;i<ASSETS.length;i++)' in s,
+            'byte progress': 'assetReceived' in s and 'assetTotal' in s,
+            'stream-safe headers': "headers.delete('content-encoding')" in s and "headers.delete('content-length')" in s,
+            'activation progress': "phase:'activating'" in s and "phase:'activated'" in s,
+            'first install guarded': 'if(!updateProgressEligible&&!updateSplashActive)return' in a,
+            'reload at completion': "progress:100" in a and 'location.reload()' in a,
+          }
+          bad=[k for k,val in checks.items() if not val]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.6 updater validation passed')
+          PY
