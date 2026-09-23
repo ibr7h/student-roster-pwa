@@ -411,7 +411,7 @@
 
 <dialog class="modal schedule-create-modal" id="scheduleCreateModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">جداول المعلم</p><h3 id="scheduleCreateTitle">إضافة جدول</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم الجدول</label><input id="newScheduleTitle" placeholder="مثال: الجدول الأساسي 2"></div><div class="field"><label>الفصل الدراسي</label><select id="newScheduleSemester"><option>الفصل الدراسي الأول</option><option>الفصل الدراسي الثاني</option></select></div><div class="field"><label>طريقة الإنشاء</label><select id="newScheduleMode"><option value="blank">جدول فارغ</option><option value="copy">نسخ من جدول موجود</option></select></div><div class="field"><label>بداية السريان</label><input id="newScheduleStart" type="date"></div><div class="field"><label>نهاية السريان</label><input id="newScheduleEnd" type="date"></div><div class="field span2" id="newScheduleSourceField"><label>الجدول المصدر</label><select id="newScheduleSource"></select></div><div class="schedule-create-note span2" id="scheduleCreateNote"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveNewScheduleBtn">إنشاء الجدول</button></div></div></dialog>
 
-<dialog class="schedule-cell-picker" id="scheduleCellPicker">
+<div class="schedule-cell-picker no-print" id="scheduleCellPicker" hidden role="dialog" aria-modal="true" aria-labelledby="scheduleCellPickerTitle">
   <div class="schedule-cell-picker-sheet">
     <div class="schedule-cell-picker-head">
       <div><p class="eyebrow">تعيين الحصة</p><h3 id="scheduleCellPickerTitle">—</h3><small id="scheduleCellPickerCurrent"></small></div>
@@ -433,7 +433,7 @@
       <button class="btn danger" id="scheduleCellPickerClear">تفريغ الحصة</button>
     </div>
   </div>
-</dialog>
+</div>
 
 <dialog class="modal schedule-slot-modal" id="scheduleSlotModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">جدول المعلم</p><h3 id="scheduleSlotTitle">تعديل الحصة</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field"><label>نوع الخانة</label><select id="scheduleSlotKind"><option value="class">حصة تدريس</option><option value="standby">انتظار / احتياط</option><option value="empty">فارغ</option></select></div><div class="field"><label>الفصل</label><input id="scheduleSlotClass" placeholder="مثال: 2م أ"></div><div class="field span2"><label>المادة / الوصف</label><input id="scheduleSlotSubject" placeholder="الرقمية"></div><div class="field"><label>بداية الحصة</label><input id="scheduleSlotStart" type="time"></div><div class="field"><label>نهاية الحصة</label><input id="scheduleSlotEnd" type="time"></div><div class="field span2"><label>نص الانتظار / ملاحظة</label><input id="scheduleSlotNote" placeholder="مثال: منتظر 1"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveScheduleSlotBtn">حفظ</button></div></div></dialog>
 
