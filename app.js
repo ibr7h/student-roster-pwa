@@ -785,7 +785,7 @@ function renderScheduleLibrary(){
   if(archive){archive.textContent=t.archived?'إلغاء الأرشفة':'أرشفة';archive.disabled=!t.archived&&t.id===state.activeScheduleId&&(state.teacherSchedules||[]).filter(x=>!x.archived&&x.id!==t.id).length===0}
 }
 function selectTeacherSchedule(id){if(!(state.teacherSchedules||[]).some(x=>x.id===id))return;state.ui.scheduleId=id;editingScheduleSlot=null;editingSupervisionId=null;renderSchedule();queueSave()}
-function setActiveTeacherSchedule(){const t=currentTeacherSchedule();if(!t)return;t.archived=false;state.activeScheduleId=t.id;renderSchedule();renderReports();queueSave();toast('تم تعيين الجدول النشط')}
+function setActiveTeacherSchedule(){const t=currentTeacherSchedule();if(!t)return;t.archived=false;state.activeScheduleId=t.id;state.appMeta.semester=t.semester||state.appMeta.semester;state.appMeta.teacher=t.teacherName||state.appMeta.teacher;state.appMeta.school=t.school||state.appMeta.school;renderAll();queueSave();toast('تم تعيين الجدول النشط')}
 function toggleArchiveTeacherSchedule(){
   const t=currentTeacherSchedule();if(!t)return;
   if(!t.archived&&t.id===state.activeScheduleId){
@@ -833,6 +833,7 @@ function updateSelectedScheduleMeta(field,value){
   t[field]=value;
   if(field==='teacherName')state.appMeta.teacher=value;
   if(field==='school')state.appMeta.school=value;
+  if(field==='semester'&&t.id===state.activeScheduleId)state.appMeta.semester=value;
   renderScheduleHeader();renderScheduleLibrary();renderReports();queueSave()
 }
 function renderSchedule(){
