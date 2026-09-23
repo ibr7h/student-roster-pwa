@@ -1,6 +1,6 @@
-// release 4.11.1 schedule-picker-fix
+// release 4.11.2 schedule-delete
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.11.1');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.11.2');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
