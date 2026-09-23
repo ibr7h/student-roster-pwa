@@ -382,9 +382,10 @@ async function save(){
 }
 function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(save,220)}
 async function load(){
-  const stored=await db.get('state');if(stored){const migrated=migrate(stored);if(migrated)state=migrated}
+  const stored=await db.get('state'),needsScheduleMigration=!!stored&&(!Array.isArray(stored.teacherSchedules)||Number(stored.schemaVersion||0)<SCHEMA_VERSION);if(stored){const migrated=migrate(stored);if(migrated)state=migrated}
   state.classes.forEach(ensureClass);
   const recovery=await recoverAttendanceFromLocalSources({silent:true});
+  if(needsScheduleMigration)await db.set('state',state);
   if(recovery.added)persistAttendanceMirror(state);
   if(!state.activeClassId&&state.classes[0])state.activeClassId=state.classes[0].id;
   const q=new URLSearchParams(location.search).get('view');if(['dashboard','admin','assessments','attendance','schedule','reports'].includes(q))state.ui.activeView=q;
