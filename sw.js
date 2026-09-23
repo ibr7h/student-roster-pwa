@@ -1,6 +1,6 @@
-// release 4.10.1 mobile-selection-fix
+// release 4.11.0 cell-first-schedule-picker
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.10.1');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.11.0');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
