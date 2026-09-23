@@ -1,6 +1,6 @@
-// release 4.8.0 quick-grading
+// release 4.9.0 multi-schedules
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.6.0');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.9.0');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
