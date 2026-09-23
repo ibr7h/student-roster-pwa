@@ -425,7 +425,7 @@ function showView(name,saveUi=true){
   if(name==='attendance')renderAttendance();
   if(name==='schedule')renderSchedule();
   if(name==='reports'){renderReports();showReportsHub(false)}
-  if(name==='admin'){renderAppMeta();renderDiagnosticClassOptions();if($('#adminVersion'))$('#adminVersion').textContent='v'+APP_VERSION}
+  if(name==='admin'){renderAppMeta();renderSchedule();renderDiagnosticClassOptions();if($('#adminVersion'))$('#adminVersion').textContent='v'+APP_VERSION}
   window.scrollTo({top:0,behavior:'instant'});
   if(saveUi)queueSave()
 }
@@ -458,7 +458,7 @@ function setActiveClass(id){
   renderAll();if(state.ui.activeView==='reports')showReportsHub(false);queueSave()
 }
 
-function renderAppMeta(){$$('[data-app-meta]').forEach(inp=>{const k=inp.dataset.appMeta;if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';inp.oninput=()=>{state.appMeta[k]=inp.value;queueSave()}})}
+function renderAppMeta(){$('[data-app-meta]').forEach(inp=>{const k=inp.dataset.appMeta;if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';inp.oninput=()=>{state.appMeta[k]=inp.value;if(k==='teacher'||k==='school'){(state.teacherSchedules||[]).forEach(t=>{if(k==='teacher')t.teacherName=inp.value;else t.school=inp.value});renderScheduleHeader()}queueSave()}})}
 function classChipMarkup(c){return `<button class="chip ${c.id===state.activeClassId?'active':''}" data-class-switch="${c.id}">${escapeHtml(c.grade)} · ${escapeHtml(c.name)}</button>`}
 function renderClassBars(){['#assessmentClassbar','#attendanceClassbar','#reportsClassbar'].forEach(sel=>{const b=$(sel);if(!b)return;b.innerHTML=state.classes.map(classChipMarkup).join('')+`<button class="chip add" data-open-classes>＋ فصل</button>`});$$('[data-class-switch]').forEach(x=>x.onclick=()=>setActiveClass(x.dataset.classSwitch));$$('[data-open-classes]').forEach(x=>x.onclick=openClasses)}
 
@@ -1054,28 +1054,29 @@ function updateSelectedScheduleMeta(field,value){
   renderScheduleHeader();renderScheduleLibrary();renderReports();queueSave()
 }
 function renderSchedule(){
-  const t=currentTeacherSchedule(),counts=scheduleCounts(t);
-  const teacher=$('#scheduleTeacherInput'),school=$('#scheduleSchoolInput'),title=$('#scheduleTitleInput'),semester=$('#scheduleSemesterInput'),start=$('#scheduleStartInput'),end=$('#scheduleEndInput');if(!teacher||!t)return;
+  const t=currentTeacherSchedule(),counts=scheduleCounts(t);if(!t)return;
+  const settingsSelect=$('#scheduleSettingsSelect'),title=$('#scheduleTitleInput'),semester=$('#scheduleSemesterInput'),start=$('#scheduleStartInput'),end=$('#scheduleEndInput'),settingsState=$('#scheduleSettingsState');
   syncScheduleEntryContext();
   renderScheduleLibrary();
-  if(document.activeElement!==teacher)teacher.value=t.teacherName||'';
-  if(document.activeElement!==school)school.value=t.school||'';
-  if(document.activeElement!==title)title.value=t.title||'';
-  if(document.activeElement!==semester)semester.value=t.semester||state.appMeta.semester||'الفصل الدراسي الأول';
-  if(document.activeElement!==start)start.value=t.startDate||'';
-  if(document.activeElement!==end)end.value=t.endDate||'';
-  teacher.oninput=()=>updateSelectedScheduleMeta('teacherName',teacher.value);
-  school.oninput=()=>updateSelectedScheduleMeta('school',school.value);
-  title.oninput=()=>updateSelectedScheduleMeta('title',title.value);
-  semester.onchange=()=>updateSelectedScheduleMeta('semester',semester.value);
-  start.onchange=()=>updateSelectedScheduleMeta('startDate',start.value);
-  end.onchange=()=>updateSelectedScheduleMeta('endDate',end.value);
+  if(settingsSelect){
+    settingsSelect.innerHTML=(state.teacherSchedules||[]).map(x=>`<option value="${escapeHtml(x.id)}" ${x.id===t.id?'selected':''}>${escapeHtml(x.title||'جدول')} — ${escapeHtml(scheduleStateInfo(x).label)}</option>`).join('');
+    settingsSelect.onchange=()=>selectTeacherSchedule(settingsSelect.value)
+  }
+  if(title&&document.activeElement!==title)title.value=t.title||'';
+  if(semester&&document.activeElement!==semester)semester.value=t.semester||state.appMeta.semester||'الفصل الدراسي الأول';
+  if(start&&document.activeElement!==start)start.value=t.startDate||'';
+  if(end&&document.activeElement!==end)end.value=t.endDate||'';
+  if(title)title.oninput=()=>updateSelectedScheduleMeta('title',title.value);
+  if(semester)semester.onchange=()=>updateSelectedScheduleMeta('semester',semester.value);
+  if(start)start.onchange=()=>updateSelectedScheduleMeta('startDate',start.value);
+  if(end)end.onchange=()=>updateSelectedScheduleMeta('endDate',end.value);
+  if(settingsState){const st=scheduleStateInfo(t);settingsState.innerHTML=`<span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span><small>${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}</small>`}
   $('#scheduleStats').innerHTML=`<div><b>${arabicNum(counts.teaching)}</b><span>عدد الحصص</span></div><div><b>${arabicNum(counts.classes)}</b><span>عدد الفصول</span></div>`;
   $('#teacherScheduleTable').innerHTML=`<thead><tr><th>اليوم / الحصة</th>${[1,2,3,4,5,6,7].map(p=>`<th><b>${arabicNum(p)}</b><small>${scheduleTimeLabel(...PERIOD_TIMES[p])}</small></th>`).join('')}</tr></thead><tbody>${SCHEDULE_DAYS.map(day=>`<tr><th>${day}</th>${[1,2,3,4,5,6,7].map(p=>`<td>${scheduleCellMarkup(day,p)}</td>`).join('')}</tr>`).join('')}</tbody>`;
   $('#scheduleMobile').innerHTML=SCHEDULE_DAYS.map(day=>`<article class="schedule-day-card"><h3>${day}</h3><div>${[1,2,3,4,5,6,7].map(p=>scheduleCellMarkup(day,p,true)).join('')}</div></article>`).join('');
-  renderScheduleHeader();renderSupervisions();renderScheduleEntryControls();$$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');handleScheduleCellClick(day,Number(p))})
+  renderScheduleHeader();renderSupervisions();renderScheduleEntryControls();$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');handleScheduleCellClick(day,Number(p))})
 }
-function renderScheduleHeader(){const t=currentTeacherSchedule();if(!t||!$('#schedulePrintHeader'))return;$('#schedulePrintHeader').innerHTML=`<div><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(t.school||'')}</span></div><div class="schedule-logo-center"><img class="schedule-official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><h1>${escapeHtml(t.title||'جدول المعلم')}</h1><b>${escapeHtml(t.teacherName||'')}</b></div><div><b>جدول المعلم</b><span>${escapeHtml(state.appMeta.year||'')}</span><span>${escapeHtml(t.semester||state.appMeta.semester||'')}</span></div>`}
+function renderScheduleHeader(){const t=currentTeacherSchedule();if(!t||!$('#schedulePrintHeader'))return;$('#schedulePrintHeader').innerHTML=`<div><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(state.appMeta.school||t.school||'')}</span></div><div class="schedule-logo-center"><img class="schedule-official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><h1>${escapeHtml(t.title||'جدول المعلم')}</h1><b>${escapeHtml(state.appMeta.teacher||t.teacherName||'')}</b></div><div><b>جدول المعلم</b><span>${escapeHtml(state.appMeta.year||'')}</span><span>${escapeHtml(t.semester||state.appMeta.semester||'')}</span></div>`}
 function openScheduleSlot(day,period){const t=currentTeacherSchedule();if(!t)return;editingScheduleSlot={day,period};const raw=t.slots?.[scheduleKey(day,period)]||{},pt=PERIOD_TIMES[period]||['',''];$('#scheduleSlotTitle').textContent=`${day} — الحصة ${arabicNum(period)}`;$('#scheduleSlotKind').value=raw.kind||'empty';$('#scheduleSlotClass').value=raw.className||'';$('#scheduleSlotSubject').value=raw.subject||'';$('#scheduleSlotStart').value=raw.start||pt[0]||'';$('#scheduleSlotEnd').value=raw.end||pt[1]||'';$('#scheduleSlotNote').value=raw.note||'';$('#scheduleSlotModal').showModal()}
 function saveScheduleSlot(){const t=currentTeacherSchedule();if(!editingScheduleSlot||!t)return;const {day,period}=editingScheduleSlot,key=scheduleKey(day,period),kind=$('#scheduleSlotKind').value;if(kind==='empty')delete t.slots[key];else t.slots[key]={kind,className:$('#scheduleSlotClass').value.trim(),subject:$('#scheduleSlotSubject').value.trim(),start:$('#scheduleSlotStart').value,end:$('#scheduleSlotEnd').value,note:$('#scheduleSlotNote').value.trim()};$('#scheduleSlotModal').close();renderSchedule();renderReports();queueSave();toast('تم تحديث الجدول')}
 function renderSupervisions(){const list=$('#supervisionList'),t=currentTeacherSchedule();if(!list||!t)return;const items=t.supervision||[];list.innerHTML=items.length?items.map(x=>`<article class="supervision-card"><div><b>${escapeHtml(x.day||'')} ${x.date?`<span class="supervision-date">(${escapeHtml(x.date)})</span>`:''}</b><span>${escapeHtml(x.start||'')} - ${escapeHtml(x.end||'')}</span></div><div class="supervision-main"><strong>👁️ ${escapeHtml(x.title||'إشراف')}</strong><span>${escapeHtml(x.type||'إشراف')} — ${escapeHtml(x.location||'')}</span></div><button class="btn tiny no-print" data-edit-supervision="${x.id}">تعديل</button></article>`).join(''):`<div class="empty-state"><b>لا توجد مناوبات مسجلة</b>أضف مناوبة أو إشرافًا جديدًا.</div>`;$$('[data-edit-supervision]').forEach(b=>b.onclick=()=>openSupervision(b.dataset.editSupervision))}
