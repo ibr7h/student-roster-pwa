@@ -817,7 +817,7 @@ function renderScheduleEntryControls(){
   syncScheduleEntryContext();
   if(distribution)distribution.hidden=scheduleEntryMode!=='distribution';
   if(hint)hint.hidden=scheduleEntryMode!=='cell';
-  $('[data-schedule-mode]').forEach(b=>b.classList.toggle('active',b.dataset.scheduleMode===scheduleEntryMode));
+  $$('[data-schedule-mode]').forEach(b=>b.classList.toggle('active',b.dataset.scheduleMode===scheduleEntryMode));
   const subjects=scheduleTeachingSubjects(),classes=scheduleClassesForSubject(scheduleEntrySubject),c=scheduleEntryClass();
   subjectTabs.innerHTML=subjects.length?subjects.map(name=>`<button class="schedule-subject-chip ${scheduleSubjectKey(name)===scheduleSubjectKey(scheduleEntrySubject)?'active':''}" data-schedule-subject="${escapeHtml(name)}" style="--subject-color:${scheduleClassColor(name)}">${escapeHtml(name)}</button>`).join(''):`<span class="schedule-entry-empty">لا توجد مواد مرتبطة بالفصول. أضف المادة من إدارة الفصول أولًا.</span>`;
   classSelect.innerHTML=classes.length?classes.map(x=>`<option value="${escapeHtml(x.id)}" ${x.id===scheduleEntryClassId?'selected':''}>${escapeHtml(x.grade)} — ${escapeHtml(x.name)}</option>`).join(''):'<option value="">لا توجد فصول لهذه المادة</option>';
