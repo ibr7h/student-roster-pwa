@@ -1,39 +1,30 @@
-:root{
-  --bg:#f3f6f9;--card:#fff;--ink:#12212f;--muted:#66768a;--line:#d9e1e8;--brand:#173f5f;--brand2:#20639b;--brand-soft:#eaf2f8;--ok:#18794e;--ok-soft:#eaf8f1;--bad:#b42318;--bad-soft:#fff0ef;--warn:#a15c00;--warn-soft:#fff7e6;--late:#7c3aed;--late-soft:#f4efff;--excused:#0369a1;--excused-soft:#eaf7ff;--radius:18px;--shadow:0 8px 28px rgba(15,23,42,.055);
-}
+:root{--bg:#f3f6f9;--card:#fff;--ink:#12212f;--muted:#66768a;--line:#d9e1e8;--brand:#173f5f;--brand2:#20639b;--brand-soft:#eaf2f8;--ok:#18794e;--ok-soft:#eaf8f1;--bad:#b42318;--bad-soft:#fff0ef;--warn:#a15c00;--warn-soft:#fff7e6;--late:#7c3aed;--late-soft:#f4efff;--excused:#0369a1;--excused-soft:#eaf7ff;--radius:18px;--shadow:0 8px 28px rgba(15,23,42,.055)}
 *{box-sizing:border-box}html{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}body{margin:0;min-height:100dvh;background:var(--bg)}button,input,select,textarea{font:inherit}button{touch-action:manipulation}.app-shell{max-width:1500px;margin:auto;padding:env(safe-area-inset-top) max(14px,env(safe-area-inset-right)) calc(92px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
 .topbar{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(16px);padding:10px 0;display:flex;gap:12px;align-items:center;justify-content:space-between}.brand{border:0;background:transparent;display:flex;align-items:center;gap:10px;padding:3px 0;color:inherit;text-align:right;cursor:pointer}.brand-mark{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--brand);color:#fff;font-weight:900;font-size:22px;box-shadow:0 6px 16px rgba(23,63,95,.22)}.brand-text{display:grid}.brand-text b{font-size:18px}.brand-text small{font-size:11px;color:var(--muted);margin-top:2px}.top-actions{display:flex;gap:7px;align-items:center}.save-pill{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);padding:8px 11px;border-radius:999px;white-space:nowrap}
 .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 13px;font-weight:750;cursor:pointer;min-height:44px}.btn.compact{min-height:40px;padding:8px 11px}.btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}.btn.danger{color:var(--bad)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn:active,.chip:active,.bottom-nav button:active{transform:translateY(1px)}
 .install-note{display:none;position:relative;background:var(--warn-soft);border:1px solid #efd28b;color:#634b00;padding:10px 48px 10px 12px;border-radius:14px;margin-bottom:12px;line-height:1.65}.install-note .iconbtn{position:absolute;right:7px;top:50%;transform:translateY(-50%)}
-.view{display:none}.view.active{display:block}.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:13px;box-shadow:var(--shadow)}.hero{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:24px}.hero h1{font-size:clamp(25px,4vw,38px);margin:4px 0 7px}.hero p:not(.eyebrow){margin:0;color:var(--muted);line-height:1.7}.hero-actions,.view-actions{display:flex;gap:8px;flex-wrap:wrap}.eyebrow{margin:0;color:var(--brand2);font-size:12px;font-weight:900;letter-spacing:.02em}.subtle{color:var(--muted);margin:5px 0 0;line-height:1.65}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.section-head h2,.report-title-row h2{margin:3px 0 0;font-size:22px}.report-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.view{display:none}.view.active{display:block}.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:13px;box-shadow:var(--shadow)}.hero{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:24px}.hero h1{font-size:clamp(25px,4vw,38px);margin:4px 0 7px}.hero p:not(.eyebrow){margin:0;color:var(--muted);line-height:1.7}.hero-actions,.view-actions{display:flex;gap:8px;flex-wrap:wrap}.eyebrow{margin:0;color:var(--brand2);font-size:12px;font-weight:900;letter-spacing:.02em}.subtle{color:var(--muted);margin:5px 0 0;line-height:1.65}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.section-head h2{margin:3px 0 0;font-size:22px}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:13px}.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}.kpi .kpi-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);margin-bottom:12px}.kpi b{display:block;font-size:28px;line-height:1}.kpi span{display:block;color:var(--muted);font-size:12px;margin-top:7px}.kpi.ok .kpi-icon{background:var(--ok-soft)}.kpi.bad .kpi-icon{background:var(--bad-soft)}.kpi.warn .kpi-icon{background:var(--warn-soft)}
 .class-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:12px}.class-card{border:1px solid var(--line);border-radius:15px;padding:15px;background:#fff;display:grid;gap:12px;transition:.15s}.class-card:hover{border-color:#afc5d8;box-shadow:0 8px 22px rgba(15,23,42,.06)}.class-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.class-card h3{margin:0;font-size:20px}.class-card .class-sub{font-size:12px;color:var(--muted);margin-top:4px}.count-badge{background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;white-space:nowrap}.class-card-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.mini-metric{background:#f8fafc;border:1px solid #edf1f5;border-radius:10px;padding:8px;text-align:center}.mini-metric b{display:block}.mini-metric span{font-size:10px;color:var(--muted)}.class-card-actions{display:flex;gap:7px}.class-card-actions .btn{flex:1;min-height:40px;padding:8px;font-size:12px}
-.meta-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}.dashboard-meta{grid-template-columns:repeat(3,1fr)}.field label,.attendance-date-wrap label,.student-notes label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.field input,.field select,.attendance-date-wrap input,.row input,.row select,.fieldrow input,.fieldrow select,.student-notes textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;min-height:42px;color:var(--ink)}.field input:focus,.row input:focus,.fieldrow input:focus,.searchbox input:focus,.student-notes textarea:focus{outline:2px solid #b9d9ef;outline-offset:0;border-color:#84b8d8}.wide-print{grid-column:span 2}
+.meta-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:10px}.dashboard-meta{grid-template-columns:repeat(3,1fr)}.field label,.attendance-date-wrap label,.student-notes label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.field input,.field select,.attendance-date-wrap input,.row input,.row select,.fieldrow input,.fieldrow select,.student-notes textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;min-height:42px;color:var(--ink)}.field input:focus,.row input:focus,.fieldrow input:focus,.searchbox input:focus,.student-notes textarea:focus{outline:2px solid #b9d9ef;outline-offset:0;border-color:#84b8d8}
 .class-switch-panel{padding:10px}.classbar{display:flex;align-items:center;gap:8px;overflow:auto;padding-bottom:1px;scrollbar-width:none}.classbar::-webkit-scrollbar{display:none}.chip{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;font-weight:800;cursor:pointer;min-height:40px}.chip.active{background:var(--brand2);border-color:var(--brand2);color:#fff}.chip.add{border-style:dashed}
-.table-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.searchbox{min-width:min(340px,100%);border:1px solid var(--line);background:#fff;border-radius:12px;display:flex;align-items:center;padding:0 10px}.searchbox span{color:var(--muted);font-size:20px}.searchbox input{border:0;outline:0;width:100%;min-height:42px;background:transparent;padding:8px}.toolbar-right{display:flex;gap:7px;flex-wrap:wrap}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;-webkit-overflow-scrolling:touch}.roster{width:100%;border-collapse:separate;border-spacing:0;min-width:920px}.roster th,.roster td{border-left:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px;text-align:center;vertical-align:middle}.roster th:last-child,.roster td:last-child{border-left:0}.roster thead th{position:sticky;top:0;background:#eef3f8;z-index:5;font-size:13px}.roster tbody tr:last-child td{border-bottom:0}.num{width:48px}.namecell{min-width:220px;text-align:right!important}.nameinput{width:100%;border:0;background:transparent;font:inherit;font-weight:750;padding:7px}.nameinput:focus{outline:2px solid #90caf9;border-radius:7px}.assess{min-width:118px;padding:4px!important}.slotgrid{display:grid;grid-template-rows:1fr 1fr;gap:4px}.slot{min-height:35px;border:1px solid var(--line);border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:850;cursor:pointer}.slot.ok{background:var(--ok-soft);color:var(--ok);border-color:#b9e4c9}.slot.bad{background:var(--bad-soft);color:var(--bad);border-color:#f1bbb6}.slot.empty{color:#94a3b8}.slot select{width:100%;height:34px;border:0;background:transparent;font:inherit;text-align:center}.score{font-weight:900}.ops{min-width:205px}.oprow{display:flex;justify-content:center;gap:4px;flex-wrap:wrap}.iconbtn{width:38px;height:38px;border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;font-weight:900;color:var(--ink)}.drag{cursor:grab;touch-action:none}.dragging{opacity:.5}.drop-target{outline:3px solid #60a5fa;outline-offset:-3px}.report-link{color:var(--brand2);font-weight:850;background:none;border:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.table-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.searchbox{min-width:min(340px,100%);border:1px solid var(--line);background:#fff;border-radius:12px;display:flex;align-items:center;padding:0 10px}.searchbox span{color:var(--muted);font-size:20px}.searchbox input{border:0;outline:0;width:100%;min-height:42px;background:transparent;padding:8px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;-webkit-overflow-scrolling:touch}.num{width:48px}.slot{min-height:35px;border:1px solid var(--line);border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:850;cursor:pointer}.slot.ok{background:var(--ok-soft);color:var(--ok);border-color:#b9e4c9}.slot.bad{background:var(--bad-soft);color:var(--bad);border-color:#f1bbb6}.slot.empty{color:#94a3b8}.slot select{width:100%;height:34px;border:0;background:transparent;font:inherit;text-align:center}.score{font-weight:900}.iconbtn{width:38px;height:38px;border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;font-weight:900;color:var(--ink)}
 .summary,.attendance-stats,.report-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.stat{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px}.stat b{font-size:22px;display:block}.stat span{color:var(--muted);font-size:12px}.stat.ok{background:var(--ok-soft)}.stat.bad{background:var(--bad-soft)}.stat.late{background:var(--late-soft)}.stat.excused{background:var(--excused-soft)}
 .attendance-head{align-items:flex-end}.attendance-date-wrap{min-width:175px}.attendance-actions{display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px}.attendance-list{display:grid;gap:7px}.attendance-row{display:grid;grid-template-columns:48px minmax(180px,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 11px;background:#fff}.attendance-row .student-name{font-weight:800}.attendance-row .index{color:var(--muted);text-align:center}.status-options{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start}.status-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;min-height:38px;cursor:pointer;font-size:12px;font-weight:800}.status-btn.active[data-status="present"]{background:var(--ok-soft);border-color:#a6d9bd;color:var(--ok)}.status-btn.active[data-status="absent"]{background:var(--bad-soft);border-color:#efb9b4;color:var(--bad)}.status-btn.active[data-status="late"]{background:var(--late-soft);border-color:#d4c1fb;color:var(--late)}.status-btn.active[data-status="excused"]{background:var(--excused-soft);border-color:#b9dff2;color:var(--excused)}
-.student-report-list{display:grid;gap:8px;margin-top:13px}.student-report-row{display:grid;grid-template-columns:48px minmax(200px,1.5fr) repeat(3,minmax(90px,.6fr)) auto;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}.student-report-row .metric{text-align:center}.student-report-row .metric b{display:block}.student-report-row .metric span{font-size:10px;color:var(--muted)}
-.bottom-nav{position:fixed;z-index:50;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,1fr);width:min(520px,calc(100% - 24px));background:rgba(255,255,255,.93);border:1px solid var(--line);backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(15,23,42,.15);border-radius:18px;padding:5px}.bottom-nav button{border:0;background:transparent;min-height:54px;border-radius:13px;display:grid;place-items:center;align-content:center;gap:2px;color:var(--muted);cursor:pointer}.bottom-nav button span{font-size:20px;line-height:1}.bottom-nav button small{font-size:10px;font-weight:800}.bottom-nav button.active{background:var(--brand);color:#fff}
+.student-report-list{margin-top:13px}.student-report-row .metric{text-align:center}.student-report-row .metric b{display:block}.student-report-row .metric span{font-size:10px;color:var(--muted)}
+.bottom-nav{position:fixed;z-index:50;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:grid;width:min(520px,calc(100% - 24px));background:rgba(255,255,255,.93);border:1px solid var(--line);backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(15,23,42,.15);border-radius:18px;padding:5px}.bottom-nav button{border:0;background:transparent;min-height:54px;border-radius:13px;display:grid;place-items:center;align-content:center;gap:2px;color:var(--muted);cursor:pointer}.bottom-nav button span{font-size:20px;line-height:1}.bottom-nav button small{font-size:10px;font-weight:800}.bottom-nav button.active{background:var(--brand);color:#fff}
 .modal{border:0;border-radius:20px;padding:0;max-width:min(720px,94vw);width:100%;box-shadow:0 30px 80px rgba(0,0,0,.25);max-height:90dvh}.modal::backdrop{background:rgba(15,23,42,.48)}.modalbox{padding:18px;max-height:90dvh;overflow:auto}.modalhead{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:-18px;background:#fff;padding:14px 0 8px;z-index:2}.modalhead h3{margin:3px 0 0;font-size:22px}.modalbody{display:grid;gap:10px;margin:14px 0}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.hint{color:var(--muted);font-size:13px;line-height:1.7}.fieldrow{display:grid;grid-template-columns:1.7fr 1fr .7fr auto;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:10px}.modalfooter{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}.add-class-row{display:grid;grid-template-columns:1fr 1.5fr 1.2fr auto}.student-modal{max-width:min(820px,95vw)}
-.student-report-print{display:grid;gap:13px}.student-report-header{border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}.student-report-header h2{margin:3px 0 5px}.student-report-header p{margin:0;color:var(--muted)}.student-report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.report-box{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;background:#f8fafc}.report-box b{font-size:22px;display:block}.report-box span{font-size:11px;color:var(--muted)}.detail-table{width:100%;border-collapse:collapse}.detail-table th,.detail-table td{border:1px solid var(--line);padding:8px;text-align:center}.detail-table th{background:#eef3f8}.student-notes{margin-top:14px}.student-notes textarea{resize:vertical;min-height:90px}
+.student-report-print{display:grid;gap:13px}.student-report-header{border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}.student-report-header h2{margin:3px 0 5px}.student-report-header p{margin:0;color:var(--muted)}.detail-table{width:100%;border-collapse:collapse}.detail-table th,.detail-table td{border:1px solid var(--line);padding:8px;text-align:center}.detail-table th{background:#eef3f8}.student-notes{margin-top:14px}.student-notes textarea{resize:vertical;min-height:90px}
 .toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:999px;z-index:99;opacity:0;pointer-events:none;transition:.2s;box-shadow:0 10px 30px rgba(0,0,0,.18);max-width:90vw;text-align:center}.toast.show{opacity:1}
 .empty-state{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:13px}.empty-state b{display:block;color:var(--ink);margin-bottom:5px}
-@media(max-width:1000px){.meta-grid{grid-template-columns:repeat(3,1fr)}.kpi-grid{grid-template-columns:repeat(2,1fr)}.summary,.attendance-stats,.report-kpis{grid-template-columns:repeat(2,1fr)}.student-report-row{grid-template-columns:40px minmax(180px,1fr) repeat(2,minmax(80px,.5fr)) auto}.student-report-row .hide-tablet{display:none}}
-@media(max-width:680px){.app-shell{padding-left:8px;padding-right:8px}.topbar{align-items:center}.brand-text small,.save-pill,.top-actions .btn span{display:none}.brand-mark{width:38px;height:38px}.top-actions{gap:4px}.top-actions .btn{width:40px;padding:7px}.hero{align-items:flex-start;flex-direction:column;padding:17px}.hero-actions{width:100%}.hero-actions .btn{flex:1}.hero h1{font-size:26px}.kpi-grid{gap:8px}.kpi{padding:12px}.kpi b{font-size:24px}.panel{padding:11px;border-radius:14px}.section-head,.report-title-row{align-items:flex-start}.dashboard-meta,.meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wide-print{grid-column:span 1}.view-actions{width:100%}.view-actions .btn{flex:1;padding:8px;font-size:12px}.report-title-row{flex-direction:column}.table-toolbar{align-items:stretch;flex-direction:column}.searchbox{min-width:0;width:100%}.toolbar-right{display:grid;grid-template-columns:1fr 1fr}.attendance-head{align-items:stretch;flex-direction:column}.attendance-date-wrap{min-width:0;width:100%}.attendance-row{grid-template-columns:34px 1fr}.status-options{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr)}.status-btn{padding:8px 4px}.student-report-row{grid-template-columns:34px 1fr auto}.student-report-row .metric{display:none}.student-report-grid{grid-template-columns:repeat(2,1fr)}.add-class-row{grid-template-columns:1fr}.fieldrow{grid-template-columns:1.3fr 1fr .65fr auto}.bottom-nav{bottom:max(5px,env(safe-area-inset-bottom));width:calc(100% - 12px)}.class-card-actions{display:grid;grid-template-columns:1fr 1fr}.student-modal{width:96vw}}
+@media(max-width:1000px){.meta-grid{grid-template-columns:repeat(3,1fr)}.kpi-grid{grid-template-columns:repeat(2,1fr)}.summary,.attendance-stats,.report-kpis{grid-template-columns:repeat(2,1fr)}.student-report-row{grid-template-columns:40px minmax(180px,1fr) repeat(2,minmax(80px,.5fr)) auto}}
+@media(max-width:680px){.app-shell{padding-left:8px;padding-right:8px}.topbar{align-items:center}.brand-text small,.save-pill,.top-actions .btn span{display:none}.brand-mark{width:38px;height:38px}.top-actions{gap:4px}.top-actions .btn{width:40px;padding:7px}.hero{align-items:flex-start;flex-direction:column;padding:17px}.hero-actions{width:100%}.hero-actions .btn{flex:1}.hero h1{font-size:26px}.kpi-grid{gap:8px}.kpi{padding:12px}.kpi b{font-size:24px}.panel{padding:11px;border-radius:14px}.section-head{align-items:flex-start}.dashboard-meta,.meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.view-actions{width:100%}.view-actions .btn{flex:1;padding:8px;font-size:12px}.table-toolbar{align-items:stretch;flex-direction:column}.searchbox{min-width:0;width:100%}.attendance-head{align-items:stretch;flex-direction:column}.attendance-date-wrap{min-width:0;width:100%}.attendance-row{grid-template-columns:34px 1fr}.status-options{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr)}.status-btn{padding:8px 4px}.student-report-row{grid-template-columns:34px 1fr auto}.student-report-row .metric{display:none}.add-class-row{grid-template-columns:1fr}.fieldrow{grid-template-columns:1.3fr 1fr .65fr auto}.bottom-nav{bottom:max(5px,env(safe-area-inset-bottom));width:calc(100% - 12px)}.class-card-actions{display:grid;grid-template-columns:1fr 1fr}.student-modal{width:96vw}}
 
-/* V3 — temporal assessments */
-.assessment-layout{display:grid;grid-template-columns:minmax(245px,310px) minmax(0,1fr);gap:14px;align-items:start}.assessment-timeline{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:10px;max-height:72dvh;overflow:auto;position:sticky;top:78px}.timeline-toolbar{display:grid;gap:8px;margin-bottom:9px}.timeline-toolbar select{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff}.assessment-card{width:100%;display:grid;gap:5px;text-align:right;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;margin-bottom:7px;color:var(--ink);cursor:pointer}.assessment-card:hover{border-color:#abc5d8}.assessment-card.active{border-color:var(--brand2);box-shadow:0 0 0 2px rgba(32,99,155,.12);background:var(--brand-soft)}.assessment-card b{font-size:14px}.assessment-card small,.assessment-progress{font-size:10.5px;color:var(--muted)}.assessment-type{font-size:10px;font-weight:900;color:var(--brand2);background:#fff;border:1px solid #cddfeb;border-radius:999px;padding:3px 7px;width:max-content}.assessment-selected-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:2px 2px 13px}.assessment-selected-head h3{font-size:22px;margin:3px 0}.gradebook{width:100%;border-collapse:collapse;min-width:700px}.gradebook th,.gradebook td{border-bottom:1px solid var(--line);padding:9px;text-align:center}.gradebook th{background:#eef3f8;font-size:12px}.gradebook tr:last-child td{border-bottom:0}.student-name-cell{text-align:right!important;font-weight:800;min-width:220px}.grade-input{width:115px;max-width:100%;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center;background:#fff}.status-tag{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900}.status-tag.ok{background:var(--ok-soft);color:var(--ok)}.status-tag.risk{background:var(--warn-soft);color:var(--warn)}.status-tag.neutral{background:#eef2f6;color:var(--muted)}.tiny{min-height:34px;padding:5px 9px;font-size:11px}.compact-empty{padding:18px 10px}.form-grid{grid-template-columns:repeat(2,1fr)}.span2{grid-column:span 2}.student-manage-row{display:grid;grid-template-columns:34px minmax(180px,1fr) repeat(4,38px);gap:6px;align-items:center;padding:7px;border:1px solid var(--line);border-radius:10px}.student-manage-row input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px;min-height:38px}.report-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:end}.report-controls .field{min-width:150px}.report-controls .field input,.report-controls .field select{min-height:40px;padding:7px}.risk-box{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--warn-soft);border:1px solid #efd39c;border-radius:12px;padding:11px 13px;margin-top:12px;color:#72500a}.risk-box span{font-size:12px;line-height:1.55}.risk-box.clear{background:var(--ok-soft);border-color:#b9e3cc;color:var(--ok)}.risk-row{border-color:#edcf91;background:#fffdf8}.risk-dot{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-size:12px;margin-inline-start:5px}.risk-text{color:var(--warn)}.report-section{margin-top:14px}.report-section h3{font-size:15px;margin:0 0 8px}.trend-wrap{border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}.trend-chart{width:100%;height:auto;display:block;color:var(--brand2)}.trend-chart line{stroke:#cfd8e2;stroke-width:1}.trend-chart line.mid{stroke-dasharray:4 4}.trend-chart polyline{stroke:currentColor;stroke-width:3}.trend-chart circle{fill:#fff;stroke:currentColor;stroke-width:3}.trend-chart text{fill:var(--muted);font-size:10px}.trend-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin:2px 22px 0}.trend-empty{border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted)}.attendance-history{margin-top:8px}.compact-grid{margin-top:0}.note-box p{margin-top:8px!important;color:inherit!important;text-align:right;white-space:pre-wrap}.empty-cell{padding:26px!important;color:var(--muted)}
-@media(max-width:900px){.assessment-layout{grid-template-columns:1fr}.assessment-timeline{position:static;max-height:none;display:block;overflow:visible}.assessment-timeline #assessmentList{display:flex;overflow:auto;gap:7px;padding-bottom:5px}.assessment-card{min-width:210px;margin:0}.reports-head{align-items:stretch;flex-direction:column}.report-controls{display:grid;grid-template-columns:repeat(3,1fr)}.report-controls .btn{align-self:end}}
-@media(max-width:680px){.assessment-head{flex-direction:column;align-items:stretch}.assessment-selected-head{flex-direction:column}.assessment-selected-head .view-actions{display:grid;grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.span2{grid-column:span 1}.student-manage-row{grid-template-columns:28px 1fr repeat(2,36px)}.student-manage-row [data-student-move],.student-manage-row [data-student-delete]{grid-row:2}.student-manage-row [data-student-move]{grid-column:3}.student-manage-row [data-student-delete]{grid-column:4}.report-controls{grid-template-columns:1fr 1fr}.report-controls .field:first-child{grid-column:1/-1}.risk-box{align-items:flex-start;flex-direction:column}.class-card-actions{grid-template-columns:repeat(3,1fr)!important}.class-card-actions .btn{font-size:11px;padding:7px 4px}}
+.assessment-layout{display:grid;grid-template-columns:minmax(245px,310px) minmax(0,1fr);gap:14px;align-items:start}.assessment-timeline{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:10px;max-height:72dvh;overflow:auto;position:sticky;top:78px}.timeline-toolbar{display:grid;gap:8px;margin-bottom:9px}.timeline-toolbar select{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff}.assessment-card{width:100%;display:grid;gap:5px;text-align:right;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;margin-bottom:7px;color:var(--ink);cursor:pointer}.assessment-card:hover{border-color:#abc5d8}.assessment-card.active{border-color:var(--brand2);box-shadow:0 0 0 2px rgba(32,99,155,.12);background:var(--brand-soft)}.assessment-card b{font-size:14px}.assessment-card small,.assessment-progress{font-size:10.5px;color:var(--muted)}.assessment-type{font-size:10px;font-weight:900;color:var(--brand2);background:#fff;border:1px solid #cddfeb;border-radius:999px;padding:3px 7px;width:max-content}.assessment-selected-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:2px 2px 13px}.assessment-selected-head h3{font-size:22px;margin:3px 0}.gradebook{width:100%;border-collapse:collapse;min-width:700px}.gradebook th,.gradebook td{border-bottom:1px solid var(--line);padding:9px;text-align:center}.gradebook th{background:#eef3f8;font-size:12px}.gradebook tr:last-child td{border-bottom:0}.student-name-cell{text-align:right!important;font-weight:800;min-width:220px}.grade-input{width:115px;max-width:100%;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center;background:#fff}.status-tag{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900}.status-tag.ok{background:var(--ok-soft);color:var(--ok)}.status-tag.risk{background:var(--warn-soft);color:var(--warn)}.status-tag.neutral{background:#eef2f6;color:var(--muted)}.tiny{min-height:34px;padding:5px 9px;font-size:11px}.compact-empty{padding:18px 10px}.form-grid{grid-template-columns:repeat(2,1fr)}.span2{grid-column:span 2}.student-manage-row{display:grid;grid-template-columns:34px minmax(180px,1fr) repeat(4,38px);gap:6px;align-items:center;padding:7px;border:1px solid var(--line);border-radius:10px}.student-manage-row input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px;min-height:38px}.risk-box{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--warn-soft);border:1px solid #efd39c;border-radius:12px;padding:11px 13px;margin-top:12px;color:#72500a}.risk-box span{font-size:12px;line-height:1.55}.risk-box.clear{background:var(--ok-soft);border-color:#b9e3cc;color:var(--ok)}.risk-row{border-color:#edcf91;background:#fffdf8}.risk-text{color:var(--warn)}.report-section{margin-top:14px}.report-section h3{font-size:15px;margin:0 0 8px}.trend-wrap{border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}.trend-chart{width:100%;height:auto;display:block;color:var(--brand2)}.trend-chart line{stroke:#cfd8e2;stroke-width:1}.trend-chart line.mid{stroke-dasharray:4 4}.trend-chart polyline{stroke:currentColor;stroke-width:3}.trend-chart circle{fill:#fff;stroke:currentColor;stroke-width:3}.trend-chart text{fill:var(--muted);font-size:10px}.trend-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin:2px 22px 0}.trend-empty{border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted)}.attendance-history{margin-top:8px}.note-box p{margin-top:8px!important;color:inherit!important;text-align:right;white-space:pre-wrap}.empty-cell{padding:26px!important;color:var(--muted)}
+@media(max-width:900px){.assessment-layout{grid-template-columns:1fr}.assessment-timeline{position:static;max-height:none;display:block;overflow:visible}.assessment-timeline #assessmentList{display:flex;overflow:auto;gap:7px;padding-bottom:5px}.assessment-card{min-width:210px;margin:0}}
+@media(max-width:680px){.assessment-head{flex-direction:column;align-items:stretch}.assessment-selected-head{flex-direction:column}.assessment-selected-head .view-actions{display:grid;grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.span2{grid-column:span 1}.student-manage-row{grid-template-columns:28px 1fr repeat(2,36px)}.student-manage-row [data-student-move],.student-manage-row [data-student-delete]{grid-row:2}.student-manage-row [data-student-move]{grid-column:3}.student-manage-row [data-student-delete]{grid-column:4}.risk-box{align-items:flex-start;flex-direction:column}.class-card-actions{grid-template-columns:repeat(3,1fr)!important}.class-card-actions .btn{font-size:11px;padding:7px 4px}}
 
-
-.print-only-header{display:none}
-
-
-
-/* V3.2 mobile assessment + official A4 reports */
-.official-report-header{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:12px;align-items:stretch;border:2px solid #1f2937;border-radius:12px;padding:10px 12px;margin-bottom:12px;background:#fff;color:#111}.official-gov,.official-meta{display:grid;align-content:center;gap:3px;font-size:12px;line-height:1.45}.official-gov b{font-size:13px}.official-center{text-align:center;display:grid;place-items:center;align-content:center;gap:3px;border-inline:1px dashed #7b8794;padding-inline:10px}.official-center h1{margin:3px 0 0;font-size:20px}.official-ministry-name{font-size:12px}.official-student{margin-top:5px;font-size:13px}.official-meta>div{display:grid;grid-template-columns:auto 1fr;gap:5px;border-bottom:1px dotted #9ca3af;padding-bottom:2px}.official-meta b{white-space:nowrap}.official-emblem{height:26px;display:flex;align-items:flex-end;justify-content:center;gap:3px}.official-emblem i{display:block;width:4px;border-radius:999px;background:#334155;transform-origin:center bottom}.official-emblem i:nth-child(1),.official-emblem i:nth-child(7){height:8px}.official-emblem i:nth-child(2),.official-emblem i:nth-child(6){height:14px}.official-emblem i:nth-child(3),.official-emblem i:nth-child(5){height:21px}.official-emblem i:nth-child(4){height:26px}.official-signatures{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:18px;padding-top:10px;border-top:1px solid #555;break-inside:avoid}.official-signatures>div{display:grid;gap:6px;text-align:center}.official-signatures span{font-size:11px}.official-signatures b{font-size:13px}.official-signatures em{font-style:normal;font-size:10px;color:#333}.print-only-header .official-report-header{display:grid}
+.official-report-header{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:12px;align-items:stretch;border:2px solid #1f2937;border-radius:12px;padding:10px 12px;margin-bottom:12px;background:#fff;color:#111}.official-gov,.official-meta{display:grid;align-content:center;gap:3px;font-size:12px;line-height:1.45}.official-gov b{font-size:13px}.official-center{text-align:center;display:grid;place-items:center;align-content:center;gap:3px;border-inline:1px dashed #7b8794;padding-inline:10px}.official-center h1{margin:3px 0 0;font-size:20px}.official-ministry-name{font-size:12px}.official-student{margin-top:5px;font-size:13px}.official-meta>div{display:grid;grid-template-columns:auto 1fr;gap:5px;border-bottom:1px dotted #9ca3af;padding-bottom:2px}.official-meta b{white-space:nowrap}.official-signatures{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:18px;padding-top:10px;border-top:1px solid #555;break-inside:avoid}.official-signatures>div{display:grid;gap:6px;text-align:center}.official-signatures span{font-size:11px}.official-signatures b{font-size:13px}.official-signatures em{font-style:normal;font-size:10px;color:#333}
 
 @media(max-width:680px){
   #assessmentModal.modal{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border-radius:0;padding:0;inset:0;background:#fff}
@@ -48,12 +39,8 @@
   #assessmentModal .modalfooter .btn{width:100%;min-height:50px;font-size:15px}
 }
 
-
-
-
-/* V3.3 mobile width + formal class sheet */
 .print-report-header{display:none}
-.official-class-print{width:100%}.official-class-sheet{width:100%;border-collapse:collapse;table-layout:fixed}.official-class-sheet th,.official-class-sheet td{border:1px solid #4b5563;padding:5px 4px;text-align:center;vertical-align:middle}.official-class-sheet .sheet-header-row>th{border:0;padding:0 0 8px}.official-class-sheet .sheet-header-row .official-report-header{margin:0}.official-class-sheet .sheet-columns th{background:#eef2f5;font-size:11px;line-height:1.35}.official-class-sheet .sheet-num{width:34px}.official-class-sheet .sheet-name{text-align:right;font-weight:700;width:18%;overflow-wrap:anywhere}.official-class-sheet td{font-size:11px;line-height:1.35}
+.official-class-print{width:100%}.official-class-sheet{width:100%;border-collapse:collapse;table-layout:fixed}.official-class-sheet th,.official-class-sheet td{border:1px solid #4b5563;padding:5px 4px;text-align:center;vertical-align:middle}.official-class-sheet .sheet-num{width:34px}.official-class-sheet .sheet-name{text-align:right;font-weight:700;width:18%;overflow-wrap:anywhere}.official-class-sheet td{font-size:11px;line-height:1.35}
 
 @media(max-width:680px){
   #view-assessments,.assessment-layout,.assessment-gradebook,.assessment-selected-head,.assessment-selected-head>div{min-width:0;max-width:100%}
@@ -65,39 +52,25 @@
   .assessment-selected-head{width:100%;overflow:hidden}
   .assessment-gradebook{width:100%;overflow:hidden}
   .assessment-gradebook .table-wrap{width:100%;max-width:100%;overflow-x:auto}
-}
+}.schedule-print-header{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:16px;align-items:center;text-align:center;border-bottom:2px solid #1f2937;padding:4px 4px 12px;margin-bottom:12px}.schedule-print-header>div{display:grid;gap:4px}.schedule-print-header>div:first-child{text-align:right}.schedule-print-header>div:last-child{text-align:left}.schedule-print-header h1{margin:0;font-size:22px}.schedule-print-header span{font-size:12px}.schedule-stats{display:flex;gap:8px;justify-content:center;margin:8px 0 12px}.schedule-stats>div{border:1px solid var(--line);border-radius:10px;padding:7px 16px;display:flex;gap:8px;align-items:center;background:#fff}.schedule-stats b{font-size:18px}.schedule-stats span{font-size:11px;color:var(--muted)}.schedule-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}.teacher-schedule-table{border-collapse:collapse;width:100%;min-width:920px;table-layout:fixed}.teacher-schedule-table th,.teacher-schedule-table td{border:1px solid var(--line);padding:5px;text-align:center;vertical-align:stretch}.teacher-schedule-table thead th{background:#eef3f8}.teacher-schedule-table thead th:first-child{width:92px}.teacher-schedule-table thead small{display:block;font-size:9px;color:var(--muted);margin-top:3px;font-weight:500}.schedule-cell{border:0;border-radius:10px;width:100%;min-height:88px;padding:8px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--ink);background:#f8fafc;overflow:hidden}.schedule-cell.class-session{background:var(--session-color);box-shadow:inset 0 0 0 1px rgba(15,23,42,.08)}.schedule-cell.standby{background:#fef3c7;border:1px dashed #d6a52f}.schedule-cell.empty{color:#94a3b8;background:#fafafa;border:1px dashed #e2e8f0}.schedule-cell b{font-size:15px}.schedule-cell span{font-size:11px}.schedule-cell small{font-size:9px;color:#475569;white-space:nowrap}.schedule-cell em{font-style:normal;font-size:20px}.period-mobile-label{display:none!important}.schedule-mobile{display:none}.supervision-section{margin-top:18px}.supervision-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:9px}.supervision-title h3{margin:0}.supervision-title small{color:var(--muted);max-width:620px;line-height:1.5}.supervision-list{display:grid;gap:7px}.supervision-card{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(260px,2fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:11px;padding:10px 12px}.supervision-card>div{display:grid;gap:3px}.supervision-card span{font-size:11px;color:var(--muted)}.supervision-main strong{font-size:14px}.supervision-date{display:inline!important;color:inherit!important}.bottom-nav{grid-template-columns:repeat(5,1fr)}
 
+@media(max-width:680px){.schedule-head{align-items:flex-start}.schedule-head .view-actions{width:100%}.schedule-head .view-actions .btn{flex:1}.schedule-print-header{grid-template-columns:1fr;text-align:center}.schedule-print-header>div:first-child,.schedule-print-header>div:last-child{text-align:center}.schedule-table-wrap{display:none}.schedule-mobile{display:grid;gap:10px}.schedule-day-card{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.schedule-day-card h3{margin:0 0 8px}.schedule-day-card>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.schedule-day-card .schedule-cell{min-height:92px;max-width:100%;min-width:0}.schedule-day-card .schedule-cell b,.schedule-day-card .schedule-cell span,.schedule-day-card .schedule-cell small{white-space:normal;overflow-wrap:anywhere}.period-mobile-label{display:block!important;font-size:9px!important;font-weight:800;color:#64748b!important}.supervision-title{display:grid}.supervision-card{grid-template-columns:1fr}.supervision-card .btn{width:100%}.schedule-stats{justify-content:stretch}.schedule-stats>div{flex:1;justify-content:center;padding:7px}.bottom-nav button small{font-size:9px}}
 
-
-
-/* V3.4 teacher schedule */
-.schedule-meta{display:grid;grid-template-columns:2fr 2fr 1.2fr;gap:10px;margin-bottom:14px}.schedule-print-header{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:16px;align-items:center;text-align:center;border-bottom:2px solid #1f2937;padding:4px 4px 12px;margin-bottom:12px}.schedule-print-header>div{display:grid;gap:4px}.schedule-print-header>div:first-child{text-align:right}.schedule-print-header>div:last-child{text-align:left}.schedule-print-header h1{margin:0;font-size:22px}.schedule-print-header span{font-size:12px}.schedule-stats{display:flex;gap:8px;justify-content:center;margin:8px 0 12px}.schedule-stats>div{border:1px solid var(--line);border-radius:10px;padding:7px 16px;display:flex;gap:8px;align-items:center;background:#fff}.schedule-stats b{font-size:18px}.schedule-stats span{font-size:11px;color:var(--muted)}.schedule-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}.teacher-schedule-table{border-collapse:collapse;width:100%;min-width:920px;table-layout:fixed}.teacher-schedule-table th,.teacher-schedule-table td{border:1px solid var(--line);padding:5px;text-align:center;vertical-align:stretch}.teacher-schedule-table thead th{background:#eef3f8}.teacher-schedule-table thead th:first-child{width:92px}.teacher-schedule-table thead small{display:block;font-size:9px;color:var(--muted);margin-top:3px;font-weight:500}.schedule-cell{border:0;border-radius:10px;width:100%;min-height:88px;padding:8px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--ink);background:#f8fafc;overflow:hidden}.schedule-cell.class-session{background:var(--session-color);box-shadow:inset 0 0 0 1px rgba(15,23,42,.08)}.schedule-cell.standby{background:#fef3c7;border:1px dashed #d6a52f}.schedule-cell.empty{color:#94a3b8;background:#fafafa;border:1px dashed #e2e8f0}.schedule-cell b{font-size:15px}.schedule-cell span{font-size:11px}.schedule-cell small{font-size:9px;color:#475569;white-space:nowrap}.schedule-cell em{font-style:normal;font-size:20px}.period-mobile-label{display:none!important}.schedule-mobile{display:none}.supervision-section{margin-top:18px}.supervision-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:9px}.supervision-title h3{margin:0}.supervision-title small{color:var(--muted);max-width:620px;line-height:1.5}.supervision-list{display:grid;gap:7px}.supervision-card{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(260px,2fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:11px;padding:10px 12px}.supervision-card>div{display:grid;gap:3px}.supervision-card span{font-size:11px;color:var(--muted)}.supervision-main strong{font-size:14px}.supervision-date{display:inline!important;color:inherit!important}.bottom-nav{grid-template-columns:repeat(5,1fr)}
-
-@media(max-width:680px){
-  .schedule-meta{grid-template-columns:1fr}.schedule-head{align-items:flex-start}.schedule-head .view-actions{width:100%}.schedule-head .view-actions .btn{flex:1}.schedule-print-header{grid-template-columns:1fr;text-align:center}.schedule-print-header>div:first-child,.schedule-print-header>div:last-child{text-align:center}.schedule-table-wrap{display:none}.schedule-mobile{display:grid;gap:10px}.schedule-day-card{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff}.schedule-day-card h3{margin:0 0 8px}.schedule-day-card>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.schedule-day-card .schedule-cell{min-height:92px;max-width:100%;min-width:0}.schedule-day-card .schedule-cell b,.schedule-day-card .schedule-cell span,.schedule-day-card .schedule-cell small{white-space:normal;overflow-wrap:anywhere}.period-mobile-label{display:block!important;font-size:9px!important;font-weight:800;color:#64748b!important}.supervision-title{display:grid}.supervision-card{grid-template-columns:1fr}.supervision-card .btn{width:100%}.schedule-stats{justify-content:stretch}.schedule-stats>div{flex:1;justify-content:center;padding:7px}.bottom-nav button small{font-size:9px}}
-
-
-
-/* V3.5 official logo + strict A4 reports */
 .brand-logo-wrap{width:58px!important;height:48px!important;min-width:58px!important;max-width:58px!important;flex:0 0 58px!important;background:#fff!important;overflow:hidden!important;padding:0!important;border:0!important;border-radius:10px!important;box-shadow:none!important;display:grid!important;place-items:center!important}
 .app-brand-logo{display:block!important;width:52px!important;height:42px!important;max-width:52px!important;max-height:42px!important;min-width:0!important;min-height:0!important;object-fit:contain!important;position:static!important;transform:none!important;margin:0!important}
 .official-logo{display:block;width:74px;max-width:100%;height:62px;object-fit:contain;margin:0 auto 2px}
 .schedule-logo-center{display:grid!important;place-items:center;align-content:center}
 .schedule-official-logo{display:block;width:86px;height:70px;object-fit:contain;margin:0 auto 2px}
 
-
-
-/* V3.6 mobile logo containment */
 @media(max-width:680px){.brand-logo-wrap{width:54px!important;height:44px!important;min-width:54px!important;max-width:54px!important;flex-basis:54px!important}.app-brand-logo{width:48px!important;height:38px!important;max-width:48px!important;max-height:38px!important}.brand{min-width:0!important;max-width:65%!important}.brand-text{min-width:0!important}.brand-text b,.brand-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 
-/* V3.7 compact student report header */
-.student-official-header{display:grid;grid-template-columns:1fr 92px 1fr;align-items:center;gap:12px;border-bottom:1.5px solid #1f2937;padding:2px 2px 9px;margin-bottom:8px;color:#111;background:#fff}
+.student-official-header{display:grid;align-items:center;gap:12px;border-bottom:1.5px solid #1f2937;padding:2px 2px 9px;margin-bottom:8px;color:#111;background:#fff}
 .student-official-gov{display:grid;gap:1px;font-size:11px;line-height:1.45}
 .student-official-gov b{font-size:12px}
 .student-official-logo{display:grid;place-items:center}
 .student-official-logo img{display:block;width:72px;height:58px;object-fit:contain}
 .student-official-title{text-align:center;display:grid;gap:2px;justify-items:center}
-.student-official-title h1{font-size:18px;margin:0;font-weight:800}
+.student-official-title h1{margin:0;font-weight:800}
 .student-official-title span{font-size:11px;font-weight:700}
 .student-official-title small{font-size:10px;color:#475569}
 .student-identity-strip{display:grid;grid-template-columns:2fr 1.35fr 1.25fr;border:1px solid #9ca3af;margin:0 0 10px;background:#fff}
@@ -115,11 +88,7 @@
   .student-identity-strip>div:last-child{border-bottom:0}
 }
 
-
-/* V3.8 attendance register + A4 fit */
 .attendance-report-panel{overflow:hidden}
-.attendance-report-controls{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
-.attendance-report-controls .field{min-width:190px}
 .attendance-report-preview{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .attendance-official-print{width:100%;min-width:0}
 .compact-class-header{display:grid;grid-template-columns:1fr 90px 1fr;gap:10px;align-items:center;border-bottom:1.5px solid #1f2937;padding:2px 2px 8px;margin-bottom:7px;background:#fff;color:#111}
@@ -142,20 +111,12 @@
 .attendance-register-table .att-num{width:34px}
 .attendance-register-table .att-name{width:180px;text-align:right;font-weight:700;overflow-wrap:anywhere}
 .attendance-register-table .att-total{width:40px;font-weight:800}
-.attendance-register-table .att-day{min-width:28px}
-.attendance-register-table .att-absent{font-weight:900}
-.attendance-register-table .att-late,.attendance-register-table .att-excused{font-weight:800}
 .attendance-empty-print{padding:24px;text-align:center;border:1px dashed #94a3b8;margin:8px 0;color:#475569}
-.attendance-summary-register .att-name{width:36%}
 
 @media(max-width:680px){
-  .attendance-report-controls{display:grid;grid-template-columns:1fr}
-  .attendance-report-controls .field{min-width:0}
-  .attendance-report-controls .btn{width:100%}
   .attendance-report-preview{margin-inline:-2px;width:calc(100% + 4px)}
   .attendance-register-table{width:max-content;min-width:100%;table-layout:auto}
   .attendance-register-table .att-name{min-width:150px;width:150px}
-  .attendance-register-table .att-day{min-width:34px}
   .attendance-register-table .att-total{min-width:42px}
   .compact-class-header{grid-template-columns:1fr 60px 1fr;gap:5px}
   .compact-class-logo img{width:54px;height:44px}
@@ -166,9 +127,6 @@
   .compact-class-meta span:last-child{border-bottom:0}
 }
 
-
-
-/* V3.9 iPhone-safe portrait A4 reports */
 .student-official-header{grid-template-columns:minmax(0,1.05fr) 78px minmax(0,1.2fr)!important}
 .student-official-title{min-width:0!important}
 .student-official-title h1{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.2!important;max-width:100%!important;font-size:16px!important}
@@ -181,10 +139,9 @@
 .student-attendance-summary span{text-align:center;padding:5px 3px;font-size:10px;border-inline-end:1px solid #e2e8f0}
 .student-attendance-summary span:last-child{border-inline-end:0}
 .student-attendance-summary b{display:inline;margin-inline-start:3px;font-size:11px}
-.class-page-label,.attendance-page-note{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;font-weight:800;margin:4px 0 6px;color:#334155}
-.class-print-page,.attendance-print-page{width:100%;max-width:100%;min-width:0}
-.attendance-print-page+.attendance-print-page,.class-print-page-second{break-before:page;page-break-before:always}
-.portrait-class-report,.portrait-attendance-report{width:100%;max-width:100%;min-width:0}
+.attendance-page-note{align-items:center;color:#334155}
+.attendance-print-page{width:100%;max-width:100%;min-width:0}
+.attendance-print-page+.attendance-print-page{break-before:page;page-break-before:always}
 
 @media(max-width:680px){
   .student-official-header{grid-template-columns:minmax(0,1fr) 56px minmax(0,1.15fr)!important}
@@ -194,9 +151,6 @@
   .student-summary-strip>div:nth-child(-n+2),.student-attendance-summary span:nth-child(-n+2){border-bottom:1px solid #e2e8f0}
 }
 
-
-
-/* V3.10 version + automatic update UI */
 .brand-title-line{display:flex;align-items:center;gap:7px;min-width:0}
 .version-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);font-size:9px;font-weight:800;line-height:1;white-space:nowrap}
 .footer-version{font-size:10px}
@@ -212,33 +166,23 @@
   .update-banner .btn{width:100%}
 }
 
-
-/* V3.11 landscape class report + planned attendance sessions */
-.attendance-exam-toggle{display:flex;align-items:center;gap:6px;min-height:44px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px;white-space:nowrap}
-.attendance-exam-toggle input{width:18px;height:18px}
-.attendance-plan-summary{font-size:10px;font-weight:700;line-height:1.5;text-align:center;padding:5px 8px;margin:4px 0 6px;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc}
+.attendance-exam-toggle{white-space:nowrap}
+.attendance-plan-summary{font-weight:700;text-align:center}
 .attendance-register-table .att-session{min-width:34px}
 .attendance-register-table .att-session b,.attendance-register-table .att-session small{display:block}
-.attendance-register-table .att-session small{font-size:8px;font-weight:500;color:#475569;margin-top:2px}
+.attendance-register-table .att-session small{font-weight:500}
 
 @media(max-width:680px){
   .attendance-exam-toggle{width:100%;justify-content:flex-start;white-space:normal}
   .attendance-register-table .att-session{min-width:38px}
 }
 
-
-
-/* V4 clean report center */
 .reports-home{display:grid;gap:14px}
-.report-period-global{min-width:180px}
-.report-type-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.report-type-card{appearance:none;border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px;text-align:right;display:grid;gap:5px;color:var(--ink);cursor:pointer;transition:.18s;min-width:0}
-.report-type-card:hover{border-color:#9cb8cb;transform:translateY(-1px)}
+.report-type-card{min-width:0}
 .report-type-card.active{border-color:var(--brand2);box-shadow:0 0 0 2px rgba(32,99,155,.10);background:var(--brand-soft)}
 .report-type-card b{font-size:14px}
 .report-type-card small{font-size:11px;line-height:1.5;color:var(--muted)}
-.report-type-icon{font-size:19px;line-height:1}
-.report-section-panel{display:none}
+.report-type-icon{line-height:1}
 .report-section-panel.active{display:block}
 .class-report-panel .report-kpis{margin-top:10px}
 .attendance-report-preview{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
@@ -246,8 +190,7 @@
 .attendance-entry-panel .attendance-actions{margin-top:12px}
 .attendance-entry-panel .attendance-list{margin-top:10px}
 .attendance-entry-panel .section-head{margin-bottom:8px}
-.attendance-report-controls{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
-.attendance-exam-toggle{display:flex;align-items:center;gap:7px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;min-height:42px;font-size:11px}
+.attendance-exam-toggle{display:flex;gap:7px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px}
 .attendance-exam-toggle input{width:18px;height:18px}
 .attendance-plan-summary{font-size:11px;line-height:1.55;padding:7px 9px;margin:6px 0;border:1px solid #d5dde5;border-radius:8px;background:#f8fafc}
 .attendance-page-note{display:flex;justify-content:space-between;gap:8px;font-size:10px;font-weight:700;margin:5px 0}
@@ -256,14 +199,11 @@
 
 @media(max-width:680px){
   .report-type-grid{grid-template-columns:1fr}
-  .report-period-global{min-width:0;width:100%}
   .report-type-card{padding:12px}
-  .attendance-report-controls{display:grid;grid-template-columns:1fr;width:100%}
-  .attendance-report-controls .field,.attendance-report-controls .btn,.attendance-exam-toggle{width:100%}
+  .attendance-exam-toggle{width:100%}
   .attendance-report-preview{padding:7px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 
-/* V4.1 professional reports UX */
 #view-reports{max-width:1180px;margin-inline:auto}
 .reports-shell-head{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:14px;align-items:end;padding:18px 18px 14px;margin-bottom:10px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff 0%,#f8fbfd 100%);box-shadow:0 8px 28px rgba(25,55,80,.055)}
 .reports-title-block{min-width:0}
@@ -392,12 +332,10 @@
   .student-report-quick>span{min-width:48px}
 }
 
-/* V4.3.1 historical attendance recovery */
 .attendance-report-summary>div small{display:block;margin-top:2px;font-size:8px;color:var(--muted);line-height:1.3}
 .attendance-register-table th.att-session-history{background:#fff7df!important}
 .attendance-register-table th.att-session-history b::after{content:"";display:inline}
 
-/* V4.3.2 attendance storage recovery */
 .data-safety-panel{border-color:#cbdbe6;background:linear-gradient(180deg,#fff,#f8fbfd)}
 .storage-recovery-status{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .storage-recovery-status>div{border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px;text-align:center;display:grid;gap:3px}
@@ -411,7 +349,6 @@
   .storage-recovery-status{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* V4.4 attendance database diagnostics */
 .db-diagnostic-divider{height:1px;background:var(--line);margin:18px 0}
 .db-diagnostic-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px}
 .db-diagnostic-head h3{margin:2px 0 3px;font-size:16px}
@@ -450,10 +387,6 @@
 .diagnostic-entry{display:inline-grid;gap:1px;min-width:94px;padding:5px 7px;border-radius:8px;border:1px solid #dce3e8;background:#f8fafb;text-align:right}
 .diagnostic-entry b{font-size:8.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;direction:ltr;text-align:left}
 .diagnostic-entry small{font-size:8px;color:#5f6b75}
-.diagnostic-entry.diag-absent{background:#fff2f0;border-color:#edc0ba}
-.diagnostic-entry.diag-late{background:#fff8e8;border-color:#ead5a2}
-.diagnostic-entry.diag-excused{background:#f4f1fb;border-color:#d8cceb}
-.diagnostic-entry.diag-present{background:#f1faf5;border-color:#c4e3d0}
 .diagnostic-empty{color:var(--muted);font-size:9px}
 .diagnostic-count{min-width:88px}
 .diagnostic-count b{display:block;font-size:13px}
@@ -477,7 +410,6 @@
   .db-catalog-item small{grid-column:1/-1}
 }
 
-/* V4.5 dedicated admin page */
 .admin-top-btn{display:inline-flex;align-items:center;gap:6px}
 #view-admin{max-width:1180px;margin-inline:auto}
 .admin-hero{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px}
@@ -513,7 +445,6 @@
   .admin-about-meta span{border-radius:10px}
 }
 
-/* V4.6 update progress splash */
 .update-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:22px;background:rgba(238,244,248,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .update-splash[hidden]{display:none!important}
 body.update-in-progress{overflow:hidden!important}
@@ -541,7 +472,6 @@ body.update-in-progress{overflow:hidden!important}
   .update-splash-copy h2{font-size:18px}
 }
 
-/* V4.7 assessment repeat scope */
 .assessment-repeat-card{border:1px solid #d7e1e7;border-radius:14px;background:#f8fbfd;padding:11px 12px;display:grid;gap:10px}
 .assessment-repeat-card[hidden]{display:none!important}
 .assessment-repeat-toggle{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:12px;align-items:center;cursor:pointer}
@@ -568,7 +498,6 @@ body.update-in-progress{overflow:hidden!important}
   .assessment-repeat-summary{display:grid;gap:2px}
 }
 
-/* V4.8 quick assessment grading */
 .quick-grade-panel{display:grid;gap:10px;margin:0 0 11px;padding:11px 12px;border:1px solid #d7e2e8;border-radius:14px;background:#f8fbfd}
 .quick-grade-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .quick-grade-head>div{display:grid;gap:2px}
@@ -633,11 +562,7 @@ body.update-in-progress{overflow:hidden!important}
   .mobile-grade-custom label{grid-column:1/-1}
 }
 
-/* V4.9 multi-schedule manager */
 .schedule-library{margin:12px 0 14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#f8fafb;display:grid;gap:10px}
-.schedule-library-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.schedule-library-head h3{margin:1px 0 0;font-size:15px}
-.schedule-library-actions{display:flex;gap:6px;flex-wrap:wrap}
 .schedule-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 1px 5px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .schedule-tab{flex:0 0 auto;min-width:128px;max-width:190px;display:grid;gap:2px;text-align:right;padding:9px 11px;border:1px solid #d9e1e6;border-radius:12px;background:#fff;color:var(--ink);cursor:pointer}
 .schedule-tab span{font-size:10.5px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -659,23 +584,12 @@ body.update-in-progress{overflow:hidden!important}
 .schedule-create-note{padding:9px 10px;border:1px solid #dce5ea;border-radius:10px;background:#f7fafc;font-size:9px;line-height:1.55;color:var(--muted)}
 .schedule-create-modal .modalbox{max-width:620px}
 #newScheduleSourceField[hidden]{display:none!important}
-.schedule-meta{grid-template-columns:repeat(4,minmax(0,1fr))}
-.schedule-meta .span2{grid-column:span 2}
 @media(max-width:760px){
-  .schedule-library-head{display:grid}
-  .schedule-library-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-  .schedule-library-actions .btn{min-width:0;width:100%}
   .schedule-tab{min-width:118px}
-  .schedule-meta{grid-template-columns:1fr 1fr}
-  .schedule-meta .span2{grid-column:span 2}
 }
 @media(max-width:480px){
-  .schedule-library-actions{grid-template-columns:1fr}
-  .schedule-meta{grid-template-columns:1fr}
-  .schedule-meta .span2{grid-column:auto}
 }
 
-/* V4.10 subject-first schedule entry */
 .schedule-entry-panel{margin:14px 0;padding:14px;border:1px solid #d7e2e8;border-radius:17px;background:#fbfdfe;display:grid;gap:12px}
 .schedule-entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .schedule-entry-head h3{margin:2px 0 3px;font-size:16px}
@@ -703,8 +617,6 @@ body.update-in-progress{overflow:hidden!important}
 .schedule-entry-actions .btn:disabled{opacity:.45;cursor:not-allowed}
 .schedule-cell.entry-selected{outline:3px solid #27946f!important;outline-offset:-3px;position:relative;background:#e9f8f1!important}
 .schedule-cell.entry-selected::after{content:"محدد";position:absolute;top:3px;left:3px;padding:2px 4px;border-radius:999px;background:#247b5e;color:#fff;font-size:6.5px;font-weight:800}
-.schedule-cell.entry-conflict{outline:2px solid #c76555!important;outline-offset:-2px;position:relative;opacity:.78}
-.schedule-cell.entry-conflict::after{content:"مشغولة";position:absolute;top:3px;left:3px;padding:2px 4px;border-radius:999px;background:#a94f42;color:#fff;font-size:6.5px;font-weight:800}
 .schedule-entry-check{position:absolute;bottom:3px;left:5px;font-style:normal;font-weight:900;color:#247b5e}
 .schedule-cell[aria-pressed="true"]{box-shadow:inset 0 0 0 1px rgba(39,148,111,.2)}
 @media(max-width:760px){
@@ -715,28 +627,14 @@ body.update-in-progress{overflow:hidden!important}
   .schedule-entry-actions .btn.primary{grid-column:1/-1}
 }
 
-/* V4.10.1 mobile tap fix */
-.schedule-cell,.schedule-subject-chip,#scheduleClassSelect,.schedule-entry-actions .btn{
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:rgba(29,98,143,.12);
-}
-.schedule-cell,.schedule-subject-chip{
-  user-select:none;
-  -webkit-user-select:none;
-}
+.schedule-cell,.schedule-subject-chip,#scheduleClassSelect,.schedule-entry-actions .btn{touch-action:manipulation;-webkit-tap-highlight-color:rgba(29,98,143,.12)}
+.schedule-cell,.schedule-subject-chip{user-select:none;-webkit-user-select:none}
 @media(max-width:680px){
-  .schedule-day-card .schedule-cell{
-    min-height:104px;
-  }
-  .schedule-day-card .schedule-cell:active{
-    transform:scale(.985);
-  }
-  .schedule-cell.entry-selected{
-    outline-width:4px!important;
-  }
+  .schedule-day-card .schedule-cell{min-height:104px}
+  .schedule-day-card .schedule-cell:active{transform:scale(.985)}
+  .schedule-cell.entry-selected{outline-width:4px!important}
 }
 
-/* V4.11 cell-first schedule picker */
 .schedule-entry-mode-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .schedule-entry-mode{min-width:0;border:1px solid #d8e1e6;border-radius:11px;background:#fff;padding:9px 10px;font:inherit;font-size:9.5px;font-weight:800;color:#4d5c67;cursor:pointer}
 .schedule-entry-mode.active{border-color:#74a9c9;background:#edf7fc;color:#1d628f;box-shadow:0 0 0 2px rgba(29,98,143,.07)}
@@ -786,7 +684,6 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   .schedule-cell-picker-actions .btn.danger{grid-column:auto}
 }
 
-/* V4.12 reorganized settings */
 .admin-settings-stack{display:grid;gap:13px}
 .admin-tools-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
 .admin-schedule-settings-card{border-color:#cfdfe8}
@@ -823,8 +720,6 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   .admin-advanced-details>summary{padding:13px 14px}
 }
 
-
-/* V4.12.1 iPhone schedule UX */
 @media screen and (max-width:680px){
   #view-schedule{min-width:0}
   #view-schedule .teacher-schedule-panel{padding:12px;overflow:hidden}
@@ -835,13 +730,6 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   #view-schedule .schedule-head .view-actions .btn{width:100%;min-width:0;min-height:44px;padding:8px 6px;font-size:9.5px;line-height:1.25}
 
   #view-schedule .schedule-library{margin:9px 0 10px;padding:10px;border-radius:14px;gap:8px}
-  #view-schedule .schedule-library-head{gap:8px}
-  #view-schedule .schedule-library-head>div:first-child{display:flex;align-items:baseline;gap:7px;min-width:0}
-  #view-schedule .schedule-library-head .eyebrow{display:none}
-  #view-schedule .schedule-library-head h3{font-size:14px}
-  #view-schedule .schedule-library-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-  #view-schedule .schedule-library-actions .btn{width:100%;min-width:0;min-height:42px;padding:7px 6px;font-size:9px;line-height:1.25}
-  #view-schedule .schedule-library-actions .btn.danger{grid-column:1/-1}
   #view-schedule .schedule-tabs{gap:6px;margin-inline:-2px;padding:2px 2px 4px;scroll-snap-type:x proximity}
   #view-schedule .schedule-tab{min-width:138px;max-width:168px;padding:8px 9px;scroll-snap-align:start}
   #view-schedule .schedule-status{padding:8px 9px;gap:4px}
@@ -888,71 +776,25 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   #view-schedule .schedule-head .view-actions{grid-template-columns:1fr 1fr}
   #view-schedule .schedule-head .view-actions #printScheduleBtn{grid-column:1/-1}
   #view-schedule .schedule-library{padding:9px}
-  #view-schedule .schedule-library-actions{grid-template-columns:1fr 1fr}
-  #view-schedule .schedule-library-actions .btn.danger{grid-column:1/-1}
   #view-schedule .schedule-entry-mode{min-width:132px}
   #view-schedule .schedule-mobile{margin-inline:-10px;padding-inline:10px;scroll-padding-inline:10px}
   #view-schedule .schedule-day-card{flex-basis:calc(100vw - 30px);padding:8px}
   #view-schedule .schedule-day-card .schedule-cell{min-height:78px}
 }
 
-
-/* V4.12.2 explicit mobile day navigation */
 .schedule-day-nav{display:none}
 @media screen and (max-width:680px){
-  #view-schedule .schedule-day-nav{
-    display:grid;
-    grid-template-columns:repeat(5,minmax(0,1fr));
-    gap:4px;
-    margin:7px 0 8px;
-    padding:4px;
-    border:1px solid #d8e2e8;
-    border-radius:12px;
-    background:#f2f6f8;
-  }
-  #view-schedule .schedule-day-tab{
-    appearance:none;
-    min-width:0;
-    min-height:40px;
-    border:1px solid transparent;
-    border-radius:9px;
-    background:transparent;
-    color:var(--muted);
-    font:inherit;
-    font-size:8.5px;
-    font-weight:800;
-    line-height:1.2;
-    padding:6px 2px;
-    cursor:pointer;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:rgba(29,98,143,.12);
-  }
-  #view-schedule .schedule-day-tab.active{
-    border-color:#9fc2d8;
-    background:#fff;
-    color:var(--brand);
-    box-shadow:0 2px 7px rgba(31,74,101,.10);
-  }
-  #view-schedule .schedule-mobile{
-    display:block;
-    overflow:visible;
-    margin:0;
-    padding:0;
-  }
-  #view-schedule .schedule-day-card{
-    display:block;
-    width:100%;
-    max-width:none;
-    margin:0;
-  }
+  #view-schedule .schedule-day-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:7px 0 8px;padding:4px;border:1px solid #d8e2e8;border-radius:12px;background:#f2f6f8}
+  #view-schedule .schedule-day-tab{appearance:none;min-width:0;min-height:40px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:8.5px;font-weight:800;line-height:1.2;padding:6px 2px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(29,98,143,.12)}
+  #view-schedule .schedule-day-tab.active{border-color:#9fc2d8;background:#fff;color:var(--brand);box-shadow:0 2px 7px rgba(31,74,101,.10)}
+  #view-schedule .schedule-mobile{display:block;overflow:visible;margin:0;padding:0}
+  #view-schedule .schedule-day-card{display:block;width:100%;max-width:none;margin:0}
 }
 @media screen and (max-width:390px){
   #view-schedule .schedule-day-nav{gap:3px;padding:3px}
   #view-schedule .schedule-day-tab{font-size:7.6px;min-height:38px;padding-inline:1px}
 }
 
-
-/* V4.12.5 schedule identity summary */
 .schedule-profile-summary{margin:0 0 12px;padding:12px;border:1px solid #d7e2e8;border-radius:16px;background:#fff}
 .schedule-profile-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .schedule-profile-summary-head h3{margin:2px 0 0;font-size:15px}
@@ -975,54 +817,17 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   #view-schedule .schedule-profile-summary-head .btn{width:100%}
 }
 
-
-/* V4.12.7 collapsible schedule controls */
 .schedule-fold>summary{display:none}
 .schedule-fold-body{display:block}
 @media screen and (max-width:680px){
-  #view-schedule .schedule-fold{
-    padding:0;
-    overflow:hidden;
-    border-radius:14px;
-    background:#fff;
-  }
-  #view-schedule .schedule-fold>summary.schedule-fold-summary{
-    list-style:none;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    min-height:58px;
-    padding:10px 12px;
-    cursor:pointer;
-    user-select:none;
-    -webkit-user-select:none;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:rgba(29,98,143,.10);
-  }
+  #view-schedule .schedule-fold{padding:0;overflow:hidden;border-radius:14px;background:#fff}
+  #view-schedule .schedule-fold>summary.schedule-fold-summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:58px;padding:10px 12px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:rgba(29,98,143,.10)}
   #view-schedule .schedule-fold>summary::-webkit-details-marker{display:none}
   #view-schedule .schedule-fold-summary>span{display:grid;gap:2px;min-width:0}
   #view-schedule .schedule-fold-summary b{font-size:13px;color:var(--ink)}
   #view-schedule .schedule-fold-summary small{font-size:8.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #view-schedule .schedule-fold-summary i{
-    position:relative;
-    flex:0 0 30px;
-    width:30px;
-    height:30px;
-    border-radius:50%;
-    background:#eef5f9;
-  }
-  #view-schedule .schedule-fold-summary i::before,
-  #view-schedule .schedule-fold-summary i::after{
-    content:"";
-    position:absolute;
-    top:14px;
-    width:8px;
-    height:2px;
-    border-radius:2px;
-    background:var(--brand);
-    transition:transform .18s ease;
-  }
+  #view-schedule .schedule-fold-summary i{position:relative;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:#eef5f9}
+  #view-schedule .schedule-fold-summary i::before,#view-schedule .schedule-fold-summary i::after{content:"";position:absolute;top:14px;width:8px;height:2px;border-radius:2px;background:var(--brand);transition:transform .18s ease}
   #view-schedule .schedule-fold-summary i::before{right:8px;transform:rotate(45deg)}
   #view-schedule .schedule-fold-summary i::after{left:8px;transform:rotate(-45deg)}
   #view-schedule .schedule-fold[open] .schedule-fold-summary i::before{transform:rotate(-45deg)}
@@ -1034,16 +839,12 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   #view-schedule .schedule-library{margin:8px 0}
   #view-schedule .schedule-profile-summary{margin:8px 0}
   #view-schedule .schedule-entry-panel{margin:8px 0}
-  #view-schedule .schedule-library[open] .schedule-library-head>div:first-child{display:none}
   #view-schedule .schedule-profile-summary[open] .schedule-profile-summary-head>div:first-child{display:none}
   #view-schedule .schedule-entry-panel[open] .schedule-entry-head{display:none}
-  #view-schedule .schedule-library[open] .schedule-library-head{padding-top:9px}
   #view-schedule .schedule-profile-summary[open] .schedule-profile-summary-head{padding-top:9px}
   #view-schedule .schedule-entry-panel[open] .schedule-entry-mode-tabs{margin-top:9px}
 }
 
-
-/* V4.12.8 clean schedule manager */
 .schedule-manager-clean{display:grid;gap:10px}
 .schedule-current-card{margin:0}
 .schedule-current-main{display:grid;gap:6px;min-width:0}
@@ -1051,145 +852,33 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
 .schedule-current-title>b{font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .schedule-current-main>small{font-size:9px;line-height:1.55;color:var(--muted)}
 .schedule-other-tabs[hidden]{display:none!important}
-.schedule-actions-shell{margin:0;padding:0}
 @media screen and (max-width:680px){
-  #view-schedule .schedule-library[open]>.schedule-fold-body.schedule-manager-clean{
-    padding:10px;
-    gap:9px;
-  }
-  #view-schedule .schedule-current-card{
-    display:block;
-    padding:12px;
-    border:1px solid #cbdde8;
-    border-radius:13px;
-    background:#f7fbfd;
-  }
-  #view-schedule .schedule-current-card>div{
-    display:grid;
-    gap:6px;
-  }
-  #view-schedule .schedule-current-title{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-  }
+  #view-schedule .schedule-library[open]>.schedule-fold-body.schedule-manager-clean{padding:10px;gap:9px}
+  #view-schedule .schedule-current-card{display:block;padding:12px;border:1px solid #cbdde8;border-radius:13px;background:#f7fbfd}
+  #view-schedule .schedule-current-card>div{display:grid;gap:6px}
+  #view-schedule .schedule-current-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
   #view-schedule .schedule-current-title>b{font-size:12px}
-  #view-schedule .schedule-current-main>small{
-    font-size:8.5px;
-    line-height:1.6;
-  }
-  #view-schedule .schedule-actions-shell{
-    display:block;
-    padding:0;
-  }
-  #view-schedule .schedule-actions-shell .schedule-library-actions{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:7px;
-    width:100%;
-  }
-  #view-schedule .schedule-actions-shell .schedule-library-actions .btn{
-    width:100%;
-    min-width:0;
-    min-height:46px;
-    padding:8px 7px;
-    border-radius:11px;
-    font-size:9.5px;
-    line-height:1.25;
-  }
-  #view-schedule .schedule-actions-shell .schedule-library-actions .btn.danger{
-    grid-column:auto;
-  }
-  #view-schedule .schedule-action-delete:not(:disabled){
-    background:#fff7f6;
-    border-color:#efcbc5;
-  }
-  #view-schedule .schedule-action-active:disabled,
-  #view-schedule .schedule-action-archive:disabled,
-  #view-schedule .schedule-action-delete:disabled{
-    opacity:.46;
-  }
-  #view-schedule .schedule-other-tabs{
-    order:2;
-    margin:0;
-    padding:0 0 2px;
-  }
+  #view-schedule .schedule-current-main>small{font-size:8.5px;line-height:1.6}
+  #view-schedule .schedule-action-delete:not(:disabled){background:#fff7f6;border-color:#efcbc5}
+  #view-schedule .schedule-action-active:disabled,#view-schedule .schedule-action-archive:disabled,#view-schedule .schedule-action-delete:disabled{opacity:.46}
+  #view-schedule .schedule-other-tabs{order:2;margin:0;padding:0 0 2px}
   #view-schedule .schedule-current-card{order:1}
-  #view-schedule .schedule-actions-shell{order:3}
   #view-schedule .schedule-overlap-note{margin-top:7px}
 }
 @media screen and (max-width:390px){
-  #view-schedule .schedule-actions-shell .schedule-library-actions .btn{
-    min-height:44px;
-    font-size:9px;
-  }
 }
 
-
-/* V4.12.9 guaranteed schedule action grid */
-.schedule-action-grid{
-  display:flex!important;
-  align-items:stretch;
-  gap:7px;
-  flex-wrap:wrap;
-  width:100%;
-  margin:0;
-  padding:0;
-  visibility:visible!important;
-  opacity:1!important;
-  height:auto!important;
-  min-height:0!important;
-}
-.schedule-action-grid .btn{
-  flex:1 1 150px;
-  min-height:42px;
-}
+.schedule-action-grid{display:flex!important;align-items:stretch;gap:7px;flex-wrap:wrap;width:100%;margin:0;padding:0;visibility:visible!important;opacity:1!important;height:auto!important;min-height:0!important}
+.schedule-action-grid .btn{flex:1 1 150px;min-height:42px}
 @media screen and (max-width:680px){
-  #view-schedule .schedule-manager-clean{
-    display:grid;
-    grid-template-columns:minmax(0,1fr);
-    gap:9px;
-  }
+  #view-schedule .schedule-manager-clean{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}
   #view-schedule .schedule-current-card{order:1}
-  #view-schedule .schedule-action-grid{
-    order:2;
-    display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:7px;
-    width:100%;
-    visibility:visible!important;
-    opacity:1!important;
-  }
-  #view-schedule .schedule-action-grid .btn{
-    display:inline-flex!important;
-    align-items:center;
-    justify-content:center;
-    width:100%;
-    min-width:0;
-    min-height:46px;
-    margin:0;
-    padding:8px 7px;
-    border-radius:11px;
-    font-size:9.5px;
-    line-height:1.25;
-    visibility:visible!important;
-    opacity:1;
-  }
+  #view-schedule .schedule-action-grid{order:2;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;visibility:visible!important;opacity:1!important}
+  #view-schedule .schedule-action-grid .btn{display:inline-flex!important;align-items:center;justify-content:center;width:100%;min-width:0;min-height:46px;margin:0;padding:8px 7px;border-radius:11px;font-size:9.5px;line-height:1.25;visibility:visible!important;opacity:1}
   #view-schedule .schedule-action-grid .btn:disabled{opacity:.46!important}
-  #view-schedule .schedule-action-grid .schedule-action-delete:not(:disabled){
-    background:#fff7f6;
-    border-color:#efcbc5;
-  }
-  #view-schedule .schedule-other-tabs{
-    order:3;
-    margin:0;
-    padding:0 0 2px;
-  }
+  #view-schedule .schedule-action-grid .schedule-action-delete:not(:disabled){background:#fff7f6;border-color:#efcbc5}
+  #view-schedule .schedule-other-tabs{order:3;margin:0;padding:0 0 2px}
 }
 @media screen and (max-width:390px){
-  #view-schedule .schedule-action-grid .btn{
-    min-height:44px;
-    font-size:9px;
-  }
+  #view-schedule .schedule-action-grid .btn{min-height:44px;font-size:9px}
 }
