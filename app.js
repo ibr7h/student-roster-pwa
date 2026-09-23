@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.5';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.6';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -468,7 +468,7 @@ function setActiveClass(id){
   renderAll();if(state.ui.activeView==='reports')showReportsHub(false);queueSave()
 }
 
-function renderAppMeta(){$('[data-app-meta]').forEach(inp=>{const k=inp.dataset.appMeta;if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';inp.oninput=()=>{state.appMeta[k]=inp.value;if(k==='teacher'||k==='school'){(state.teacherSchedules||[]).forEach(t=>{if(k==='teacher')t.teacherName=inp.value;else t.school=inp.value});renderScheduleHeader()}queueSave()}})}
+function renderAppMeta(){$$('[data-app-meta]').forEach(inp=>{const k=inp.dataset.appMeta;if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';inp.oninput=()=>{state.appMeta[k]=inp.value;if(k==='teacher'||k==='school'){(state.teacherSchedules||[]).forEach(t=>{if(k==='teacher')t.teacherName=inp.value;else t.school=inp.value});renderScheduleHeader()}queueSave()}})}
 function classChipMarkup(c){return `<button class="chip ${c.id===state.activeClassId?'active':''}" data-class-switch="${c.id}">${escapeHtml(c.grade)} · ${escapeHtml(c.name)}</button>`}
 function renderClassBars(){['#assessmentClassbar','#attendanceClassbar','#reportsClassbar'].forEach(sel=>{const b=$(sel);if(!b)return;b.innerHTML=state.classes.map(classChipMarkup).join('')+`<button class="chip add" data-open-classes>＋ فصل</button>`});$$('[data-class-switch]').forEach(x=>x.onclick=()=>setActiveClass(x.dataset.classSwitch));$$('[data-open-classes]').forEach(x=>x.onclick=openClasses)}
 
