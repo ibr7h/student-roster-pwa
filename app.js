@@ -966,9 +966,13 @@ function renderScheduleLibrary(){
   const st=scheduleStateInfo(t),range=`${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}`;
   status.innerHTML=`<div><span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span><b>${escapeHtml(t.title||'جدول')}</b><small>${escapeHtml(t.semester||'')} · ${escapeHtml(range)}</small></div>${overlap.length?`<p class="schedule-overlap-note">يوجد تداخل في فترة السريان مع ${arabicNum(overlap.length)} جدول. عند التاريخ المتداخل يستخدم النظام الجدول ذو بداية السريان الأحدث.</p>`:''}`;
   $$('[data-schedule-select]').forEach(b=>b.onclick=()=>selectTeacherSchedule(b.dataset.scheduleSelect));
-  const activate=$('#activateScheduleBtn'),archive=$('#archiveScheduleBtn');
+  const activate=$('#activateScheduleBtn'),archive=$('#archiveScheduleBtn'),del=$('#deleteScheduleBtn'),list=state.teacherSchedules||[];
   if(activate){activate.disabled=t.id===state.activeScheduleId;activate.textContent=t.id===state.activeScheduleId?'✓ الجدول النشط':'✓ تعيين نشط'}
-  if(archive){archive.textContent=t.archived?'إلغاء الأرشفة':'أرشفة';archive.disabled=!t.archived&&t.id===state.activeScheduleId&&(state.teacherSchedules||[]).filter(x=>!x.archived&&x.id!==t.id).length===0}
+  if(archive){archive.textContent=t.archived?'إلغاء الأرشفة':'أرشفة';archive.disabled=!t.archived&&t.id===state.activeScheduleId&&list.filter(x=>!x.archived&&x.id!==t.id).length===0}
+  if(del){
+    del.disabled=t.id===state.activeScheduleId||list.length<=1;
+    del.title=t.id===state.activeScheduleId?'لا يمكن حذف الجدول النشط':(list.length<=1?'لا يمكن حذف آخر جدول':'حذف الجدول نهائيًا')
+  }
 }
 function selectTeacherSchedule(id){if(!(state.teacherSchedules||[]).some(x=>x.id===id))return;state.ui.scheduleId=id;editingScheduleSlot=null;editingSupervisionId=null;scheduleEntryContextKey='';scheduleEntrySelected=new Set();renderSchedule();queueSave()}
 function setActiveTeacherSchedule(){const t=currentTeacherSchedule();if(!t)return;t.archived=false;state.activeScheduleId=t.id;state.appMeta.semester=t.semester||state.appMeta.semester;state.appMeta.teacher=t.teacherName||state.appMeta.teacher;state.appMeta.school=t.school||state.appMeta.school;renderAll();queueSave();toast('تم تعيين الجدول النشط')}
@@ -980,6 +984,33 @@ function toggleArchiveTeacherSchedule(){
     state.activeScheduleId=replacement.id
   }
   t.archived=!t.archived;renderSchedule();renderReports();queueSave();toast(t.archived?'تمت أرشفة الجدول':'تم إلغاء أرشفة الجدول')
+}
+function scheduleAttendanceUsageDates(t){
+  if(!t)return[];
+  const today=localDateISO(),dates=new Set();
+  for(const c of state.classes||[])for(const st of c.students||[])for(const date of Object.keys(st.attendance||{})){
+    if(date>today)continue;
+    if(t.startDate&&date<t.startDate)continue;
+    if(t.endDate&&date>t.endDate)continue;
+    if(scheduleForDate(date)?.id===t.id)dates.add(date)
+  }
+  return [...dates].sort()
+}
+function deleteTeacherSchedule(){
+  const t=currentTeacherSchedule(),list=state.teacherSchedules||[];if(!t)return;
+  if(list.length<=1){toast('لا يمكن حذف آخر جدول');return}
+  if(t.id===state.activeScheduleId){toast('عيّن جدولًا آخر نشطًا قبل حذف هذا الجدول');return}
+  const usedDates=scheduleAttendanceUsageDates(t),name=t.title||'الجدول';
+  const message=usedDates.length
+    ? `الجدول «${name}» مرتبط بفترة تحتوي على حضور مسجل في ${arabicNum(usedDates.length)} يوم. حذف الجدول لن يحذف سجلات الحضور، لكنه قد يغيّر تخطيط تقارير الحضور السابقة. يُفضّل أرشفته بدل الحذف. هل تريد الحذف النهائي رغم ذلك؟`
+    : `حذف الجدول «${name}» نهائيًا؟ سيتم حذف حصصه ومناوباته فقط، ولن تُحذف بيانات الطلاب أو التقييمات أو سجلات الحضور.`;
+  if(!confirm(message))return;
+  state.teacherSchedules=list.filter(x=>x.id!==t.id);
+  const fallback=(state.teacherSchedules||[]).find(x=>x.id===state.activeScheduleId)||state.teacherSchedules[0];
+  state.ui.scheduleId=fallback?.id||null;
+  editingScheduleSlot=null;editingSupervisionId=null;scheduleEntryContextKey='';scheduleEntrySelected=new Set();
+  try{closeScheduleCellPicker()}catch{}
+  renderSchedule();renderReports();queueSave();toast('تم حذف الجدول')
 }
 function scheduleCreateModeChanged(){
   const mode=$('#newScheduleMode')?.value||'blank',field=$('#newScheduleSourceField'),note=$('#scheduleCreateNote');
@@ -1552,7 +1583,7 @@ document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');i
 $('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;$('#assessmentRepeatToggle').onchange=renderAssessmentRepeatInfo;
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};$('#studentSearch').oninput=e=>{searchTerm=e.target.value;renderAssessments()};$('#addStudentBtn').onclick=addStudent;$('#assessmentAddStudentBtn').onclick=addStudent;$('#manageStudentsBtn').onclick=openStudents;$('#manageStudentsBtnTop').onclick=openStudents;$('#studentsAddBtn').onclick=()=>{addStudent();renderStudentsModal()};$('#studentsImportBtn').onclick=()=>$('#csvInput').click();$('#importBtn').onclick=()=>$('#csvInput').click();$('#csvInput').onchange=e=>{if(e.target.files[0])importCSV(e.target.files[0]);e.target.value=''};$('#exportCsvBtn').onclick=exportCurrentClassCSV;
 $('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#recoveryScanBtn').onclick=scanAndRecoverAttendance;$('#dbDiagnosticBtn').onclick=runAttendanceDatabaseDiagnostic;$('#attendanceReferenceCsvBtn').onclick=()=>$('#attendanceReferenceCsvInput').click();$('#attendanceReferenceCsvInput').onchange=e=>{if(e.target.files[0])loadAttendanceReferenceCsv(e.target.files[0]);e.target.value=''};$('#attendanceDiagnosticClass').onchange=()=>{renderAttendanceReferenceSummary();renderAttendanceDiagnosticRows()};$('#diagnosticOnlyDifferences').onchange=renderAttendanceDiagnosticRows;$('#attendanceRecoveryFileBtn').onclick=()=>$('#attendanceRecoveryInput').click();$('#attendanceRecoveryInput').onchange=e=>{if(e.target.files[0])restoreAttendanceOnly(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn')?.addEventListener('click',printAttendanceReport);
-$('#addScheduleBtn').onclick=()=>openScheduleCreateModal(false);$('#scheduleCellEntryBtn').onclick=()=>setScheduleEntryMode('cell');$('#scheduleDistributionModeBtn').onclick=()=>setScheduleEntryMode('distribution');$('#scheduleSingleEditBtn').onclick=()=>setScheduleEntryMode('single');$('#scheduleClearSelectionBtn').onclick=clearScheduleEntrySelection;$('#scheduleSaveDistributionBtn').onclick=saveScheduleDistribution;$('#scheduleNextClassBtn').onclick=nextScheduleEntryClass;$('#duplicateScheduleBtn').onclick=()=>openScheduleCreateModal(true);$('#activateScheduleBtn').onclick=setActiveTeacherSchedule;$('#archiveScheduleBtn').onclick=toggleArchiveTeacherSchedule;$('#newScheduleMode').onchange=scheduleCreateModeChanged;$('#newScheduleSemester').onchange=()=>{const cfg=scheduleTermConfig($('#newScheduleSemester').value);$('#newScheduleStart').value=cfg?.start||'';$('#newScheduleEnd').value=cfg?.end||''};$('#saveNewScheduleBtn').onclick=saveNewTeacherSchedule;$('#scheduleCellPickerClose').onclick=closeScheduleCellPicker;$('#scheduleCellPicker').addEventListener('click',e=>{if(e.target.id==='scheduleCellPicker')closeScheduleCellPicker()});$('#scheduleCellPickerClear').onclick=clearScheduleCell;$('#scheduleCellPickerDetails').onclick=()=>openScheduleCellDetails();$('#scheduleCellPickerStandby').onclick=()=>openScheduleCellDetails('standby');$('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
+$('#addScheduleBtn').onclick=()=>openScheduleCreateModal(false);$('#scheduleCellEntryBtn').onclick=()=>setScheduleEntryMode('cell');$('#scheduleDistributionModeBtn').onclick=()=>setScheduleEntryMode('distribution');$('#scheduleSingleEditBtn').onclick=()=>setScheduleEntryMode('single');$('#scheduleClearSelectionBtn').onclick=clearScheduleEntrySelection;$('#scheduleSaveDistributionBtn').onclick=saveScheduleDistribution;$('#scheduleNextClassBtn').onclick=nextScheduleEntryClass;$('#duplicateScheduleBtn').onclick=()=>openScheduleCreateModal(true);$('#activateScheduleBtn').onclick=setActiveTeacherSchedule;$('#archiveScheduleBtn').onclick=toggleArchiveTeacherSchedule;$('#deleteScheduleBtn').onclick=deleteTeacherSchedule;$('#newScheduleMode').onchange=scheduleCreateModeChanged;$('#newScheduleSemester').onchange=()=>{const cfg=scheduleTermConfig($('#newScheduleSemester').value);$('#newScheduleStart').value=cfg?.start||'';$('#newScheduleEnd').value=cfg?.end||''};$('#saveNewScheduleBtn').onclick=saveNewTeacherSchedule;$('#scheduleCellPickerClose').onclick=closeScheduleCellPicker;$('#scheduleCellPicker').addEventListener('click',e=>{if(e.target.id==='scheduleCellPicker')closeScheduleCellPicker()});$('#scheduleCellPickerClear').onclick=clearScheduleCell;$('#scheduleCellPickerDetails').onclick=()=>openScheduleCellDetails();$('#scheduleCellPickerStandby').onclick=()=>openScheduleCellDetails('standby');$('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
 $('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};
 $$('[data-report-open]').forEach(b=>b.onclick=()=>setReportTab(b.dataset.reportOpen));
 $$('[data-report-back]').forEach(b=>b.onclick=()=>showReportsHub());
