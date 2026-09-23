@@ -758,27 +758,110 @@ function addClass(){const name=$('#newClassName').value.trim(),grade=$('#newClas
 let editingScheduleSlot=null,editingSupervisionId=null;
 function scheduleKey(day,period){return `${day}-${period}`}
 function scheduleTimeLabel(start,end){const fmt=t=>{if(!t)return'';let [h,m]=t.split(':').map(Number),ap=h>=12?'م':'ص';h=h%12||12;return `${h}:${String(m).padStart(2,'0')} ${ap}`};return start&&end?`${fmt(start)} - ${fmt(end)}`:''}
-function scheduleSlot(day,period){const base=state.teacherSchedule.slots?.[scheduleKey(day,period)]||null;if(!base)return null;const pt=PERIOD_TIMES[period]||[];return {...base,start:base.start||pt[0]||'',end:base.end||pt[1]||''}}
+function scheduleSlot(day,period,t=currentTeacherSchedule()){const base=t?.slots?.[scheduleKey(day,period)]||null;if(!base)return null;const pt=PERIOD_TIMES[period]||[];return {...base,start:base.start||pt[0]||'',end:base.end||pt[1]||''}}
 function scheduleClassColor(name=''){const palette=['#dbeafe','#dcfce7','#fef3c7','#fce7f3','#ede9fe','#cffafe','#ffedd5','#e2e8f0','#d1fae5'];let h=0;for(const ch of name)h=(h*31+ch.charCodeAt(0))>>>0;return palette[h%palette.length]}
-function scheduleCounts(){const slots=Object.values(state.teacherSchedule.slots||{}),teaching=slots.filter(x=>x.kind==='class'),classes=new Set(teaching.map(x=>x.className).filter(Boolean));return {teaching:teaching.length,classes:classes.size}}
+function scheduleCounts(t=currentTeacherSchedule()){const slots=Object.values(t?.slots||{}),teaching=slots.filter(x=>x.kind==='class'),classes=new Set(teaching.map(x=>x.className).filter(Boolean));return {teaching:teaching.length,classes:classes.size}}
 function scheduleCellMarkup(day,period,mobile=false){const slot=scheduleSlot(day,period),time=PERIOD_TIMES[period]||['',''];if(!slot)return `<button class="schedule-cell empty" data-schedule-slot="${escapeHtml(day)}|${period}"><span class="period-mobile-label">الحصة ${arabicNum(period)}</span><small>${scheduleTimeLabel(time[0],time[1])}</small><em>＋</em></button>`;if(slot.kind==='standby')return `<button class="schedule-cell standby" data-schedule-slot="${escapeHtml(day)}|${period}"><span class="period-mobile-label">الحصة ${arabicNum(period)}</span><b>${escapeHtml(slot.note||'انتظار')}</b><small>${scheduleTimeLabel(slot.start,slot.end)}</small></button>`;const color=scheduleClassColor(slot.className);return `<button class="schedule-cell class-session" style="--session-color:${color}" data-schedule-slot="${escapeHtml(day)}|${period}"><span class="period-mobile-label">الحصة ${arabicNum(period)}</span><b>${escapeHtml(slot.className||'فصل')}</b><span>${escapeHtml(slot.subject||'')}</span><small>${scheduleTimeLabel(slot.start,slot.end)}</small></button>`}
+function scheduleStateInfo(t){
+  if(!t)return {label:'غير محدد',kind:'muted'};
+  if(t.archived)return {label:'مؤرشف',kind:'archived'};
+  if(t.id===state.activeScheduleId)return {label:'نشط',kind:'active'};
+  const today=localDateISO();
+  if(t.startDate&&today<t.startDate)return {label:'مجدول للمستقبل',kind:'future'};
+  if(t.endDate&&today>t.endDate)return {label:'منتهي',kind:'ended'};
+  if((!t.startDate||today>=t.startDate)&&(!t.endDate||today<=t.endDate))return {label:'ساري اليوم',kind:'current'};
+  return {label:'محفوظ',kind:'muted'}
+}
+function renderScheduleLibrary(){
+  const tabs=$('#scheduleTabs'),status=$('#scheduleStatus'),t=currentTeacherSchedule();if(!tabs||!status||!t)return;
+  tabs.innerHTML=(state.teacherSchedules||[]).map(x=>{const st=scheduleStateInfo(x);return `<button class="schedule-tab ${x.id===t.id?'selected':''} ${st.kind}" data-schedule-select="${escapeHtml(x.id)}"><span>${escapeHtml(x.title||'جدول')}</span><small>${escapeHtml(st.label)}</small></button>`}).join('');
+  const overlap=schedulesOverlappingRange(t.startDate,t.endDate).filter(x=>x.id!==t.id);
+  const st=scheduleStateInfo(t),range=`${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}`;
+  status.innerHTML=`<div><span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span><b>${escapeHtml(t.title||'جدول')}</b><small>${escapeHtml(t.semester||'')} · ${escapeHtml(range)}</small></div>${overlap.length?`<p class="schedule-overlap-note">يوجد تداخل في فترة السريان مع ${arabicNum(overlap.length)} جدول. عند التاريخ المتداخل يستخدم النظام الجدول ذو بداية السريان الأحدث.</p>`:''}`;
+  $$('[data-schedule-select]').forEach(b=>b.onclick=()=>selectTeacherSchedule(b.dataset.scheduleSelect));
+  const activate=$('#activateScheduleBtn'),archive=$('#archiveScheduleBtn');
+  if(activate){activate.disabled=t.id===state.activeScheduleId;activate.textContent=t.id===state.activeScheduleId?'✓ الجدول النشط':'✓ تعيين نشط'}
+  if(archive){archive.textContent=t.archived?'إلغاء الأرشفة':'أرشفة';archive.disabled=!t.archived&&t.id===state.activeScheduleId&&(state.teacherSchedules||[]).filter(x=>!x.archived&&x.id!==t.id).length===0}
+}
+function selectTeacherSchedule(id){if(!(state.teacherSchedules||[]).some(x=>x.id===id))return;state.ui.scheduleId=id;editingScheduleSlot=null;editingSupervisionId=null;renderSchedule();queueSave()}
+function setActiveTeacherSchedule(){const t=currentTeacherSchedule();if(!t)return;t.archived=false;state.activeScheduleId=t.id;renderSchedule();renderReports();queueSave();toast('تم تعيين الجدول النشط')}
+function toggleArchiveTeacherSchedule(){
+  const t=currentTeacherSchedule();if(!t)return;
+  if(!t.archived&&t.id===state.activeScheduleId){
+    const replacement=(state.teacherSchedules||[]).find(x=>x.id!==t.id&&!x.archived);
+    if(!replacement){toast('لا يمكن أرشفة الجدول النشط الوحيد');return}
+    state.activeScheduleId=replacement.id
+  }
+  t.archived=!t.archived;renderSchedule();renderReports();queueSave();toast(t.archived?'تمت أرشفة الجدول':'تم إلغاء أرشفة الجدول')
+}
+function scheduleCreateModeChanged(){
+  const mode=$('#newScheduleMode')?.value||'blank',field=$('#newScheduleSourceField'),note=$('#scheduleCreateNote');
+  if(field)field.hidden=mode!=='copy';
+  if(note)note.textContent=mode==='copy'?'سيتم نسخ الحصص والمناوبات فقط، مع إنشاء سجل مستقل للجدول الجديد.':'سيبدأ الجدول فارغًا ويمكنك إضافة الحصص بعد إنشائه.'
+}
+function openScheduleCreateModal(copyCurrent=false){
+  const current=currentTeacherSchedule(),semester=current?.semester||state.appMeta.semester||'الفصل الدراسي الأول',cfg=scheduleTermConfig(semester),today=localDateISO();
+  $('#scheduleCreateTitle').textContent=copyCurrent?'نسخ الجدول':'إضافة جدول';
+  $('#newScheduleTitle').value=copyCurrent?`${current?.title||'جدول'} — نسخة`:'جدول جديد';
+  $('#newScheduleSemester').value=semester;
+  $('#newScheduleStart').value=(today>=cfg.start&&today<=cfg.end)?today:cfg.start;
+  $('#newScheduleEnd').value=cfg.end;
+  $('#newScheduleMode').value=copyCurrent?'copy':'blank';
+  $('#newScheduleSource').innerHTML=(state.teacherSchedules||[]).map(x=>`<option value="${escapeHtml(x.id)}" ${x.id===current?.id?'selected':''}>${escapeHtml(x.title||'جدول')}</option>`).join('');
+  scheduleCreateModeChanged();$('#scheduleCreateModal').showModal();setTimeout(()=>$('#newScheduleTitle').focus(),50)
+}
+function saveNewTeacherSchedule(){
+  const title=$('#newScheduleTitle').value.trim(),semester=$('#newScheduleSemester').value,startDate=$('#newScheduleStart').value,endDate=$('#newScheduleEnd').value,mode=$('#newScheduleMode').value;
+  if(!title){toast('اكتب اسم الجدول');return}
+  if(startDate&&endDate&&endDate<startDate){toast('نهاية السريان يجب أن تكون بعد البداية');return}
+  let base={};
+  if(mode==='copy'){
+    const source=(state.teacherSchedules||[]).find(x=>x.id===$('#newScheduleSource').value);
+    if(source)base={teacherName:source.teacherName,school:source.school,slots:clone(source.slots||{}),supervision:(source.supervision||[]).map(x=>({...clone(x),id:uid()}))}
+  }
+  const t=ensureTeacherSchedule({id:uid(),title,semester,startDate,endDate,archived:false,teacherName:base.teacherName||state.appMeta.teacher,school:base.school||state.appMeta.school,slots:base.slots||{},supervision:base.supervision||[]},state.appMeta);
+  state.teacherSchedules.push(t);state.ui.scheduleId=t.id;
+  $('#scheduleCreateModal').close();renderSchedule();queueSave();toast(mode==='copy'?'تم إنشاء نسخة مستقلة من الجدول':'تم إنشاء الجدول')
+}
+function updateSelectedScheduleMeta(field,value){
+  const t=currentTeacherSchedule();if(!t)return;
+  if((field==='startDate'||field==='endDate')){
+    const start=field==='startDate'?value:t.startDate,end=field==='endDate'?value:t.endDate;
+    if(start&&end&&end<start){toast('نهاية السريان يجب أن تكون بعد البداية');renderSchedule();return}
+  }
+  t[field]=value;
+  if(field==='teacherName')state.appMeta.teacher=value;
+  if(field==='school')state.appMeta.school=value;
+  renderScheduleHeader();renderScheduleLibrary();renderReports();queueSave()
+}
 function renderSchedule(){
-  const t=state.teacherSchedule||(state.teacherSchedule=makeTeacherSchedule()),counts=scheduleCounts();
-  const teacher=$('#scheduleTeacherInput'),school=$('#scheduleSchoolInput'),title=$('#scheduleTitleInput');if(!teacher)return;
-  if(document.activeElement!==teacher)teacher.value=t.teacherName||'';if(document.activeElement!==school)school.value=t.school||'';if(document.activeElement!==title)title.value=t.title||'';
-  teacher.oninput=()=>{t.teacherName=teacher.value;state.appMeta.teacher=teacher.value;renderScheduleHeader();queueSave()};school.oninput=()=>{t.school=school.value;state.appMeta.school=school.value;renderScheduleHeader();queueSave()};title.oninput=()=>{t.title=title.value;renderScheduleHeader();queueSave()};
+  const t=currentTeacherSchedule(),counts=scheduleCounts(t);
+  const teacher=$('#scheduleTeacherInput'),school=$('#scheduleSchoolInput'),title=$('#scheduleTitleInput'),semester=$('#scheduleSemesterInput'),start=$('#scheduleStartInput'),end=$('#scheduleEndInput');if(!teacher||!t)return;
+  renderScheduleLibrary();
+  if(document.activeElement!==teacher)teacher.value=t.teacherName||'';
+  if(document.activeElement!==school)school.value=t.school||'';
+  if(document.activeElement!==title)title.value=t.title||'';
+  if(document.activeElement!==semester)semester.value=t.semester||state.appMeta.semester||'الفصل الدراسي الأول';
+  if(document.activeElement!==start)start.value=t.startDate||'';
+  if(document.activeElement!==end)end.value=t.endDate||'';
+  teacher.oninput=()=>updateSelectedScheduleMeta('teacherName',teacher.value);
+  school.oninput=()=>updateSelectedScheduleMeta('school',school.value);
+  title.oninput=()=>updateSelectedScheduleMeta('title',title.value);
+  semester.onchange=()=>updateSelectedScheduleMeta('semester',semester.value);
+  start.onchange=()=>updateSelectedScheduleMeta('startDate',start.value);
+  end.onchange=()=>updateSelectedScheduleMeta('endDate',end.value);
   $('#scheduleStats').innerHTML=`<div><b>${arabicNum(counts.teaching)}</b><span>عدد الحصص</span></div><div><b>${arabicNum(counts.classes)}</b><span>عدد الفصول</span></div>`;
   $('#teacherScheduleTable').innerHTML=`<thead><tr><th>اليوم / الحصة</th>${[1,2,3,4,5,6,7].map(p=>`<th><b>${arabicNum(p)}</b><small>${scheduleTimeLabel(...PERIOD_TIMES[p])}</small></th>`).join('')}</tr></thead><tbody>${SCHEDULE_DAYS.map(day=>`<tr><th>${day}</th>${[1,2,3,4,5,6,7].map(p=>`<td>${scheduleCellMarkup(day,p)}</td>`).join('')}</tr>`).join('')}</tbody>`;
   $('#scheduleMobile').innerHTML=SCHEDULE_DAYS.map(day=>`<article class="schedule-day-card"><h3>${day}</h3><div>${[1,2,3,4,5,6,7].map(p=>scheduleCellMarkup(day,p,true)).join('')}</div></article>`).join('');
   renderScheduleHeader();renderSupervisions();$$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');openScheduleSlot(day,Number(p))})
 }
-function renderScheduleHeader(){const t=state.teacherSchedule;if(!$('#schedulePrintHeader'))return;$('#schedulePrintHeader').innerHTML=`<div><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(t.school||'')}</span></div><div class="schedule-logo-center"><img class="schedule-official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><h1>${escapeHtml(t.title||'جدول المعلم')}</h1><b>${escapeHtml(t.teacherName||'')}</b></div><div><b>جدول المعلم</b><span>${escapeHtml(state.appMeta.year||'')}</span><span>${escapeHtml(state.appMeta.semester||'')}</span></div>`}
-function openScheduleSlot(day,period){editingScheduleSlot={day,period};const raw=state.teacherSchedule.slots?.[scheduleKey(day,period)]||{},pt=PERIOD_TIMES[period]||['',''];$('#scheduleSlotTitle').textContent=`${day} — الحصة ${arabicNum(period)}`;$('#scheduleSlotKind').value=raw.kind||'empty';$('#scheduleSlotClass').value=raw.className||'';$('#scheduleSlotSubject').value=raw.subject||'';$('#scheduleSlotStart').value=raw.start||pt[0]||'';$('#scheduleSlotEnd').value=raw.end||pt[1]||'';$('#scheduleSlotNote').value=raw.note||'';$('#scheduleSlotModal').showModal()}
-function saveScheduleSlot(){if(!editingScheduleSlot)return;const {day,period}=editingScheduleSlot,key=scheduleKey(day,period),kind=$('#scheduleSlotKind').value;if(kind==='empty')delete state.teacherSchedule.slots[key];else state.teacherSchedule.slots[key]={kind,className:$('#scheduleSlotClass').value.trim(),subject:$('#scheduleSlotSubject').value.trim(),start:$('#scheduleSlotStart').value,end:$('#scheduleSlotEnd').value,note:$('#scheduleSlotNote').value.trim()};$('#scheduleSlotModal').close();renderSchedule();queueSave();toast('تم تحديث الجدول')}
-function renderSupervisions(){const list=$('#supervisionList');if(!list)return;const items=state.teacherSchedule.supervision||[];list.innerHTML=items.length?items.map(x=>`<article class="supervision-card"><div><b>${escapeHtml(x.day||'')} ${x.date?`<span class="supervision-date">(${escapeHtml(x.date)})</span>`:''}</b><span>${escapeHtml(x.start||'')} - ${escapeHtml(x.end||'')}</span></div><div class="supervision-main"><strong>👁️ ${escapeHtml(x.title||'إشراف')}</strong><span>${escapeHtml(x.type||'إشراف')} — ${escapeHtml(x.location||'')}</span></div><button class="btn tiny no-print" data-edit-supervision="${x.id}">تعديل</button></article>`).join(''):`<div class="empty-state"><b>لا توجد مناوبات مسجلة</b>أضف مناوبة أو إشرافًا جديدًا.</div>`;$$('[data-edit-supervision]').forEach(b=>b.onclick=()=>openSupervision(b.dataset.editSupervision))}
-function openSupervision(id=null){editingSupervisionId=id;const x=id?(state.teacherSchedule.supervision||[]).find(v=>v.id===id):null;$('#supervisionModalTitle').textContent=x?'تعديل المناوبة':'إضافة مناوبة';$('#supervisionDay').value=x?.day||'الأحد';$('#supervisionDate').value=x?.date||'';$('#supervisionStart').value=x?.start||'';$('#supervisionEnd').value=x?.end||'';$('#supervisionType').value=x?.type||'إشراف';$('#supervisionTitle').value=x?.title||'';$('#supervisionLocation').value=x?.location||'';$('#deleteSupervisionBtn').hidden=!x;$('#supervisionModal').showModal()}
-function saveSupervision(){const obj={day:$('#supervisionDay').value,date:$('#supervisionDate').value.trim(),start:$('#supervisionStart').value,end:$('#supervisionEnd').value,type:$('#supervisionType').value.trim(),title:$('#supervisionTitle').value.trim()||'إشراف',location:$('#supervisionLocation').value.trim()};if(editingSupervisionId){const x=state.teacherSchedule.supervision.find(v=>v.id===editingSupervisionId);if(x)Object.assign(x,obj)}else state.teacherSchedule.supervision.push({id:uid(),...obj});$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حفظ المناوبة')}
-function deleteSupervision(){if(!editingSupervisionId)return;if(!confirm('حذف هذه المناوبة؟'))return;state.teacherSchedule.supervision=state.teacherSchedule.supervision.filter(v=>v.id!==editingSupervisionId);$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حذف المناوبة')}
+function renderScheduleHeader(){const t=currentTeacherSchedule();if(!t||!$('#schedulePrintHeader'))return;$('#schedulePrintHeader').innerHTML=`<div><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(t.school||'')}</span></div><div class="schedule-logo-center"><img class="schedule-official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><h1>${escapeHtml(t.title||'جدول المعلم')}</h1><b>${escapeHtml(t.teacherName||'')}</b></div><div><b>جدول المعلم</b><span>${escapeHtml(state.appMeta.year||'')}</span><span>${escapeHtml(t.semester||state.appMeta.semester||'')}</span></div>`}
+function openScheduleSlot(day,period){const t=currentTeacherSchedule();if(!t)return;editingScheduleSlot={day,period};const raw=t.slots?.[scheduleKey(day,period)]||{},pt=PERIOD_TIMES[period]||['',''];$('#scheduleSlotTitle').textContent=`${day} — الحصة ${arabicNum(period)}`;$('#scheduleSlotKind').value=raw.kind||'empty';$('#scheduleSlotClass').value=raw.className||'';$('#scheduleSlotSubject').value=raw.subject||'';$('#scheduleSlotStart').value=raw.start||pt[0]||'';$('#scheduleSlotEnd').value=raw.end||pt[1]||'';$('#scheduleSlotNote').value=raw.note||'';$('#scheduleSlotModal').showModal()}
+function saveScheduleSlot(){const t=currentTeacherSchedule();if(!editingScheduleSlot||!t)return;const {day,period}=editingScheduleSlot,key=scheduleKey(day,period),kind=$('#scheduleSlotKind').value;if(kind==='empty')delete t.slots[key];else t.slots[key]={kind,className:$('#scheduleSlotClass').value.trim(),subject:$('#scheduleSlotSubject').value.trim(),start:$('#scheduleSlotStart').value,end:$('#scheduleSlotEnd').value,note:$('#scheduleSlotNote').value.trim()};$('#scheduleSlotModal').close();renderSchedule();renderReports();queueSave();toast('تم تحديث الجدول')}
+function renderSupervisions(){const list=$('#supervisionList'),t=currentTeacherSchedule();if(!list||!t)return;const items=t.supervision||[];list.innerHTML=items.length?items.map(x=>`<article class="supervision-card"><div><b>${escapeHtml(x.day||'')} ${x.date?`<span class="supervision-date">(${escapeHtml(x.date)})</span>`:''}</b><span>${escapeHtml(x.start||'')} - ${escapeHtml(x.end||'')}</span></div><div class="supervision-main"><strong>👁️ ${escapeHtml(x.title||'إشراف')}</strong><span>${escapeHtml(x.type||'إشراف')} — ${escapeHtml(x.location||'')}</span></div><button class="btn tiny no-print" data-edit-supervision="${x.id}">تعديل</button></article>`).join(''):`<div class="empty-state"><b>لا توجد مناوبات مسجلة</b>أضف مناوبة أو إشرافًا جديدًا.</div>`;$$('[data-edit-supervision]').forEach(b=>b.onclick=()=>openSupervision(b.dataset.editSupervision))}
+function openSupervision(id=null){const t=currentTeacherSchedule();if(!t)return;editingSupervisionId=id;const x=id?(t.supervision||[]).find(v=>v.id===id):null;$('#supervisionModalTitle').textContent=x?'تعديل المناوبة':'إضافة مناوبة';$('#supervisionDay').value=x?.day||'الأحد';$('#supervisionDate').value=x?.date||'';$('#supervisionStart').value=x?.start||'';$('#supervisionEnd').value=x?.end||'';$('#supervisionType').value=x?.type||'إشراف';$('#supervisionTitle').value=x?.title||'';$('#supervisionLocation').value=x?.location||'';$('#deleteSupervisionBtn').hidden=!x;$('#supervisionModal').showModal()}
+function saveSupervision(){const t=currentTeacherSchedule();if(!t)return;const obj={day:$('#supervisionDay').value,date:$('#supervisionDate').value.trim(),start:$('#supervisionStart').value,end:$('#supervisionEnd').value,type:$('#supervisionType').value.trim(),title:$('#supervisionTitle').value.trim()||'إشراف',location:$('#supervisionLocation').value.trim()};if(editingSupervisionId){const x=t.supervision.find(v=>v.id===editingSupervisionId);if(x)Object.assign(x,obj)}else t.supervision.push({id:uid(),...obj});$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حفظ المناوبة')}
+function deleteSupervision(){const t=currentTeacherSchedule();if(!editingSupervisionId||!t)return;if(!confirm('حذف هذه المناوبة؟'))return;t.supervision=t.supervision.filter(v=>v.id!==editingSupervisionId);$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حذف المناوبة')}
 function printTeacherSchedule(){runPrintSession('print-teacher-schedule','landscape')}
 
 function renderAttendance(){
