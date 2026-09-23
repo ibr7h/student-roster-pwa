@@ -567,3 +567,68 @@ body.update-in-progress{overflow:hidden!important}
   .assessment-repeat-toggle{grid-template-columns:minmax(0,1fr) 46px}
   .assessment-repeat-summary{display:grid;gap:2px}
 }
+
+/* V4.8 quick assessment grading */
+.quick-grade-panel{display:grid;gap:10px;margin:0 0 11px;padding:11px 12px;border:1px solid #d7e2e8;border-radius:14px;background:#f8fbfd}
+.quick-grade-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.quick-grade-head>div{display:grid;gap:2px}
+.quick-grade-head b{font-size:12px}
+.quick-grade-head small{font-size:9px;line-height:1.45;color:var(--muted)}
+#assessmentAutosaveStatus{white-space:nowrap;font-size:9px;font-weight:800;color:var(--ok);padding:4px 8px;border-radius:999px;background:var(--ok-soft)}
+#assessmentAutosaveStatus.pending{color:var(--brand);background:var(--brand-soft)}
+.quick-grade-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.quick-grade-mode{display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:9.5px;font-weight:800;white-space:nowrap}
+.quick-grade-mode input{width:17px;height:17px;margin:0}
+.quick-grade-presets{display:flex;gap:6px;flex-wrap:wrap}
+.quick-grade-btn{min-width:46px;min-height:38px;border:1px solid #cbd8e0;border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:11px;font-weight:900;cursor:pointer;padding:6px 10px}
+.quick-grade-btn:hover{border-color:var(--brand);background:var(--brand-soft)}
+.quick-grade-btn.custom{min-width:66px;color:var(--brand)}
+.mobile-gradebook{display:none}
+.assessment-peer-nav{display:grid;gap:8px;margin-top:12px;padding:10px 11px;border:1px solid #cfdee7;border-radius:13px;background:#f7fafc}
+.assessment-peer-nav[hidden]{display:none!important}
+.assessment-peer-progress{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.assessment-peer-progress span{font-size:9.5px;color:var(--muted)}
+.assessment-peer-progress b{font-size:10px;color:var(--brand)}
+.assessment-peer-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.assessment-peer-actions .btn{min-width:0}
+.assessment-peer-done{font-size:10px;font-weight:800;color:var(--ok)}
+@media(max-width:760px){
+  .desktop-gradebook{display:none!important}
+  .mobile-gradebook{display:grid;gap:9px}
+  .quick-grade-panel{padding:10px;margin-bottom:10px}
+  .quick-grade-head{align-items:flex-start}
+  .quick-grade-head small{max-width:240px}
+  .quick-grade-actions{display:grid;grid-template-columns:1fr;gap:8px}
+  .quick-grade-mode{width:max-content;max-width:100%}
+  .quick-grade-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .quick-grade-btn{width:100%;min-height:42px;font-size:12px}
+  .mobile-grade-card{display:grid;gap:10px;padding:11px;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:0 3px 12px rgba(22,45,62,.045)}
+  .mobile-grade-card.graded{border-color:#cfdde5}
+  .mobile-grade-card-head{display:grid;grid-template-columns:30px minmax(0,1fr) 58px;align-items:center;gap:8px}
+  .mobile-grade-index{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:#f0f4f7;color:var(--muted);font-size:9px;font-weight:900}
+  .mobile-grade-name{display:grid;gap:3px;min-width:0}
+  .mobile-grade-name>b{font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mobile-grade-name>small{display:flex;align-items:center;gap:4px;font-size:8.5px;color:var(--muted)}
+  .mobile-grade-name .status-tag{padding:2px 6px;font-size:8px}
+  .mobile-grade-current{display:grid;text-align:center;padding:5px 4px;border-radius:10px;background:#f7f9fb}
+  .mobile-grade-current>b{font-size:16px;line-height:1.05}
+  .mobile-grade-current>small{font-size:7.5px;color:var(--muted)}
+  .student-quick-grades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .student-grade-chip{min-height:42px;border:1px solid #cdd8df;border-radius:10px;background:#f9fbfc;color:var(--ink);font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+  .student-grade-chip.active{border-color:var(--brand);background:var(--brand);color:#fff;box-shadow:0 3px 9px rgba(32,99,155,.18)}
+  .student-grade-chip.clear{font-size:16px}
+  .mobile-grade-custom{display:grid;grid-template-columns:auto minmax(80px,1fr) auto;align-items:center;gap:7px;padding-top:8px;border-top:1px solid #edf1f3}
+  .mobile-grade-custom label{font-size:8.5px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .mobile-grade-custom input{width:100%;min-height:38px;border:1px solid var(--line);border-radius:9px;background:#fff;text-align:center;font:inherit;font-size:12px;font-weight:800}
+  .mobile-grade-custom .btn{min-height:38px}
+  .assessment-peer-nav{margin-top:11px;margin-bottom:8px}
+  .assessment-peer-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .assessment-peer-actions .btn{width:100%;font-size:9.5px;padding-inline:7px}
+  .assessment-peer-done{grid-column:1/-1;text-align:center;padding:8px}
+}
+@media(max-width:390px){
+  .quick-grade-head{display:grid}
+  #assessmentAutosaveStatus{width:max-content}
+  .mobile-grade-custom{grid-template-columns:1fr 82px}
+  .mobile-grade-custom label{grid-column:1/-1}
+}
