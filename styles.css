@@ -714,3 +714,24 @@ body.update-in-progress{overflow:hidden!important}
   .schedule-entry-actions{display:grid;grid-template-columns:1fr 1fr}
   .schedule-entry-actions .btn.primary{grid-column:1/-1}
 }
+
+/* V4.10.1 mobile tap fix */
+.schedule-cell,.schedule-subject-chip,#scheduleClassSelect,.schedule-entry-actions .btn{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:rgba(29,98,143,.12);
+}
+.schedule-cell,.schedule-subject-chip{
+  user-select:none;
+  -webkit-user-select:none;
+}
+@media(max-width:680px){
+  .schedule-day-card .schedule-cell{
+    min-height:104px;
+  }
+  .schedule-day-card .schedule-cell:active{
+    transform:scale(.985);
+  }
+  .schedule-cell.entry-selected{
+    outline-width:4px!important;
+  }
+}
