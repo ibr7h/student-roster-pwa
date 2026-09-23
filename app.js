@@ -443,8 +443,78 @@ function renderGradebook(a,c){const term=searchTerm.trim().toLowerCase(),student
   $$('[data-grade]').forEach(inp=>inp.onchange=()=>{const s=findStudent(inp.dataset.grade);if(!s)return;const v=inp.value.trim();if(v==='')delete s.grades[a.id];else{const n=Number(v);if(Number.isNaN(n)||n<0||n>a.maxScore){toast(`أدخل درجة من 0 إلى ${a.maxScore}`);renderGradebook(a,c);return}s.grades[a.id]=n}renderGradebook(a,c);renderAssessmentSummary(a,c);renderDashboard();renderReports();queueSave()});$$('#gradebookTable [data-report]').forEach(b=>b.onclick=()=>openStudentReport(b.dataset.report))}
 function renderAssessmentSummary(a,c){const vals=c.students.map(s=>s.grades?.[a.id]).filter(v=>v!==undefined&&v!==null&&v!==''&&!Number.isNaN(Number(v))).map(Number),graded=vals.length,avg=graded?vals.reduce((x,y)=>x+y,0)/graded:null,pass=vals.filter(v=>a.maxScore&&v/a.maxScore*100>=state.settings.gradeAlertThreshold).length;$('#assessmentSummary').innerHTML=`<div class="stat"><b>${arabicNum(graded)} / ${arabicNum(c.students.length)}</b><span>تم الرصد</span></div><div class="stat"><b>${avg===null?'—':arabicNum(avg)}</b><span>متوسط الدرجة</span></div><div class="stat ok"><b>${avg===null?'—':pct(avg/a.maxScore*100)}</b><span>متوسط النسبة</span></div><div class="stat warn"><b>${arabicNum(graded-pass)}</b><span>تحت حد المتابعة</span></div>`}
 
-function openAssessmentModal(id=null){const a=id?findAssessment(id):null;editingAssessmentId=id;$('#assessmentModalTitle').textContent=a?'تعديل التقييم':'تقييم جديد';$('#assessmentTitleInput').value=a?.title||'';$('#assessmentTypeInput').value=a?.type||'homework';$('#assessmentDateInput').value=a?.date||localDateISO();$('#assessmentMaxInput').value=a?.maxScore||10;$('#assessmentNoteInput').value=a?.note||'';$('#assessmentModal').showModal();setTimeout(()=>$('#assessmentTitleInput').focus(),50)}
-function saveAssessment(){const c=currentClass(),title=$('#assessmentTitleInput').value.trim(),date=$('#assessmentDateInput').value,type=$('#assessmentTypeInput').value,maxScore=Number($('#assessmentMaxInput').value),note=$('#assessmentNoteInput').value.trim();if(!title){toast('اكتب اسم التقييم');return}if(!date){toast('اختر تاريخ التقييم');return}if(!maxScore||maxScore<=0){toast('الدرجة العظمى غير صحيحة');return}if(editingAssessmentId){const a=findAssessment(editingAssessmentId,c);if(!a)return;const highest=Math.max(0,...c.students.map(s=>Number(s.grades?.[a.id])).filter(Number.isFinite));if(maxScore<highest){toast(`يوجد طالب درجته ${highest}؛ ارفع الدرجة العظمى أولًا`);return}Object.assign(a,{title,type,date,maxScore,note,legacy:false})}else{const a={id:uid(),title,type,date,maxScore,note,legacy:false};c.assessmentEvents.push(a);c.selectedAssessmentId=a.id}$('#assessmentModal').close();state.ui.assessmentMonth='all';renderAll();queueSave();toast(editingAssessmentId?'تم تعديل التقييم':'تم إنشاء التقييم')}
+function assessmentAcademicKey(v=''){
+  return String(v??'').normalize('NFKC').trim().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[^\p{L}\p{N}]+/gu,'').toLowerCase()
+}
+function assessmentPeerClasses(c){
+  if(!c)return[];
+  const grade=assessmentAcademicKey(c.grade),subject=assessmentAcademicKey(c.subject);
+  return (state.classes||[]).filter(x=>assessmentAcademicKey(x.grade)===grade&&assessmentAcademicKey(x.subject)===subject)
+}
+function assessmentIdentityKey(a){
+  return [assessmentAcademicKey(a?.title||''),String(a?.type||''),String(a?.date||'')].join('|')
+}
+function assessmentExistsInClass(c,draft){
+  const key=assessmentIdentityKey(draft);
+  return (c?.assessmentEvents||[]).some(a=>assessmentIdentityKey(a)===key)
+}
+function renderAssessmentRepeatInfo(){
+  const card=$('#assessmentRepeatCard'),toggle=$('#assessmentRepeatToggle'),info=$('#assessmentRepeatInfo'),c=currentClass();
+  if(!card||!toggle||!info||!c)return;
+  if(editingAssessmentId){card.hidden=true;return}
+  card.hidden=false;
+  const peers=assessmentPeerClasses(c),others=peers.filter(x=>x.id!==c.id);
+  if(!others.length){toggle.checked=false;toggle.disabled=true;info.innerHTML='<span class="assessment-repeat-note">لا توجد فصول أخرى من نفس الصف والمادة؛ سيُحفظ التقييم في الفصل الحالي فقط.</span>';return}
+  toggle.disabled=false;
+  const targets=toggle.checked?peers:[c];
+  info.innerHTML=`<div class="assessment-repeat-summary"><b>${toggle.checked?'سيُنشأ في '+arabicNum(targets.length)+' فصول':'سيُنشأ في الفصل الحالي فقط'}</b><span>${escapeHtml(c.grade)} · ${escapeHtml(c.subject)}</span></div><div class="assessment-repeat-targets">${targets.map(x=>`<span class="${x.id===c.id?'current':''}">${escapeHtml(x.name)}${x.id===c.id?' · الحالي':''}</span>`).join('')}</div>`
+}
+function openAssessmentModal(id=null){
+  const a=id?findAssessment(id):null;
+  editingAssessmentId=id;
+  $('#assessmentModalTitle').textContent=a?'تعديل التقييم':'تقييم جديد';
+  $('#assessmentTitleInput').value=a?.title||'';
+  $('#assessmentTypeInput').value=a?.type||'homework';
+  $('#assessmentDateInput').value=a?.date||localDateISO();
+  $('#assessmentMaxInput').value=a?.maxScore||10;
+  $('#assessmentNoteInput').value=a?.note||'';
+  const toggle=$('#assessmentRepeatToggle');if(toggle){toggle.checked=!a;toggle.disabled=!!a}
+  renderAssessmentRepeatInfo();
+  $('#assessmentModal').showModal();
+  setTimeout(()=>$('#assessmentTitleInput').focus(),50)
+}
+function saveAssessment(){
+  const c=currentClass(),title=$('#assessmentTitleInput').value.trim(),date=$('#assessmentDateInput').value,type=$('#assessmentTypeInput').value,maxScore=Number($('#assessmentMaxInput').value),note=$('#assessmentNoteInput').value.trim();
+  if(!title){toast('اكتب اسم التقييم');return}
+  if(!date){toast('اختر تاريخ التقييم');return}
+  if(!maxScore||maxScore<=0){toast('الدرجة العظمى غير صحيحة');return}
+  if(editingAssessmentId){
+    const a=findAssessment(editingAssessmentId,c);if(!a)return;
+    const highest=Math.max(0,...c.students.map(s=>Number(s.grades?.[a.id])).filter(Number.isFinite));
+    if(maxScore<highest){toast(`يوجد طالب درجته ${highest}؛ ارفع الدرجة العظمى أولًا`);return}
+    Object.assign(a,{title,type,date,maxScore,note,legacy:false});
+    $('#assessmentModal').close();state.ui.assessmentMonth='all';renderAll();queueSave();toast('تم تعديل التقييم');return
+  }
+  const repeat=!!$('#assessmentRepeatToggle')?.checked,peers=assessmentPeerClasses(c),targets=repeat&&peers.length>1?peers:[c],repeatGroupId=targets.length>1?uid():null,draft={title,type,date,maxScore,note,legacy:false};
+  let created=0,skipped=0,currentAssessmentId=null;
+  for(const target of targets){
+    if(assessmentExistsInClass(target,draft)){skipped++;continue}
+    const a={id:uid(),...draft};
+    if(repeatGroupId){a.repeatGroupId=repeatGroupId;a.repeatSourceClassId=c.id}
+    target.assessmentEvents.push(a);
+    if(target.id===c.id)currentAssessmentId=a.id;
+    if(!target.selectedAssessmentId)target.selectedAssessmentId=a.id;
+    created++
+  }
+  if(!created){toast('هذا التقييم موجود مسبقًا في الفصول المحددة');return}
+  if(currentAssessmentId)c.selectedAssessmentId=currentAssessmentId;
+  $('#assessmentModal').close();state.ui.assessmentMonth='all';renderAll();queueSave();
+  if(targets.length>1){
+    const skippedText=skipped?` · تم تجاوز ${arabicNum(skipped)} مكرر`:'';
+    toast(`تم إنشاء التقييم في ${arabicNum(created)} فصول${skippedText}`)
+  }else toast('تم إنشاء التقييم')
+}
+
 function deleteAssessment(){const c=currentClass(),a=findAssessment(c.selectedAssessmentId,c);if(!a)return;if(!confirm(`حذف «${a.title}» وجميع درجاته؟`))return;c.assessmentEvents=c.assessmentEvents.filter(x=>x.id!==a.id);c.students.forEach(s=>delete s.grades?.[a.id]);c.selectedAssessmentId=c.assessmentEvents[0]?.id||null;renderAll();queueSave();toast('تم حذف التقييم')}
 
 function addStudent(){const c=currentClass();if(!c)return;const name=prompt('اسم الطالب:');if(!name?.trim())return;c.students.push(makeStudent(name.trim()));renderAll();queueSave();toast('تمت إضافة الطالب')}
@@ -982,7 +1052,7 @@ async function initAppUpdater(){
 function renderInstallNote(){const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;$('#installNote').style.display=isIOS&&!standalone&&!state.ui.dismissedInstall?'block':'none'}
 
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');if(nav)showView(nav.dataset.nav);if(e.target.matches('[data-close]'))e.target.closest('dialog').close();if(e.target.matches('[data-mark-all]'))markAllAttendance(e.target.dataset.markAll);if(e.target.matches('[data-clear-attendance]'))clearAttendanceDay()});
-$('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;
+$('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;$('#assessmentRepeatToggle').onchange=renderAssessmentRepeatInfo;
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};$('#studentSearch').oninput=e=>{searchTerm=e.target.value;renderAssessments()};$('#addStudentBtn').onclick=addStudent;$('#assessmentAddStudentBtn').onclick=addStudent;$('#manageStudentsBtn').onclick=openStudents;$('#manageStudentsBtnTop').onclick=openStudents;$('#studentsAddBtn').onclick=()=>{addStudent();renderStudentsModal()};$('#studentsImportBtn').onclick=()=>$('#csvInput').click();$('#importBtn').onclick=()=>$('#csvInput').click();$('#csvInput').onchange=e=>{if(e.target.files[0])importCSV(e.target.files[0]);e.target.value=''};$('#exportCsvBtn').onclick=exportCurrentClassCSV;
 $('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#recoveryScanBtn').onclick=scanAndRecoverAttendance;$('#dbDiagnosticBtn').onclick=runAttendanceDatabaseDiagnostic;$('#attendanceReferenceCsvBtn').onclick=()=>$('#attendanceReferenceCsvInput').click();$('#attendanceReferenceCsvInput').onchange=e=>{if(e.target.files[0])loadAttendanceReferenceCsv(e.target.files[0]);e.target.value=''};$('#attendanceDiagnosticClass').onchange=()=>{renderAttendanceReferenceSummary();renderAttendanceDiagnosticRows()};$('#diagnosticOnlyDifferences').onchange=renderAttendanceDiagnosticRows;$('#attendanceRecoveryFileBtn').onclick=()=>$('#attendanceRecoveryInput').click();$('#attendanceRecoveryInput').onchange=e=>{if(e.target.files[0])restoreAttendanceOnly(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn')?.addEventListener('click',printAttendanceReport);
 $('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
