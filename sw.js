@@ -1,4 +1,4 @@
-// release 4.6.0
+// release 4.6.0 progress-splash
 importScripts('./version.js');
 const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.6.0');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
@@ -26,7 +26,8 @@ async function cacheAssetWithProgress(cache,asset,index,total){
       const fileFraction=Math.min(1,received/length),progress=overallProgress(index,total,fileFraction);
       if(progress!==last){last=progress;await broadcastUpdate({phase:'downloading',asset,completed:index,total,progress,assetReceived:received,assetTotal:length})}
     }
-    const cached=new Response(new Blob(chunks),{status:response.status,statusText:response.statusText,headers:response.headers});
+    const headers=new Headers(response.headers);headers.delete('content-encoding');headers.delete('content-length');
+    const cached=new Response(new Blob(chunks),{status:response.status,statusText:response.statusText,headers});
     await cache.put(url,cached);
   }else{
     await cache.put(url,response.clone());
