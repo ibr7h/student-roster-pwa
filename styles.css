@@ -735,3 +735,50 @@ body.update-in-progress{overflow:hidden!important}
     outline-width:4px!important;
   }
 }
+
+/* V4.11 cell-first schedule picker */
+.schedule-entry-mode-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.schedule-entry-mode{min-width:0;border:1px solid #d8e1e6;border-radius:11px;background:#fff;padding:9px 10px;font:inherit;font-size:9.5px;font-weight:800;color:#4d5c67;cursor:pointer}
+.schedule-entry-mode.active{border-color:#74a9c9;background:#edf7fc;color:#1d628f;box-shadow:0 0 0 2px rgba(29,98,143,.07)}
+.schedule-cell-mode-hint{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid #c9e0d5;border-radius:12px;background:#f2faf6}
+.schedule-cell-mode-hint[hidden],#scheduleDistributionControls[hidden]{display:none!important}
+.schedule-cell-mode-hint>span{display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;border-radius:50%;background:#2b8868;color:#fff;font-weight:900}
+.schedule-cell-mode-hint>div{display:grid;gap:2px}
+.schedule-cell-mode-hint b{font-size:10px}.schedule-cell-mode-hint small{font-size:8.5px;line-height:1.45;color:var(--muted)}
+#scheduleDistributionControls{display:grid;gap:10px}
+
+.schedule-cell-picker{position:fixed;inset:0;width:100%;max-width:none;height:100%;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:hidden}
+.schedule-cell-picker::backdrop{background:rgba(17,31,42,.42);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.schedule-cell-picker-sheet{position:absolute;inset-inline:0;bottom:0;width:min(100%,680px);max-height:calc(100dvh - 10px);margin-inline:auto;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -18px 60px rgba(20,43,58,.22);overflow:hidden;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.schedule-cell-picker-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:14px 15px 11px;border-bottom:1px solid #e5eaed;background:#fff;z-index:2}
+.schedule-cell-picker-head h3{margin:2px 0 1px;font-size:17px}.schedule-cell-picker-head small{font-size:9px;color:var(--muted)}
+.schedule-cell-picker-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px 14px;display:grid;gap:13px}
+.schedule-cell-picker-body section{display:grid;gap:7px}.schedule-cell-picker-body label{font-size:9px;font-weight:900;color:#53616c}
+.schedule-picker-subjects{display:flex;gap:6px;flex-wrap:wrap}
+.schedule-picker-subject{border:1px solid #d9e2e7;border-radius:999px;background:#fff;padding:7px 11px;font:inherit;font-size:9.5px;font-weight:800;cursor:pointer}
+.schedule-picker-subject.active{border-color:#76aac9;background:#edf7fc;color:#1d628f}
+.schedule-picker-classes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.schedule-picker-class{position:relative;min-width:0;min-height:62px;display:grid;place-items:center;align-content:center;gap:2px;border:1px solid #d9e1e6;border-radius:12px;background:#fff;padding:8px 6px;font:inherit;cursor:pointer}
+.schedule-picker-class b{max-width:100%;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schedule-picker-class small{font-size:8px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.schedule-picker-class span{font-size:7px;color:#247b5e;font-weight:800}
+.schedule-picker-class.active{border-color:#78b89f;background:#eef9f4;box-shadow:0 0 0 2px rgba(43,136,104,.08)}
+.schedule-picker-empty{padding:12px;border:1px dashed #d5dee3;border-radius:10px;text-align:center;font-size:9px;color:var(--muted)}
+.schedule-cell-picker-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:10px 14px max(10px,env(safe-area-inset-bottom));border-top:1px solid #e5eaed;background:#fff;z-index:2}
+.schedule-cell-picker-actions .btn{min-width:0;width:100%;padding-inline:6px;white-space:nowrap;font-size:9px}
+@media(max-width:520px){
+  .schedule-entry-mode-tabs{grid-template-columns:1fr}
+  .schedule-entry-mode{padding:10px}
+  .schedule-cell-picker-sheet{width:100%;max-height:calc(100dvh - max(6px,env(safe-area-inset-top)));border-radius:18px 18px 0 0}
+  .schedule-picker-classes{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .schedule-cell-picker-head{padding:12px 12px 9px}
+  .schedule-cell-picker-body{padding:10px 12px}
+  .schedule-cell-picker-actions{padding-inline:12px;grid-template-columns:1fr 1fr}
+  .schedule-cell-picker-actions .btn.danger{grid-column:1/-1}
+}
+@media(max-width:360px){
+  .schedule-picker-classes{grid-template-columns:1fr 1fr}
+  .schedule-picker-class{min-height:56px}
+  .schedule-cell-picker-actions{grid-template-columns:1fr}
+  .schedule-cell-picker-actions .btn.danger{grid-column:auto}
+}
