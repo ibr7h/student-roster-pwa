@@ -903,9 +903,9 @@ function classSectionLetter(c){
 function classGradeNumber(c){const g=String(c?.grade||'');if(/الأول|اول/.test(g))return 1;if(/الثاني|ثاني/.test(g))return 2;if(/الثالث|ثالث/.test(g))return 3;return 0}
 function classScheduleCode(c){const g=classGradeNumber(c),sec=classSectionLetter(c);return g&&sec?`${g}م ${sec}`:''}
 function normalizeScheduleCode(v=''){return String(v).replace(/\s+/g,'').replace(/[إآ]/g,'أ')}
-function scheduledSlotsForClass(c){
+function scheduledSlotsForClass(c,t=activeTeacherSchedule()){
   const target=normalizeScheduleCode(classScheduleCode(c)),out=[];
-  Object.entries(state.teacherSchedule?.slots||{}).forEach(([key,v])=>{
+  Object.entries(t?.slots||{}).forEach(([key,v])=>{
     if(v?.kind!=='class'||normalizeScheduleCode(v.className)!==target)return;
     const m=key.match(/^(.*)-(\d+)$/);if(m)out.push({day:m[1],period:Number(m[2])})
   });
@@ -920,28 +920,27 @@ function storedAttendanceDatesForPeriod(c,period='all'){
 }
 function plannedAttendanceSessions(c,period='all'){
   const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term];if(!cfg)return[];
-  const slots=scheduledSlotsForClass(c),exam=state.settings.excludeExamWeek!==false?examWeekRange(term):null,out=[];
-  if(slots.length){
-    let d=parseISODateNoon(cfg.start),end=parseISODateNoon(cfg.end);
-    while(d<=end){
-      const iso=isoFromDateLocal(d),day=AR_DAY_BY_JS[d.getDay()];
-      if(!schoolHoliday(iso)&&!(exam&&inRange(iso,exam.start,exam.end))){
-        slots.filter(x=>x.day===day).forEach(x=>out.push({date:iso,day,period:x.period,planned:true,historical:false}));
-      }
-      d.setDate(d.getDate()+1);
+  const exam=state.settings.excludeExamWeek!==false?examWeekRange(term):null,out=[];
+  let d=parseISODateNoon(cfg.start),end=parseISODateNoon(cfg.end);
+  while(d<=end){
+    const iso=isoFromDateLocal(d),day=AR_DAY_BY_JS[d.getDay()],schedule=scheduleForDate(iso),slots=scheduledSlotsForClass(c,schedule);
+    if(slots.length&&!schoolHoliday(iso)&&!(exam&&inRange(iso,exam.start,exam.end))){
+      slots.filter(x=>x.day===day).forEach(x=>out.push({date:iso,day,period:x.period,planned:true,historical:false,scheduleId:schedule?.id||null}));
     }
+    d.setDate(d.getDate()+1);
   }
   const merged=(period==='all'?out:out.filter(x=>monthKey(x.date)===period)).slice();
   const plannedDates=new Set(merged.map(x=>x.date));
   storedAttendanceDatesForPeriod(c,period).forEach(date=>{
     if(plannedDates.has(date))return;
-    merged.push({date,day:AR_DAY_BY_JS[parseISODateNoon(date).getDay()],period:null,planned:false,historical:true})
+    merged.push({date,day:AR_DAY_BY_JS[parseISODateNoon(date).getDay()],period:null,planned:false,historical:true,scheduleId:scheduleForDate(date)?.id||null})
   });
   merged.sort((a,b)=>a.date.localeCompare(b.date)||(Number(a.period)||99)-(Number(b.period)||99));
   return merged
 }
 function plannedAttendanceMeta(c,sessions,period='all'){
-  const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term],weekly=scheduledSlotsForClass(c).length||Number(c.weeklySessions||1),exclude=state.settings.excludeExamWeek!==false;
+  const term=rosterTermKey(),cfg=ROSTER_ACADEMIC_TERMS[term],exclude=state.settings.excludeExamWeek!==false;
+  const applicable=schedulesOverlappingRange(cfg?.start||'',cfg?.end||''),weekly=Math.max(0,...applicable.map(t=>scheduledSlotsForClass(c,t).length),Number(c.weeklySessions||1));
   const plannedSessions=sessions.filter(x=>x.planned).length,historicalSessions=sessions.filter(x=>x.historical).length;
   return {term,cfg,weekly,teachingWeeks:Math.max(0,(cfg?.plannedWeeks||0)-(exclude?1:0)),sessions:sessions.length,plannedSessions,historicalSessions,period};
 }
