@@ -37,6 +37,23 @@
     <button class="btn compact" id="checkUpdateBtn">فحص الآن</button>
   </div>
 
+  <div id="updateSplash" class="update-splash no-print" hidden role="dialog" aria-modal="true" aria-labelledby="updateSplashTitle" aria-live="polite">
+    <div class="update-splash-card">
+      <div class="update-splash-logo"><img src="assets/moe-logo.png" alt=""></div>
+      <div class="update-splash-copy">
+        <span class="update-splash-kicker">تحديث التطبيق</span>
+        <h2 id="updateSplashTitle">جارٍ تجهيز التحديث</h2>
+        <p id="updateSplashStatus">سيتم تثبيت الإصدار الجديد تلقائيًا.</p>
+      </div>
+      <div class="update-progress-wrap" aria-label="تقدم تحديث التطبيق">
+        <div class="update-progress-track"><span id="updateSplashProgress"></span></div>
+        <div class="update-progress-meta"><b id="updateSplashPercent">٠٪</b><span id="updateSplashDetail">التحقق من ملفات التحديث…</span></div>
+      </div>
+      <div class="update-splash-version"><span>الإصدار الجديد</span><b id="updateSplashVersion">—</b></div>
+      <small class="update-splash-note">لا تغلق التطبيق أثناء التحديث. بيانات الطلاب محفوظة بشكل مستقل ولن تتأثر.</small>
+    </div>
+  </div>
+
   <main>
     <section class="view active" id="view-dashboard" data-view="dashboard">
       <div class="hero panel">
