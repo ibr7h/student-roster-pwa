@@ -73,34 +73,62 @@
         <button class="btn" data-nav="dashboard">← العودة للرئيسية</button>
       </section>
 
-      <div class="admin-grid no-print">
+      <div class="admin-settings-stack no-print">
         <section class="panel admin-card admin-profile-card">
           <div class="section-head">
-            <div><p class="eyebrow">الإعدادات الأساسية</p><h2>بيانات المدرسة والمعلم</h2><p class="subtle">تظهر هذه البيانات في الكليشة والتقارير المطبوعة.</p></div>
+            <div><p class="eyebrow">١ · البيانات الأساسية</p><h2>المدرسة والمعلم</h2><p class="subtle">بيانات عامة للتطبيق والكليشة والتقارير. تُعدّل عادةً مرة واحدة فقط.</p></div>
           </div>
           <div class="meta-grid dashboard-meta">
+            <div class="field"><label>اسم المعلم</label><input data-app-meta="teacher" placeholder="اسم المعلم"></div>
             <div class="field"><label>المدرسة</label><input data-app-meta="school" placeholder="اسم المدرسة"></div>
             <div class="field"><label>المنطقة / مكتب التعليم</label><input data-app-meta="region" placeholder="المنطقة التعليمية"></div>
             <div class="field"><label>العام الدراسي</label><input data-app-meta="year" placeholder="١٤٤٨ هـ"></div>
-            <div class="field"><label>الفصل الدراسي</label><input data-app-meta="semester" placeholder="الفصل الدراسي الأول"></div>
-            <div class="field"><label>معلم المادة</label><input data-app-meta="teacher" placeholder="اسم المعلم"></div>
             <div class="field"><label>مدير المدرسة</label><input data-app-meta="principal" placeholder="اسم المدير"></div>
           </div>
         </section>
 
-        <section class="panel admin-card">
+        <section class="panel admin-card admin-schedule-settings-card">
           <div class="section-head">
-            <div><p class="eyebrow">إدارة السجلات</p><h2>الفصول والنسخ الاحتياطي</h2><p class="subtle">الأدوات التي تغيّر بنية السجلات أو تنشئ نسخة كاملة منها.</p></div>
+            <div><p class="eyebrow">٢ · إعدادات الجدول</p><h2>هوية الجدول وفترة السريان</h2><p class="subtle">اختر الجدول ثم عدّل اسمه والفصل الدراسي وفترة السريان. لا تحتاج لهذه الحقول أثناء إدخال الحصص.</p></div>
+            <button class="btn tiny" data-nav="schedule">فتح الجدول ←</button>
           </div>
-          <div class="admin-action-list">
-            <button class="admin-action-row" id="manageClassesBtn"><span class="admin-action-icon">▦</span><span><b>إدارة الفصول</b><small>إضافة وتعديل وحذف الفصول والمواد.</small></span><em>‹</em></button>
-            <button class="admin-action-row" id="backupBtn"><span class="admin-action-icon">↓</span><span><b>إنشاء نسخة احتياطية</b><small>حفظ نسخة JSON كاملة من السجلات.</small></span><em>‹</em></button>
-            <button class="admin-action-row" id="restoreBtn"><span class="admin-action-icon">↑</span><span><b>استعادة نسخة احتياطية</b><small>استبدال السجلات الحالية بملف Backup.</small></span><em>‹</em></button>
+          <div class="admin-schedule-context">
+            <div class="field span2"><label>الجدول المراد تعديله</label><select id="scheduleSettingsSelect"></select></div>
+            <div class="schedule-settings-state" id="scheduleSettingsState"></div>
+          </div>
+          <div class="meta-grid schedule-settings-grid">
+            <div class="field span2"><label>اسم الجدول</label><input id="scheduleTitleInput" placeholder="مثال: الجدول الأساسي 1"></div>
+            <div class="field"><label>الفصل الدراسي</label><select id="scheduleSemesterInput"><option>الفصل الدراسي الأول</option><option>الفصل الدراسي الثاني</option></select></div>
+            <div class="field"><label>بداية السريان</label><input id="scheduleStartInput" type="date"></div>
+            <div class="field"><label>نهاية السريان</label><input id="scheduleEndInput" type="date"></div>
           </div>
         </section>
+
+        <div class="admin-grid admin-tools-grid">
+          <section class="panel admin-card">
+            <div class="section-head">
+              <div><p class="eyebrow">٣ · الفصول والمواد</p><h2>إدارة السجلات الدراسية</h2><p class="subtle">إضافة الفصول وتعديل أسمائها وصفوفها وموادها.</p></div>
+            </div>
+            <div class="admin-action-list">
+              <button class="admin-action-row" id="manageClassesBtn"><span class="admin-action-icon">▦</span><span><b>إدارة الفصول</b><small>إضافة وتعديل وحذف الفصول والمواد.</small></span><em>‹</em></button>
+            </div>
+          </section>
+
+          <section class="panel admin-card">
+            <div class="section-head">
+              <div><p class="eyebrow">٤ · البيانات</p><h2>النسخ الاحتياطي والاستعادة</h2><p class="subtle">احفظ نسخة كاملة قبل التغييرات الكبيرة أو استعد نسخة سابقة.</p></div>
+            </div>
+            <div class="admin-action-list">
+              <button class="admin-action-row" id="backupBtn"><span class="admin-action-icon">↓</span><span><b>إنشاء نسخة احتياطية</b><small>حفظ نسخة JSON كاملة من السجلات.</small></span><em>‹</em></button>
+              <button class="admin-action-row" id="restoreBtn"><span class="admin-action-icon">↑</span><span><b>استعادة نسخة احتياطية</b><small>استبدال السجلات الحالية بملف Backup.</small></span><em>‹</em></button>
+            </div>
+          </section>
+        </div>
       </div>
 
-      <section class="panel data-safety-panel admin-data-safety no-print">
+      <details class="panel admin-advanced-details no-print">
+        <summary><span><small>٥ · أدوات متقدمة</small><b>سلامة البيانات والتشخيص</b></span><em>فتح</em></summary>
+        <div class="data-safety-panel admin-data-safety">
         <div class="section-head">
           <div><p class="eyebrow">سلامة البيانات</p><h2>فحص واستعادة سجل الحضور</h2><p class="subtle">يفحص النسخة الحالية وأي نسخ محلية قديمة دون حذف الدرجات أو الطلاب.</p></div>
           <div class="view-actions"><button class="btn" id="recoveryScanBtn">فحص التخزين</button><button class="btn" id="attendanceRecoveryFileBtn">استعادة الحضور من Backup</button></div>
@@ -127,7 +155,8 @@
             <tbody id="dbDiagnosticRows"><tr><td colspan="7">لم يتم الفحص بعد.</td></tr></tbody>
           </table>
         </div>
-      </section>
+        </div>
+      </details>
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
@@ -199,15 +228,6 @@
           <div id="scheduleTabs" class="schedule-tabs"></div>
           <div id="scheduleStatus" class="schedule-status"></div>
         </section>
-
-        <div class="schedule-meta no-print">
-          <div class="field span2"><label>اسم المعلم</label><input id="scheduleTeacherInput"></div>
-          <div class="field span2"><label>المدرسة</label><input id="scheduleSchoolInput"></div>
-          <div class="field"><label>اسم الجدول</label><input id="scheduleTitleInput"></div>
-          <div class="field"><label>الفصل الدراسي</label><select id="scheduleSemesterInput"><option>الفصل الدراسي الأول</option><option>الفصل الدراسي الثاني</option></select></div>
-          <div class="field"><label>بداية السريان</label><input id="scheduleStartInput" type="date"></div>
-          <div class="field"><label>نهاية السريان</label><input id="scheduleEndInput" type="date"></div>
-        </div>
 
         <section class="schedule-entry-panel no-print" id="scheduleEntryPanel">
           <div class="schedule-entry-head">
