@@ -207,6 +207,41 @@
           <div class="field"><label>بداية السريان</label><input id="scheduleStartInput" type="date"></div>
           <div class="field"><label>نهاية السريان</label><input id="scheduleEndInput" type="date"></div>
         </div>
+
+        <section class="schedule-entry-panel no-print" id="scheduleEntryPanel">
+          <div class="schedule-entry-head">
+            <div><p class="eyebrow">إدخال سريع</p><h3>توزيع حصص التدريس</h3><p class="subtle">اختر المادة ثم الفصل، وبعدها اضغط على الحصص المطلوبة في الجدول ثم احفظ.</p></div>
+            <button class="btn tiny" id="scheduleSingleEditBtn">تعديل فردي / انتظار</button>
+          </div>
+          <div class="schedule-entry-step">
+            <span class="schedule-entry-step-num">١</span>
+            <div class="schedule-entry-step-body">
+              <b>اختر مادة التدريس</b>
+              <div id="scheduleSubjectTabs" class="schedule-subject-tabs"></div>
+            </div>
+          </div>
+          <div class="schedule-entry-step">
+            <span class="schedule-entry-step-num">٢</span>
+            <div class="schedule-entry-step-body">
+              <b>اختر الفصل</b>
+              <select id="scheduleClassSelect"></select>
+            </div>
+          </div>
+          <div class="schedule-entry-step schedule-entry-period-step">
+            <span class="schedule-entry-step-num">٣</span>
+            <div class="schedule-entry-step-body">
+              <b>اختر الحصص من الجدول</b>
+              <small>الحصة المشغولة بفصل آخر تظهر كتعارض ولا يمكن تحديدها.</small>
+            </div>
+          </div>
+          <div id="scheduleEntrySummary" class="schedule-entry-summary"></div>
+          <div class="schedule-entry-actions">
+            <button class="btn" id="scheduleClearSelectionBtn">مسح التحديد</button>
+            <button class="btn" id="scheduleNextClassBtn">الفصل التالي</button>
+            <button class="btn primary" id="scheduleSaveDistributionBtn">حفظ التوزيع</button>
+          </div>
+        </section>
+
         <div id="schedulePrintArea" class="schedule-print-area">
           <div id="schedulePrintHeader" class="schedule-print-header"></div>
           <div id="scheduleStats" class="schedule-stats"></div>
