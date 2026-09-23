@@ -1,6 +1,6 @@
 const SCHEMA_VERSION=3;
 const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.5.0';
-let swRegistration=null,updateReloading=false,updateBannerTimer=null;
+let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -887,6 +887,37 @@ function showUpdateBanner(title,text,autoHide=0){
   if(updateBannerTimer)clearTimeout(updateBannerTimer);
   if(autoHide)updateBannerTimer=setTimeout(()=>{b.hidden=true},autoHide)
 }
+function updateAssetLabel(asset=''){
+  const clean=String(asset).replace(/^\.\//,'');
+  const labels={'':'واجهة التطبيق','index.html':'واجهة التطبيق','app.js':'وظائف التطبيق','styles.css':'تصميم التطبيق','print.css':'تنسيق الطباعة','version.js':'بيانات الإصدار','manifest.webmanifest':'إعدادات PWA','icon-192.png':'أيقونة التطبيق','icon-512.png':'أيقونة التطبيق','moe-logo.png':'شعار الوزارة'};
+  const name=clean.split('/').pop()||'';
+  return labels[clean]||labels[name]||name||'ملفات التطبيق'
+}
+function showUpdateSplash({version='',title='جارٍ تحديث التطبيق',status='يتم تجهيز الإصدار الجديد…',progress=0,detail=''}={}){
+  const el=$('#updateSplash');
+  if(!el){showUpdateBanner(title,status);return}
+  updateSplashActive=true;if(version)updateTargetVersion=version;
+  const p=Math.max(0,Math.min(100,Number(progress)||0));
+  el.hidden=false;document.body.classList.add('update-in-progress');
+  if($('#updateSplashTitle'))$('#updateSplashTitle').textContent=title;
+  if($('#updateSplashStatus'))$('#updateSplashStatus').textContent=status;
+  if($('#updateSplashVersion'))$('#updateSplashVersion').textContent=updateTargetVersion?'v'+updateTargetVersion:'—';
+  if($('#updateSplashProgress'))$('#updateSplashProgress').style.width=p+'%';
+  if($('#updateSplashPercent'))$('#updateSplashPercent').textContent=Math.round(p).toLocaleString('ar-SA')+'٪';
+  if($('#updateSplashDetail'))$('#updateSplashDetail').textContent=detail||'جارٍ تجهيز ملفات التحديث…'
+}
+function updateSplashFromWorker(data={}){
+  const phase=data.phase||'',raw=Math.max(0,Math.min(100,Number(data.progress)||0)),version=data.version||updateTargetVersion;
+  if(phase==='start'){showUpdateSplash({version,title:'تم العثور على تحديث',status:'جارٍ تجهيز ملفات الإصدار الجديد…',progress:8,detail:'بدء تنزيل ملفات التطبيق'});return}
+  if(phase==='downloading'){
+    const mapped=10+raw*.76,current=Number(data.completed||0)+1,total=Number(data.total||0);
+    showUpdateSplash({version,title:'جارٍ تنزيل التحديث',status:'يتم تنزيل ملفات الإصدار الجديد بأمان…',progress:mapped,detail:`${updateAssetLabel(data.asset)}${total?' · '+Math.min(current,total).toLocaleString('ar-SA')+' / '+total.toLocaleString('ar-SA'):''}`});return
+  }
+  if(phase==='installed'){showUpdateSplash({version,title:'اكتمل التنزيل',status:'جارٍ تثبيت التحديث…',progress:90,detail:'تم تنزيل جميع ملفات التطبيق'});return}
+  if(phase==='activating'){showUpdateSplash({version,title:'جارٍ تفعيل الإصدار',status:'يتم استبدال ملفات التطبيق القديمة…',progress:96,detail:'تهيئة النسخة الجديدة'});return}
+  if(phase==='activated'){showUpdateSplash({version,title:'اكتمل التحديث',status:'سيُعاد فتح التطبيق على الإصدار الجديد.',progress:100,detail:'تم تثبيت التحديث بنجاح'});return}
+  if(phase==='error'){showUpdateSplash({version,title:'تعذر إكمال التحديث',status:'احتفظ التطبيق بالإصدار الحالي. سنحاول مرة أخرى عند توفر اتصال مستقر.',progress:raw||10,detail:data.asset?updateAssetLabel(data.asset):'خطأ أثناء تنزيل الملفات'})}
+}
 async function fetchPublishedVersion(){
   try{
     const r=await fetch('./version.js?check='+Date.now(),{cache:'no-store',headers:{'cache-control':'no-cache'}});
@@ -897,7 +928,10 @@ async function checkForAppUpdate({manual=false}={}){
   if(!navigator.onLine){if(manual)showUpdateBanner('لا يوجد اتصال','سأفحص التحديث عند عودة الاتصال.',2500);return}
   if(manual)showUpdateBanner('فحص التحديثات','جارٍ التحقق من أحدث إصدار…');
   const latest=await fetchPublishedVersion(),newer=latest&&compareVersions(latest,APP_VERSION)>0;
-  if(newer)showUpdateBanner('إصدار جديد v'+latest,'جارٍ تنزيل التحديث وتفعيله تلقائيًا…');
+  if(newer){
+    updateTargetVersion=latest;updateProgressEligible=true;
+    showUpdateSplash({version:latest,title:'يوجد إصدار جديد',status:'جارٍ بدء التحديث تلقائيًا…',progress:5,detail:'التحقق من ملفات الإصدار v'+latest})
+  }
   try{await swRegistration?.update()}catch{}
   if(swRegistration?.waiting){try{swRegistration.waiting.postMessage({type:'SKIP_WAITING'})}catch{}}
   if(manual&&!newer)showUpdateBanner('التطبيق محدث','أنت تستخدم أحدث إصدار v'+APP_VERSION+'.',2200)
@@ -911,17 +945,32 @@ async function initAppUpdater(){
   }catch{}
   if(!('serviceWorker'in navigator))return;
   const hadController=!!navigator.serviceWorker.controller;
+  updateProgressEligible=hadController;
   try{
+    navigator.serviceWorker.addEventListener('message',event=>{
+      const data=event.data||{};if(data.type!=='UPDATE_PROGRESS')return;
+      if(!updateProgressEligible&&!updateSplashActive)return;
+      updateProgressEligible=true;updateSplashFromWorker(data)
+    });
     swRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
     swRegistration.addEventListener('updatefound',()=>{
       const worker=swRegistration.installing;if(!worker||!navigator.serviceWorker.controller)return;
-      showUpdateBanner('يوجد تحديث جديد','جارٍ تنزيل الإصدار الجديد…');
-      worker.addEventListener('statechange',()=>{if(worker.state==='installed'&&swRegistration.waiting){showUpdateBanner('التحديث جاهز','يتم تفعيل الإصدار الجديد الآن…');try{swRegistration.waiting.postMessage({type:'SKIP_WAITING'})}catch{}}})
+      updateProgressEligible=true;
+      showUpdateSplash({version:updateTargetVersion,title:'يوجد تحديث جديد',status:'جارٍ تجهيز الإصدار الجديد…',progress:7,detail:'بدء تثبيت مكونات التحديث'});
+      worker.addEventListener('statechange',()=>{
+        if(worker.state==='installed'){
+          showUpdateSplash({version:updateTargetVersion,title:'اكتمل التنزيل',status:'جارٍ تفعيل الإصدار الجديد…',progress:92,detail:'تم التحقق من ملفات التحديث'});
+          if(swRegistration.waiting){try{swRegistration.waiting.postMessage({type:'SKIP_WAITING'})}catch{}}
+        }else if(worker.state==='activating')showUpdateSplash({version:updateTargetVersion,title:'جارٍ تفعيل الإصدار',status:'لحظات وسيُفتح التطبيق من جديد…',progress:97,detail:'تطبيق النسخة الجديدة'})
+      })
     });
     let canReload=hadController;
     navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      updateProgressEligible=true;
       if(!canReload){canReload=true;return}
-      if(updateReloading)return;updateReloading=true;showUpdateBanner('تم تثبيت التحديث','إعادة فتح التطبيق على الإصدار الجديد…');setTimeout(()=>location.reload(),350)
+      if(updateReloading)return;updateReloading=true;
+      showUpdateSplash({version:updateTargetVersion,title:'تم التحديث بنجاح',status:'إعادة فتح التطبيق على الإصدار الجديد…',progress:100,detail:'اكتمل تثبيت جميع الملفات'});
+      setTimeout(()=>location.reload(),650)
     });
     await checkForAppUpdate();
     setInterval(()=>checkForAppUpdate(),30*60*1000);
