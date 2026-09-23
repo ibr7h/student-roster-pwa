@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.1';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.2';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -1073,7 +1073,13 @@ function renderSchedule(){
   if(settingsState){const st=scheduleStateInfo(t);settingsState.innerHTML=`<span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span><small>${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}</small>`}
   $('#scheduleStats').innerHTML=`<div><b>${arabicNum(counts.teaching)}</b><span>عدد الحصص</span></div><div><b>${arabicNum(counts.classes)}</b><span>عدد الفصول</span></div>`;
   $('#teacherScheduleTable').innerHTML=`<thead><tr><th>اليوم / الحصة</th>${[1,2,3,4,5,6,7].map(p=>`<th><b>${arabicNum(p)}</b><small>${scheduleTimeLabel(...PERIOD_TIMES[p])}</small></th>`).join('')}</tr></thead><tbody>${SCHEDULE_DAYS.map(day=>`<tr><th>${day}</th>${[1,2,3,4,5,6,7].map(p=>`<td>${scheduleCellMarkup(day,p)}</td>`).join('')}</tr>`).join('')}</tbody>`;
-  $('#scheduleMobile').innerHTML=SCHEDULE_DAYS.map(day=>`<article class="schedule-day-card"><h3>${day}</h3><div>${[1,2,3,4,5,6,7].map(p=>scheduleCellMarkup(day,p,true)).join('')}</div></article>`).join('');
+  const selectedMobileDay=SCHEDULE_DAYS.includes(state.ui?.scheduleDay)?state.ui.scheduleDay:SCHEDULE_DAYS[0];
+  const dayNav=$('#scheduleDayNav');
+  if(dayNav){
+    dayNav.innerHTML=SCHEDULE_DAYS.map(day=>`<button type="button" class="schedule-day-tab ${day===selectedMobileDay?'active':''}" data-schedule-day="${day}" aria-pressed="${day===selectedMobileDay?'true':'false'}">${day}</button>`).join('');
+    $('[data-schedule-day]').forEach(b=>b.onclick=()=>{state.ui.scheduleDay=b.dataset.scheduleDay;renderSchedule();queueSave()});
+  }
+  $('#scheduleMobile').innerHTML=`<article class="schedule-day-card" data-mobile-day="${selectedMobileDay}"><h3>${selectedMobileDay}</h3><div>${[1,2,3,4,5,6,7].map(p=>scheduleCellMarkup(selectedMobileDay,p,true)).join('')}</div></article>`;
   renderScheduleHeader();renderSupervisions();renderScheduleEntryControls();$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');handleScheduleCellClick(day,Number(p))})
 }
 function renderScheduleHeader(){const t=currentTeacherSchedule();if(!t||!$('#schedulePrintHeader'))return;$('#schedulePrintHeader').innerHTML=`<div><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(state.appMeta.school||t.school||'')}</span></div><div class="schedule-logo-center"><img class="schedule-official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><h1>${escapeHtml(t.title||'جدول المعلم')}</h1><b>${escapeHtml(state.appMeta.teacher||t.teacherName||'')}</b></div><div><b>جدول المعلم</b><span>${escapeHtml(state.appMeta.year||'')}</span><span>${escapeHtml(t.semester||state.appMeta.semester||'')}</span></div>`}
