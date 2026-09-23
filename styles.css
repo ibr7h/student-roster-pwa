@@ -974,3 +974,70 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   #view-schedule .schedule-profile-summary-head{display:grid}
   #view-schedule .schedule-profile-summary-head .btn{width:100%}
 }
+
+
+/* V4.12.7 collapsible schedule controls */
+.schedule-fold>summary{display:none}
+.schedule-fold-body{display:block}
+@media screen and (max-width:680px){
+  #view-schedule .schedule-fold{
+    padding:0;
+    overflow:hidden;
+    border-radius:14px;
+    background:#fff;
+  }
+  #view-schedule .schedule-fold>summary.schedule-fold-summary{
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    min-height:58px;
+    padding:10px 12px;
+    cursor:pointer;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:rgba(29,98,143,.10);
+  }
+  #view-schedule .schedule-fold>summary::-webkit-details-marker{display:none}
+  #view-schedule .schedule-fold-summary>span{display:grid;gap:2px;min-width:0}
+  #view-schedule .schedule-fold-summary b{font-size:13px;color:var(--ink)}
+  #view-schedule .schedule-fold-summary small{font-size:8.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #view-schedule .schedule-fold-summary i{
+    position:relative;
+    flex:0 0 30px;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    background:#eef5f9;
+  }
+  #view-schedule .schedule-fold-summary i::before,
+  #view-schedule .schedule-fold-summary i::after{
+    content:"";
+    position:absolute;
+    top:14px;
+    width:8px;
+    height:2px;
+    border-radius:2px;
+    background:var(--brand);
+    transition:transform .18s ease;
+  }
+  #view-schedule .schedule-fold-summary i::before{right:8px;transform:rotate(45deg)}
+  #view-schedule .schedule-fold-summary i::after{left:8px;transform:rotate(-45deg)}
+  #view-schedule .schedule-fold[open] .schedule-fold-summary i::before{transform:rotate(-45deg)}
+  #view-schedule .schedule-fold[open] .schedule-fold-summary i::after{transform:rotate(45deg)}
+  #view-schedule .schedule-fold[open]>.schedule-fold-summary{border-bottom:1px solid #e2e8ec;background:#f8fbfd}
+  #view-schedule .schedule-fold>.schedule-fold-body{padding:0 10px 10px}
+  #view-schedule .schedule-fold:not([open])>.schedule-fold-body{display:none}
+
+  #view-schedule .schedule-library{margin:8px 0}
+  #view-schedule .schedule-profile-summary{margin:8px 0}
+  #view-schedule .schedule-entry-panel{margin:8px 0}
+  #view-schedule .schedule-library[open] .schedule-library-head>div:first-child{display:none}
+  #view-schedule .schedule-profile-summary[open] .schedule-profile-summary-head>div:first-child{display:none}
+  #view-schedule .schedule-entry-panel[open] .schedule-entry-head{display:none}
+  #view-schedule .schedule-library[open] .schedule-library-head{padding-top:9px}
+  #view-schedule .schedule-profile-summary[open] .schedule-profile-summary-head{padding-top:9px}
+  #view-schedule .schedule-entry-panel[open] .schedule-entry-mode-tabs{margin-top:9px}
+}
