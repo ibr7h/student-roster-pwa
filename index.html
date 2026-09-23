@@ -19,7 +19,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.12.8</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.12.9</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -160,7 +160,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.12.8</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.12.9</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -222,15 +222,13 @@
           </summary>
           <div class="schedule-fold-body schedule-manager-clean">
             <div id="scheduleStatus" class="schedule-status schedule-current-card"></div>
-            <div id="scheduleTabs" class="schedule-tabs schedule-other-tabs"></div>
-            <div class="schedule-library-head schedule-actions-shell">
-              <div class="schedule-library-actions">
-                <button class="btn tiny schedule-action-copy" id="duplicateScheduleBtn">⧉ نسخ الجدول</button>
-                <button class="btn tiny schedule-action-active" id="activateScheduleBtn">✓ تعيين نشط</button>
-                <button class="btn tiny schedule-action-archive" id="archiveScheduleBtn">أرشفة</button>
-                <button class="btn tiny danger schedule-action-delete" id="deleteScheduleBtn">حذف الجدول</button>
-              </div>
+            <div class="schedule-action-grid" id="scheduleActionGrid" aria-label="إجراءات الجدول">
+              <button class="btn tiny schedule-action-copy" id="duplicateScheduleBtn">⧉ نسخ الجدول</button>
+              <button class="btn tiny schedule-action-active" id="activateScheduleBtn">✓ تعيين نشط</button>
+              <button class="btn tiny schedule-action-archive" id="archiveScheduleBtn">أرشفة</button>
+              <button class="btn tiny danger schedule-action-delete" id="deleteScheduleBtn">حذف الجدول</button>
             </div>
+            <div id="scheduleTabs" class="schedule-tabs schedule-other-tabs"></div>
           </div>
         </details>
 
@@ -439,7 +437,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.12.8</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.12.9</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
