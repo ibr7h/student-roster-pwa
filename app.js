@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.6';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.7';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -1063,6 +1063,26 @@ function updateSelectedScheduleMeta(field,value){
   if(field==='semester'&&t.id===state.activeScheduleId)state.appMeta.semester=value;
   renderScheduleHeader();renderScheduleLibrary();renderReports();queueSave()
 }
+function syncScheduleFolds(){
+  state.ui ||= {};
+  state.ui.scheduleFolds ||= {};
+  const mobile=window.matchMedia('(max-width:680px)').matches;
+  $('[data-schedule-fold]').forEach(el=>{
+    const key=el.dataset.scheduleFold;
+    const saved=state.ui.scheduleFolds[key];
+    const desired=mobile?(typeof saved==='boolean'?saved:false):true;
+    if(el.open!==desired)el.open=desired;
+    if(!el.dataset.foldBound){
+      el.dataset.foldBound='1';
+      el.addEventListener('toggle',()=>{
+        if(!window.matchMedia('(max-width:680px)').matches)return;
+        state.ui.scheduleFolds ||= {};
+        state.ui.scheduleFolds[key]=el.open;
+        queueSave()
+      })
+    }
+  })
+}
 function renderSchedule(){
   const t=currentTeacherSchedule(),counts=scheduleCounts(t);if(!t)return;
   const settingsSelect=$('#scheduleSettingsSelect'),title=$('#scheduleTitleInput'),semester=$('#scheduleSemesterInput'),start=$('#scheduleStartInput'),end=$('#scheduleEndInput'),settingsState=$('#scheduleSettingsState');
@@ -1083,6 +1103,9 @@ function renderSchedule(){
   if(settingsState){const st=scheduleStateInfo(t);settingsState.innerHTML=`<span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span><small>${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}</small>`}
   const profileTeacher=String(state.appMeta?.teacher||t.teacherName||'').trim();
   const profileSchool=String(state.appMeta?.school||t.school||'').trim();
+  if($('#scheduleLibraryFoldMeta'))$('#scheduleLibraryFoldMeta').textContent=`${t.title||'جدول المعلم'} · ${scheduleStateInfo(t).label}`;
+  if($('#scheduleProfileFoldMeta'))$('#scheduleProfileFoldMeta').textContent=[profileTeacher,profileSchool].filter(Boolean).join(' · ')||'المعلم والمدرسة وفترة السريان';
+  if($('#scheduleEntryFoldMeta'))$('#scheduleEntryFoldMeta').textContent=scheduleEntryMode==='distribution'?'وضع التوزيع الجماعي':scheduleEntryMode==='single'?'التعديل المفصل / الانتظار':'الإدخال السريع مفعّل';
   if($('#scheduleProfileTitle'))$('#scheduleProfileTitle').textContent=t.title||'جدول المعلم';
   if($('#scheduleProfileTeacher'))$('#scheduleProfileTeacher').textContent=profileTeacher||'غير محدد';
   if($('#scheduleProfileSchool'))$('#scheduleProfileSchool').textContent=profileSchool||'غير محددة';
@@ -1097,7 +1120,8 @@ function renderSchedule(){
     $$('[data-schedule-day]').forEach(b=>b.onclick=()=>{state.ui.scheduleDay=b.dataset.scheduleDay;renderSchedule();queueSave()});
   }
   $('#scheduleMobile').innerHTML=`<article class="schedule-day-card" data-mobile-day="${selectedMobileDay}"><h3>${selectedMobileDay}</h3><div>${[1,2,3,4,5,6,7].map(p=>scheduleCellMarkup(selectedMobileDay,p,true)).join('')}</div></article>`;
-  renderScheduleHeader();renderSupervisions();renderScheduleEntryControls();$$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');handleScheduleCellClick(day,Number(p))})
+  syncScheduleFolds();
+  renderScheduleHeader();renderSupervisions();renderScheduleEntryControls();$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');handleScheduleCellClick(day,Number(p))})
 }
 function renderScheduleHeader(){const t=currentTeacherSchedule();if(!t||!$('#schedulePrintHeader'))return;$('#schedulePrintHeader').innerHTML=`<div><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(state.appMeta.school||t.school||'')}</span></div><div class="schedule-logo-center"><img class="schedule-official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><h1>${escapeHtml(t.title||'جدول المعلم')}</h1><b>${escapeHtml(state.appMeta.teacher||t.teacherName||'')}</b></div><div><b>جدول المعلم</b><span>${escapeHtml(state.appMeta.year||'')}</span><span>${escapeHtml(t.semester||state.appMeta.semester||'')}</span></div>`}
 function openScheduleSlot(day,period){const t=currentTeacherSchedule();if(!t)return;editingScheduleSlot={day,period};const raw=t.slots?.[scheduleKey(day,period)]||{},pt=PERIOD_TIMES[period]||['',''];$('#scheduleSlotTitle').textContent=`${day} — الحصة ${arabicNum(period)}`;$('#scheduleSlotKind').value=raw.kind||'empty';$('#scheduleSlotClass').value=raw.className||'';$('#scheduleSlotSubject').value=raw.subject||'';$('#scheduleSlotStart').value=raw.start||pt[0]||'';$('#scheduleSlotEnd').value=raw.end||pt[1]||'';$('#scheduleSlotNote').value=raw.note||'';$('#scheduleSlotModal').showModal()}
