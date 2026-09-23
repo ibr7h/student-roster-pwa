@@ -38,5 +38,5 @@ jobs:
           }
           bad=[k for k,val in checks.items() if not val]
           if bad: raise SystemExit('failed: '+', '.join(bad))
-          print('v4.11.1 schedule picker fix validation passed')
+          print('v4.11.1 schedule picker fix validation passed after selector repair')
           PY
