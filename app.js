@@ -467,7 +467,7 @@ function renderQuickGradeControls(a,c){
   const box=$('#bulkGradeButtons');if(!box)return;
   const values=quickGradeValues(a.maxScore);
   box.innerHTML=values.map(v=>`<button class="quick-grade-btn" type="button" data-bulk-grade="${v}">${arabicNum(v)}</button>`).join('')+`<button class="quick-grade-btn custom" type="button" data-bulk-custom>مخصص</button>`;
-  $('[data-bulk-grade]').forEach(b=>b.onclick=()=>applyBulkAssessmentGrade(Number(b.dataset.bulkGrade),a,c));
+  $$('[data-bulk-grade]').forEach(b=>b.onclick=()=>applyBulkAssessmentGrade(Number(b.dataset.bulkGrade),a,c));
   $('[data-bulk-custom]')?.addEventListener('click',()=>{
     const raw=prompt(`الدرجة المراد تعبئتها من ${arabicNum(a.maxScore)}:`);if(raw===null)return;
     const n=Number(latinDigits(raw));if(Number.isNaN(n)||n<0||n>a.maxScore){toast('الدرجة غير صحيحة');return}
@@ -513,12 +513,12 @@ function renderGradebook(a,c){
   const mobile=$('#mobileGradeCards');
   if(mobile)mobile.innerHTML=students.length?students.map(st=>mobileGradeCard(st,a,c)).join(''):`<div class="empty-state compact-empty"><b>لا توجد نتائج</b>${term?'غيّر عبارة البحث.':'لا يوجد طلاب في هذا الفصل.'}</div>`;
   renderQuickGradeControls(a,c);
-  $('[data-grade]').forEach(inp=>inp.onchange=()=>setAssessmentGrade(c,a,inp.dataset.grade,inp.value.trim()));
-  $('[data-mobile-grade]').forEach(b=>b.onclick=()=>setAssessmentGrade(c,a,b.dataset.mobileGrade,Number(b.dataset.gradeValue)));
-  $('[data-mobile-clear]').forEach(b=>b.onclick=()=>setAssessmentGrade(c,a,b.dataset.mobileClear,null));
-  $('[data-mobile-custom]').forEach(inp=>inp.onchange=()=>setAssessmentGrade(c,a,inp.dataset.mobileCustom,inp.value.trim()));
-  $('#gradebookTable [data-report]').forEach(b=>b.onclick=()=>openStudentReport(b.dataset.report));
-  $('[data-mobile-report]').forEach(b=>b.onclick=()=>openStudentReport(b.dataset.mobileReport))
+  $$('[data-grade]').forEach(inp=>inp.onchange=()=>setAssessmentGrade(c,a,inp.dataset.grade,inp.value.trim()));
+  $$('[data-mobile-grade]').forEach(b=>b.onclick=()=>setAssessmentGrade(c,a,b.dataset.mobileGrade,Number(b.dataset.gradeValue)));
+  $$('[data-mobile-clear]').forEach(b=>b.onclick=()=>setAssessmentGrade(c,a,b.dataset.mobileClear,null));
+  $$('[data-mobile-custom]').forEach(inp=>inp.onchange=()=>setAssessmentGrade(c,a,inp.dataset.mobileCustom,inp.value.trim()));
+  $$('#gradebookTable [data-report]').forEach(b=>b.onclick=()=>openStudentReport(b.dataset.report));
+  $$('[data-mobile-report]').forEach(b=>b.onclick=()=>openStudentReport(b.dataset.mobileReport))
 }
 
 function renderAssessmentSummary(a,c){const vals=c.students.map(s=>s.grades?.[a.id]).filter(v=>v!==undefined&&v!==null&&v!==''&&!Number.isNaN(Number(v))).map(Number),graded=vals.length,avg=graded?vals.reduce((x,y)=>x+y,0)/graded:null,pass=vals.filter(v=>a.maxScore&&v/a.maxScore*100>=state.settings.gradeAlertThreshold).length;$('#assessmentSummary').innerHTML=`<div class="stat"><b>${arabicNum(graded)} / ${arabicNum(c.students.length)}</b><span>تم الرصد</span></div><div class="stat"><b>${avg===null?'—':arabicNum(avg)}</b><span>متوسط الدرجة</span></div><div class="stat ok"><b>${avg===null?'—':pct(avg/a.maxScore*100)}</b><span>متوسط النسبة</span></div><div class="stat warn"><b>${arabicNum(graded-pass)}</b><span>تحت حد المتابعة</span></div>`}
@@ -539,7 +539,7 @@ function renderAssessmentPeerNav(a,c){
   const idx=peers.findIndex(x=>x.target.id===c.id),prev=idx>0?peers[idx-1]:null,next=idx>=0&&idx<peers.length-1?peers[idx+1]:null;
   el.hidden=false;
   el.innerHTML=`<div class="assessment-peer-progress"><span>نفس التقييم في الفصول المناظرة</span><b>${arabicNum(idx+1)} / ${arabicNum(peers.length)}</b></div><div class="assessment-peer-actions">${prev?`<button class="btn" data-peer-class="${prev.target.id}" data-peer-assessment="${prev.assessment.id}">› السابق: ${escapeHtml(prev.target.name)}</button>`:''}${next?`<button class="btn primary" data-peer-class="${next.target.id}" data-peer-assessment="${next.assessment.id}">التالي: ${escapeHtml(next.target.name)} ‹</button>`:'<span class="assessment-peer-done">✓ آخر فصل في هذا التقييم</span>'}</div>`;
-  $('[data-peer-class]').forEach(b=>b.onclick=()=>openAssessmentPeer(b.dataset.peerClass,b.dataset.peerAssessment))
+  $$('[data-peer-class]').forEach(b=>b.onclick=()=>openAssessmentPeer(b.dataset.peerClass,b.dataset.peerAssessment))
 }
 function assessmentAcademicKey(v=''){
   return String(v??'').normalize('NFKC').trim().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[^\p{L}\p{N}]+/gu,'').toLowerCase()
