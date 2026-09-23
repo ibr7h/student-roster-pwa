@@ -40,5 +40,5 @@ jobs:
           }
           bad=[k for k,val in checks.items() if not val]
           if bad: raise SystemExit('failed: '+', '.join(bad))
-          print('v4.9 multi-schedule validation passed')
+          print('v4.9 multi-schedule validation passed with migration persistence')
           PY
