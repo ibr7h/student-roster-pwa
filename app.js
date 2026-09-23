@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.4';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.5';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -105,7 +105,13 @@ function migrate(input){
     x.teacherSchedules=[ensureTeacherSchedule(legacy,x.appMeta)]
   }else x.teacherSchedules=x.teacherSchedules.map(t=>ensureTeacherSchedule(t,x.appMeta));
   x.activeScheduleId=x.teacherSchedules.some(t=>t.id===x.activeScheduleId)?x.activeScheduleId:(x.teacherSchedules.find(t=>!t.archived)?.id||x.teacherSchedules[0]?.id);
-  if(!x.appMeta.teacher)x.appMeta.teacher=x.teacherSchedules[0]?.teacherName||'';if(!x.appMeta.school)x.appMeta.school=x.teacherSchedules[0]?.school||'';
+  const profileSchedule=x.teacherSchedules.find(t=>t.id===x.ui?.scheduleId)||x.teacherSchedules.find(t=>t.id===x.activeScheduleId)||x.teacherSchedules[0];
+  if(!String(x.appMeta.teacher||'').trim())x.appMeta.teacher=profileSchedule?.teacherName||'';
+  if(!String(x.appMeta.school||'').trim())x.appMeta.school=profileSchedule?.school||'';
+  if(profileSchedule){
+    if(!String(profileSchedule.teacherName||'').trim()&&x.appMeta.teacher)profileSchedule.teacherName=x.appMeta.teacher;
+    if(!String(profileSchedule.school||'').trim()&&x.appMeta.school)profileSchedule.school=x.appMeta.school;
+  }
   const oldFields=Array.isArray(x.fields)?x.fields:[];
   x.classes.forEach(c=>{
     c.grade ||= x.meta?.grade||'الأول المتوسط';c.subject ||= x.meta?.subject||'المهارات الرقمية';c.students ||= [];
@@ -382,10 +388,14 @@ async function save(){
 }
 function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(save,220)}
 async function load(){
-  const stored=await db.get('state'),needsScheduleMigration=!!stored&&(!Array.isArray(stored.teacherSchedules)||Number(stored.schemaVersion||0)<SCHEMA_VERSION);if(stored){const migrated=migrate(stored);if(migrated)state=migrated}
+  const stored=await db.get('state');
+  const needsScheduleMigration=!!stored&&(!Array.isArray(stored.teacherSchedules)||Number(stored.schemaVersion||0)<SCHEMA_VERSION);
+  const storedTeacher=String(stored?.appMeta?.teacher||'').trim(),storedSchool=String(stored?.appMeta?.school||'').trim();
+  if(stored){const migrated=migrate(stored);if(migrated)state=migrated}
   state.classes.forEach(ensureClass);
   const recovery=await recoverAttendanceFromLocalSources({silent:true});
-  if(needsScheduleMigration)await db.set('state',state);
+  const profileBackfilled=!!stored&&((!storedTeacher&&String(state.appMeta?.teacher||'').trim())||(!storedSchool&&String(state.appMeta?.school||'').trim()));
+  if(needsScheduleMigration||profileBackfilled)await db.set('state',state);
   if(recovery.added)persistAttendanceMirror(state);
   if(!state.activeClassId&&state.classes[0])state.activeClassId=state.classes[0].id;
   const q=new URLSearchParams(location.search).get('view');if(['dashboard','admin','assessments','attendance','schedule','reports'].includes(q))state.ui.activeView=q;
@@ -1071,6 +1081,13 @@ function renderSchedule(){
   if(start)start.onchange=()=>updateSelectedScheduleMeta('startDate',start.value);
   if(end)end.onchange=()=>updateSelectedScheduleMeta('endDate',end.value);
   if(settingsState){const st=scheduleStateInfo(t);settingsState.innerHTML=`<span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span><small>${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}</small>`}
+  const profileTeacher=String(state.appMeta?.teacher||t.teacherName||'').trim();
+  const profileSchool=String(state.appMeta?.school||t.school||'').trim();
+  if($('#scheduleProfileTitle'))$('#scheduleProfileTitle').textContent=t.title||'جدول المعلم';
+  if($('#scheduleProfileTeacher'))$('#scheduleProfileTeacher').textContent=profileTeacher||'غير محدد';
+  if($('#scheduleProfileSchool'))$('#scheduleProfileSchool').textContent=profileSchool||'غير محددة';
+  if($('#scheduleProfileSemester'))$('#scheduleProfileSemester').textContent=t.semester||state.appMeta.semester||'غير محدد';
+  if($('#scheduleProfileValidity'))$('#scheduleProfileValidity').textContent=`${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}`;
   $('#scheduleStats').innerHTML=`<div><b>${arabicNum(counts.teaching)}</b><span>عدد الحصص</span></div><div><b>${arabicNum(counts.classes)}</b><span>عدد الفصول</span></div>`;
   $('#teacherScheduleTable').innerHTML=`<thead><tr><th>اليوم / الحصة</th>${[1,2,3,4,5,6,7].map(p=>`<th><b>${arabicNum(p)}</b><small>${scheduleTimeLabel(...PERIOD_TIMES[p])}</small></th>`).join('')}</tr></thead><tbody>${SCHEDULE_DAYS.map(day=>`<tr><th>${day}</th>${[1,2,3,4,5,6,7].map(p=>`<td>${scheduleCellMarkup(day,p)}</td>`).join('')}</tr>`).join('')}</tbody>`;
   const selectedMobileDay=SCHEDULE_DAYS.includes(state.ui?.scheduleDay)?state.ui.scheduleDay:SCHEDULE_DAYS[0];
