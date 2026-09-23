@@ -210,35 +210,44 @@
 
         <section class="schedule-entry-panel no-print" id="scheduleEntryPanel">
           <div class="schedule-entry-head">
-            <div><p class="eyebrow">إدخال سريع</p><h3>توزيع حصص التدريس</h3><p class="subtle">اختر المادة ثم الفصل، وبعدها اضغط على الحصص المطلوبة في الجدول ثم احفظ.</p></div>
-            <button class="btn tiny" id="scheduleSingleEditBtn">تعديل فردي / انتظار</button>
+            <div><p class="eyebrow">إدخال الجدول</p><h3>اختر طريقة الإدخال</h3><p class="subtle">الوضع الأسرع: اضغط أي حصة ثم اختر الفصل مباشرة.</p></div>
           </div>
-          <div class="schedule-entry-step">
-            <span class="schedule-entry-step-num">١</span>
-            <div class="schedule-entry-step-body">
-              <b>اختر مادة التدريس</b>
-              <div id="scheduleSubjectTabs" class="schedule-subject-tabs"></div>
+          <div class="schedule-entry-mode-tabs" role="tablist" aria-label="طريقة إدخال الجدول">
+            <button class="schedule-entry-mode active" id="scheduleCellEntryBtn" data-schedule-mode="cell">اضغط الحصة ← اختر الفصل</button>
+            <button class="schedule-entry-mode" id="scheduleDistributionModeBtn" data-schedule-mode="distribution">توزيع جماعي</button>
+            <button class="schedule-entry-mode" id="scheduleSingleEditBtn" data-schedule-mode="single">تعديل مفصل / انتظار</button>
+          </div>
+          <div class="schedule-cell-mode-hint" id="scheduleCellModeHint">
+            <span>✓</span><div><b>الإدخال السريع مفعّل</b><small>اضغط على أي خلية في الجدول، ثم اختر المادة والفصل. يتم الحفظ فورًا.</small></div>
+          </div>
+          <div id="scheduleDistributionControls" hidden>
+            <div class="schedule-entry-step">
+              <span class="schedule-entry-step-num">١</span>
+              <div class="schedule-entry-step-body">
+                <b>اختر مادة التدريس</b>
+                <div id="scheduleSubjectTabs" class="schedule-subject-tabs"></div>
+              </div>
             </div>
-          </div>
-          <div class="schedule-entry-step">
-            <span class="schedule-entry-step-num">٢</span>
-            <div class="schedule-entry-step-body">
-              <b>اختر الفصل</b>
-              <select id="scheduleClassSelect"></select>
+            <div class="schedule-entry-step">
+              <span class="schedule-entry-step-num">٢</span>
+              <div class="schedule-entry-step-body">
+                <b>اختر الفصل</b>
+                <select id="scheduleClassSelect"></select>
+              </div>
             </div>
-          </div>
-          <div class="schedule-entry-step schedule-entry-period-step">
-            <span class="schedule-entry-step-num">٣</span>
-            <div class="schedule-entry-step-body">
-              <b>اختر الحصص من الجدول</b>
-              <small>الحصة المشغولة بفصل آخر تظهر كتعارض ولا يمكن تحديدها.</small>
+            <div class="schedule-entry-step schedule-entry-period-step">
+              <span class="schedule-entry-step-num">٣</span>
+              <div class="schedule-entry-step-body">
+                <b>اختر الحصص من الجدول</b>
+                <small>الحصة المشغولة بفصل آخر تظهر كتعارض ولا يمكن تحديدها.</small>
+              </div>
             </div>
-          </div>
-          <div id="scheduleEntrySummary" class="schedule-entry-summary"></div>
-          <div class="schedule-entry-actions">
-            <button class="btn" id="scheduleClearSelectionBtn">مسح التحديد</button>
-            <button class="btn" id="scheduleNextClassBtn">الفصل التالي</button>
-            <button class="btn primary" id="scheduleSaveDistributionBtn">حفظ التوزيع</button>
+            <div id="scheduleEntrySummary" class="schedule-entry-summary"></div>
+            <div class="schedule-entry-actions">
+              <button class="btn" id="scheduleClearSelectionBtn">مسح التحديد</button>
+              <button class="btn" id="scheduleNextClassBtn">الفصل التالي</button>
+              <button class="btn primary" id="scheduleSaveDistributionBtn">حفظ التوزيع</button>
+            </div>
           </div>
         </section>
 
@@ -401,6 +410,30 @@
 <dialog class="modal assessment-modal" id="assessmentModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">التقييمات</p><h3 id="assessmentModalTitle">تقييم جديد</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم التقييم</label><input id="assessmentTitleInput" placeholder="مثال: واجب الوحدة الأولى"></div><div class="field"><label>النوع</label><select id="assessmentTypeInput"><option value="homework">واجب</option><option value="participation">مشاركة</option><option value="quiz">اختبار قصير</option><option value="project">مشروع</option><option value="practical">تطبيق عملي</option><option value="exam">اختبار</option><option value="other">أخرى</option></select></div><div class="field"><label>التاريخ</label><input id="assessmentDateInput" type="date"></div><div class="field"><label>الدرجة العظمى</label><input id="assessmentMaxInput" type="number" min="0.5" max="1000" step="0.5" value="10"></div><div class="field span2"><label>ملاحظة / وصف اختياري</label><input id="assessmentNoteInput" placeholder="مثال: الدرس 1–3"></div><div class="assessment-repeat-card span2" id="assessmentRepeatCard"><label class="assessment-repeat-toggle"><span><b id="assessmentRepeatTitle">تكرار التقييم على الفصول المناظرة</b><small id="assessmentRepeatDesc">نفس الصف ونفس المادة. يمكنك إيقافه لإنشاء التقييم في الفصل الحالي فقط.</small></span><input id="assessmentRepeatToggle" type="checkbox" checked><i aria-hidden="true"></i></label><div id="assessmentRepeatInfo" class="assessment-repeat-info"></div></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveAssessmentBtn">حفظ التقييم</button></div></div></dialog>
 
 <dialog class="modal schedule-create-modal" id="scheduleCreateModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">جداول المعلم</p><h3 id="scheduleCreateTitle">إضافة جدول</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم الجدول</label><input id="newScheduleTitle" placeholder="مثال: الجدول الأساسي 2"></div><div class="field"><label>الفصل الدراسي</label><select id="newScheduleSemester"><option>الفصل الدراسي الأول</option><option>الفصل الدراسي الثاني</option></select></div><div class="field"><label>طريقة الإنشاء</label><select id="newScheduleMode"><option value="blank">جدول فارغ</option><option value="copy">نسخ من جدول موجود</option></select></div><div class="field"><label>بداية السريان</label><input id="newScheduleStart" type="date"></div><div class="field"><label>نهاية السريان</label><input id="newScheduleEnd" type="date"></div><div class="field span2" id="newScheduleSourceField"><label>الجدول المصدر</label><select id="newScheduleSource"></select></div><div class="schedule-create-note span2" id="scheduleCreateNote"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveNewScheduleBtn">إنشاء الجدول</button></div></div></dialog>
+
+<dialog class="schedule-cell-picker" id="scheduleCellPicker">
+  <div class="schedule-cell-picker-sheet">
+    <div class="schedule-cell-picker-head">
+      <div><p class="eyebrow">تعيين الحصة</p><h3 id="scheduleCellPickerTitle">—</h3><small id="scheduleCellPickerCurrent"></small></div>
+      <button class="iconbtn" id="scheduleCellPickerClose" aria-label="إغلاق">×</button>
+    </div>
+    <div class="schedule-cell-picker-body">
+      <section>
+        <label>المادة</label>
+        <div id="scheduleCellPickerSubjects" class="schedule-picker-subjects"></div>
+      </section>
+      <section>
+        <label>الفصل</label>
+        <div id="scheduleCellPickerClasses" class="schedule-picker-classes"></div>
+      </section>
+    </div>
+    <div class="schedule-cell-picker-actions">
+      <button class="btn" id="scheduleCellPickerStandby">انتظار / احتياط</button>
+      <button class="btn" id="scheduleCellPickerDetails">تعديل مفصل</button>
+      <button class="btn danger" id="scheduleCellPickerClear">تفريغ الحصة</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog class="modal schedule-slot-modal" id="scheduleSlotModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">جدول المعلم</p><h3 id="scheduleSlotTitle">تعديل الحصة</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field"><label>نوع الخانة</label><select id="scheduleSlotKind"><option value="class">حصة تدريس</option><option value="standby">انتظار / احتياط</option><option value="empty">فارغ</option></select></div><div class="field"><label>الفصل</label><input id="scheduleSlotClass" placeholder="مثال: 2م أ"></div><div class="field span2"><label>المادة / الوصف</label><input id="scheduleSlotSubject" placeholder="الرقمية"></div><div class="field"><label>بداية الحصة</label><input id="scheduleSlotStart" type="time"></div><div class="field"><label>نهاية الحصة</label><input id="scheduleSlotEnd" type="time"></div><div class="field span2"><label>نص الانتظار / ملاحظة</label><input id="scheduleSlotNote" placeholder="مثال: منتظر 1"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveScheduleSlotBtn">حفظ</button></div></div></dialog>
 
