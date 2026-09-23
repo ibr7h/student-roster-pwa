@@ -1,0 +1,43 @@
+name: Validate v4.11 cell schedule picker
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v411.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate v4.11
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          h=Path('index.html').read_text(encoding='utf-8')
+          a=Path('app.js').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          s=Path('styles.css').read_text(encoding='utf-8')
+          ids=re.findall(r'\bid="([^"]+)"',h)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          if dup: raise SystemExit('duplicate ids: '+','.join(dup))
+          checks={
+            'version': "APP_VERSION='4.11.0'" in v and 'v4.11.0' in h and "||'4.11.0';" in a,
+            'default cell mode': "scheduleEntryMode='cell'" in a,
+            'mode controls': all(x in h for x in ['scheduleCellEntryBtn','scheduleDistributionModeBtn','scheduleSingleEditBtn']),
+            'picker markup': all(x in h for x in ['scheduleCellPicker','scheduleCellPickerSubjects','scheduleCellPickerClasses','scheduleCellPickerClear']),
+            'picker logic': all(x in a for x in ['function openScheduleCellPicker','function renderScheduleCellPicker','function assignScheduleCellClass','function clearScheduleCell']),
+            'instant save': "t.slots[key]={kind:'class',classId:c.id" in a and 'queueSave();toast' in a,
+            'remember subject': 'scheduleQuickSubject' in a,
+            'cell click default': "if(scheduleEntryMode==='cell'){openScheduleCellPicker(day,period);return}" in a,
+            'viewport css': 'max-height:calc(100dvh' in s and 'env(safe-area-inset-bottom)' in s,
+            'internal scroll': '.schedule-cell-picker-body{min-height:0;overflow-y:auto' in s,
+            'mobile grid': '@media(max-width:520px)' in s and '.schedule-picker-classes{grid-template-columns:repeat(2,minmax(0,1fr))}' in s,
+          }
+          bad=[k for k,val in checks.items() if not val]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.11 cell-first schedule picker validation passed')
+          PY
