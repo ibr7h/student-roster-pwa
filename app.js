@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.9';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.13.0';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -1380,10 +1380,6 @@ function openAttendanceLandscapePdf(){
 
 function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);if(isIOSLike())openAttendanceLandscapePdf();else runPrintSession('print-attendance-report','landscape')}
 
-function officialReportHeader(title,c,periodText,studentName=''){
-  const m=state.appMeta||{},school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم',teacher=m.teacher||'—',principal=m.principal||'—';
-  return `<header class="official-report-header" dir="rtl"><div class="official-gov"><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(region)}</span><span>${escapeHtml(school)}</span></div><div class="official-center"><img class="official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><b class="official-ministry-name">وزارة التعليم</b><h1>${escapeHtml(title)}</h1>${studentName?`<div class="official-student">الطالب: <strong>${escapeHtml(studentName)}</strong></div>`:''}</div><div class="official-meta"><div><b>المادة:</b><span>${escapeHtml(c.subject||'—')}</span></div><div><b>العام الدراسي:</b><span>${escapeHtml(m.year||'—')}</span></div><div><b>الفصل الدراسي:</b><span>${escapeHtml(periodText||m.semester||'—')}</span></div><div><b>الصف:</b><span>${escapeHtml(c.grade||'—')}</span></div><div><b>الفصل:</b><span>${escapeHtml(c.name||'—')}</span></div><div><b>معلم المادة:</b><span>${escapeHtml(teacher)}</span></div></div></header>`
-}
 function studentOfficialHeader(c,periodText,studentName=''){
   const m=state.appMeta||{},school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم';
   return `<header class="student-official-header" dir="rtl">
