@@ -454,17 +454,60 @@ function assessmentPeerClasses(c){
 function assessmentIdentityKey(a){
   return [assessmentAcademicKey(a?.title||''),String(a?.type||''),String(a?.date||'')].join('|')
 }
-function assessmentExistsInClass(c,draft){
+function assessmentExistsInClass(c,draft,excludeId=''){
   const key=assessmentIdentityKey(draft);
-  return (c?.assessmentEvents||[]).some(a=>assessmentIdentityKey(a)===key)
+  return (c?.assessmentEvents||[]).some(a=>a.id!==excludeId&&assessmentIdentityKey(a)===key)
+}
+function assessmentCounterpartInClass(base,currentClass,targetClass){
+  if(!base||!targetClass)return null;
+  if(targetClass.id===currentClass.id)return base;
+  if(base.repeatGroupId){
+    const linked=(targetClass.assessmentEvents||[]).find(a=>a.repeatGroupId===base.repeatGroupId);
+    if(linked)return linked
+  }
+  const oldKey=assessmentIdentityKey(base);
+  return (targetClass.assessmentEvents||[]).find(a=>assessmentIdentityKey(a)===oldKey)||null
+}
+function assessmentEditPlan(){
+  const c=currentClass(),base=editingAssessmentId?findAssessment(editingAssessmentId,c):null,peers=assessmentPeerClasses(c);
+  return peers.map(target=>({target,assessment:base?assessmentCounterpartInClass(base,c,target):null}))
+}
+function highestGradeForAssessment(c,a){
+  if(!c||!a)return 0;
+  return Math.max(0,...(c.students||[]).map(s=>Number(s.grades?.[a.id])).filter(Number.isFinite))
 }
 function renderAssessmentRepeatInfo(){
-  const card=$('#assessmentRepeatCard'),toggle=$('#assessmentRepeatToggle'),info=$('#assessmentRepeatInfo'),c=currentClass();
+  const card=$('#assessmentRepeatCard'),toggle=$('#assessmentRepeatToggle'),info=$('#assessmentRepeatInfo'),titleEl=$('#assessmentRepeatTitle'),descEl=$('#assessmentRepeatDesc'),c=currentClass();
   if(!card||!toggle||!info||!c)return;
-  if(editingAssessmentId){card.hidden=true;return}
   card.hidden=false;
   const peers=assessmentPeerClasses(c),others=peers.filter(x=>x.id!==c.id);
-  if(!others.length){toggle.checked=false;toggle.disabled=true;info.innerHTML='<span class="assessment-repeat-note">لا توجد فصول أخرى من نفس الصف والمادة؛ سيُحفظ التقييم في الفصل الحالي فقط.</span>';return}
+
+  if(editingAssessmentId){
+    const base=findAssessment(editingAssessmentId,c),plan=assessmentEditPlan(),existingOther=plan.filter(x=>x.target.id!==c.id&&x.assessment).length;
+    if(titleEl)titleEl.textContent='تطبيق التعديل على الفصول المناظرة';
+    if(descEl)descEl.textContent='يعدّل التقييمات المناظرة في نفس الصف والمادة، وينشئ نسخة في الفصل الذي لا يحتوي هذا التقييم.';
+    if(!others.length){
+      toggle.checked=false;toggle.disabled=true;
+      info.innerHTML='<span class="assessment-repeat-note">لا توجد فصول أخرى من نفس الصف والمادة؛ سيُعدّل التقييم في الفصل الحالي فقط.</span>';
+      return
+    }
+    toggle.disabled=false;
+    if(toggle.checked){
+      const existing=plan.filter(x=>x.assessment).length,missing=plan.length-existing;
+      info.innerHTML=`<div class="assessment-repeat-summary"><b>سيُعدّل ${arabicNum(existing)} تقييم${missing?' · وينشئ '+arabicNum(missing)+' نسخة':''}</b><span>${escapeHtml(c.grade)} · ${escapeHtml(c.subject)}</span></div><div class="assessment-repeat-targets">${plan.map(x=>`<span class="${x.target.id===c.id?'current':''}">${escapeHtml(x.target.name)} · ${x.assessment?'تعديل':'إنشاء'}</span>`).join('')}</div>`
+    }else{
+      info.innerHTML=`<div class="assessment-repeat-summary"><b>سيُعدّل الفصل الحالي فقط</b><span>${escapeHtml(c.grade)} · ${escapeHtml(c.subject)}</span></div><div class="assessment-repeat-targets"><span class="current">${escapeHtml(c.name)} · الحالي</span></div>`
+    }
+    return
+  }
+
+  if(titleEl)titleEl.textContent='تكرار التقييم على الفصول المناظرة';
+  if(descEl)descEl.textContent='نفس الصف ونفس المادة. يمكنك إيقافه لإنشاء التقييم في الفصل الحالي فقط.';
+  if(!others.length){
+    toggle.checked=false;toggle.disabled=true;
+    info.innerHTML='<span class="assessment-repeat-note">لا توجد فصول أخرى من نفس الصف والمادة؛ سيُحفظ التقييم في الفصل الحالي فقط.</span>';
+    return
+  }
   toggle.disabled=false;
   const targets=toggle.checked?peers:[c];
   info.innerHTML=`<div class="assessment-repeat-summary"><b>${toggle.checked?'سيُنشأ في '+arabicNum(targets.length)+' فصول':'سيُنشأ في الفصل الحالي فقط'}</b><span>${escapeHtml(c.grade)} · ${escapeHtml(c.subject)}</span></div><div class="assessment-repeat-targets">${targets.map(x=>`<span class="${x.id===c.id?'current':''}">${escapeHtml(x.name)}${x.id===c.id?' · الحالي':''}</span>`).join('')}</div>`
@@ -478,7 +521,15 @@ function openAssessmentModal(id=null){
   $('#assessmentDateInput').value=a?.date||localDateISO();
   $('#assessmentMaxInput').value=a?.maxScore||10;
   $('#assessmentNoteInput').value=a?.note||'';
-  const toggle=$('#assessmentRepeatToggle');if(toggle){toggle.checked=!a;toggle.disabled=!!a}
+  const toggle=$('#assessmentRepeatToggle');
+  if(toggle){
+    const c=currentClass(),peers=assessmentPeerClasses(c),hasPeers=peers.length>1;
+    if(a){
+      const plan=assessmentEditPlan(),hasLinkedOrMatched=plan.some(x=>x.target.id!==c.id&&x.assessment);
+      toggle.checked=hasPeers&&!!(a.repeatGroupId||hasLinkedOrMatched)
+    }else toggle.checked=hasPeers;
+    toggle.disabled=!hasPeers
+  }
   renderAssessmentRepeatInfo();
   $('#assessmentModal').showModal();
   setTimeout(()=>$('#assessmentTitleInput').focus(),50)
@@ -488,14 +539,49 @@ function saveAssessment(){
   if(!title){toast('اكتب اسم التقييم');return}
   if(!date){toast('اختر تاريخ التقييم');return}
   if(!maxScore||maxScore<=0){toast('الدرجة العظمى غير صحيحة');return}
+  const draft={title,type,date,maxScore,note,legacy:false};
+
   if(editingAssessmentId){
-    const a=findAssessment(editingAssessmentId,c);if(!a)return;
-    const highest=Math.max(0,...c.students.map(s=>Number(s.grades?.[a.id])).filter(Number.isFinite));
-    if(maxScore<highest){toast(`يوجد طالب درجته ${highest}؛ ارفع الدرجة العظمى أولًا`);return}
-    Object.assign(a,{title,type,date,maxScore,note,legacy:false});
-    $('#assessmentModal').close();state.ui.assessmentMonth='all';renderAll();queueSave();toast('تم تعديل التقييم');return
+    const base=findAssessment(editingAssessmentId,c);if(!base)return;
+    const repeat=!!$('#assessmentRepeatToggle')?.checked&&assessmentPeerClasses(c).length>1;
+
+    if(!repeat){
+      const highest=highestGradeForAssessment(c,base);
+      if(maxScore<highest){toast(`يوجد طالب درجته ${highest}؛ ارفع الدرجة العظمى أولًا`);return}
+      if(assessmentExistsInClass(c,draft,base.id)){toast('يوجد تقييم آخر بنفس الاسم والنوع والتاريخ في هذا الفصل');return}
+      Object.assign(base,draft);
+      delete base.repeatGroupId;delete base.repeatSourceClassId;
+      $('#assessmentModal').close();state.ui.assessmentMonth='all';renderAll();queueSave();toast('تم تعديل التقييم في الفصل الحالي فقط');return
+    }
+
+    const plan=assessmentEditPlan(),groupId=base.repeatGroupId||uid(),sourceClassId=base.repeatSourceClassId||c.id;
+    for(const item of plan){
+      if(item.assessment){
+        const highest=highestGradeForAssessment(item.target,item.assessment);
+        if(maxScore<highest){toast(`لا يمكن خفض الدرجة: في ${item.target.name} توجد درجة ${highest}`);return}
+        if(assessmentExistsInClass(item.target,draft,item.assessment.id)){toast(`يوجد تقييم آخر مطابق في ${item.target.name}`);return}
+      }else if(assessmentExistsInClass(item.target,draft)){
+        toast(`يوجد تقييم مطابق مسبقًا في ${item.target.name}`);return
+      }
+    }
+
+    let updated=0,created=0;
+    for(const item of plan){
+      if(item.assessment){
+        Object.assign(item.assessment,draft,{repeatGroupId:groupId,repeatSourceClassId:sourceClassId});updated++
+      }else{
+        const copy={id:uid(),...draft,repeatGroupId:groupId,repeatSourceClassId:sourceClassId};
+        item.target.assessmentEvents.push(copy);
+        if(!item.target.selectedAssessmentId)item.target.selectedAssessmentId=copy.id;
+        created++
+      }
+    }
+    $('#assessmentModal').close();state.ui.assessmentMonth='all';renderAll();queueSave();
+    toast(`تم تحديث التقييم في ${arabicNum(updated)} فصول${created?' · وإنشاء '+arabicNum(created)+' نسخة':''}`);
+    return
   }
-  const repeat=!!$('#assessmentRepeatToggle')?.checked,peers=assessmentPeerClasses(c),targets=repeat&&peers.length>1?peers:[c],repeatGroupId=targets.length>1?uid():null,draft={title,type,date,maxScore,note,legacy:false};
+
+  const repeat=!!$('#assessmentRepeatToggle')?.checked,peers=assessmentPeerClasses(c),targets=repeat&&peers.length>1?peers:[c],repeatGroupId=targets.length>1?uid():null;
   let created=0,skipped=0,currentAssessmentId=null;
   for(const target of targets){
     if(assessmentExistsInClass(target,draft)){skipped++;continue}
