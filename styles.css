@@ -950,3 +950,27 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   #view-schedule .schedule-day-nav{gap:3px;padding:3px}
   #view-schedule .schedule-day-tab{font-size:7.6px;min-height:38px;padding-inline:1px}
 }
+
+
+/* V4.12.5 schedule identity summary */
+.schedule-profile-summary{margin:0 0 12px;padding:12px;border:1px solid #d7e2e8;border-radius:16px;background:#fff}
+.schedule-profile-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.schedule-profile-summary-head h3{margin:2px 0 0;font-size:15px}
+.schedule-profile-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.schedule-profile-grid>div{min-width:0;padding:9px 10px;border:1px solid #e0e7eb;border-radius:11px;background:#f8fafb;display:grid;gap:3px}
+.schedule-profile-grid span{font-size:8.5px;color:var(--muted)}
+.schedule-profile-grid b{font-size:10.5px;line-height:1.45;overflow-wrap:anywhere}
+@media screen and (max-width:680px){
+  #view-schedule .schedule-profile-summary{margin:0 0 10px;padding:10px;border-radius:14px}
+  #view-schedule .schedule-profile-summary-head{margin-bottom:8px}
+  #view-schedule .schedule-profile-summary-head h3{font-size:14px}
+  #view-schedule .schedule-profile-summary-head .btn{min-height:38px;padding:6px 8px;font-size:8.5px}
+  #view-schedule .schedule-profile-grid{grid-template-columns:1fr 1fr;gap:6px}
+  #view-schedule .schedule-profile-grid>div{padding:8px}
+  #view-schedule .schedule-profile-grid span{font-size:8px}
+  #view-schedule .schedule-profile-grid b{font-size:9.5px}
+}
+@media screen and (max-width:390px){
+  #view-schedule .schedule-profile-summary-head{display:grid}
+  #view-schedule .schedule-profile-summary-head .btn{width:100%}
+}
