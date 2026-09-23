@@ -17,7 +17,7 @@ if(!version)fail('APP_VERSION missing from version.js');else{
   const checks=[['index.html',index.includes('v'+version)],['app.js',app.includes("||'"+version+"'")||app.includes('||"'+version+'"')],['sw.js',sw.includes("||'"+version+"'")||sw.includes('||"'+version+'"')]];
   for(const [file,ok] of checks)ok?info(file+' version '+version):fail(file+' does not match version '+version);
 }
-if(/\$\([^\n;]*\)\.forEach\s*\(/.test(app))fail('Found $().forEach; use $$() for querySelectorAll iteration');else info('querySelector iteration guard');
+if(/(^|[^$])\$\([^\n;]*\)\.forEach\s*\(/m.test(app))fail('Found $().forEach; use $() for querySelectorAll iteration');else info('querySelector iteration guard');
 const fnNames=[...app.matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]);
 const fnDup=[...new Set(fnNames.filter((n,i)=>fnNames.indexOf(n)!==i))];
 fnDup.length?fail('Duplicate function declarations: '+fnDup.join(', ')):info('No duplicate function declarations');
