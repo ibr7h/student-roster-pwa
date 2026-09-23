@@ -1069,7 +1069,7 @@ function syncScheduleFolds(){
   state.ui ||= {};
   state.ui.scheduleFolds ||= {};
   const mobile=window.matchMedia('(max-width:680px)').matches;
-  $('[data-schedule-fold]').forEach(el=>{
+  $$('[data-schedule-fold]').forEach(el=>{
     const key=el.dataset.scheduleFold;
     const saved=state.ui.scheduleFolds[key];
     const desired=mobile?(typeof saved==='boolean'?saved:false):true;
@@ -1123,7 +1123,7 @@ function renderSchedule(){
   }
   $('#scheduleMobile').innerHTML=`<article class="schedule-day-card" data-mobile-day="${selectedMobileDay}"><h3>${selectedMobileDay}</h3><div>${[1,2,3,4,5,6,7].map(p=>scheduleCellMarkup(selectedMobileDay,p,true)).join('')}</div></article>`;
   syncScheduleFolds();
-  renderScheduleHeader();renderSupervisions();renderScheduleEntryControls();$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');handleScheduleCellClick(day,Number(p))})
+  renderScheduleHeader();renderSupervisions();renderScheduleEntryControls();$$('[data-schedule-slot]').forEach(b=>b.onclick=()=>{const [day,p]=b.dataset.scheduleSlot.split('|');handleScheduleCellClick(day,Number(p))})
 }
 function renderScheduleHeader(){const t=currentTeacherSchedule();if(!t||!$('#schedulePrintHeader'))return;$('#schedulePrintHeader').innerHTML=`<div><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(state.appMeta.school||t.school||'')}</span></div><div class="schedule-logo-center"><img class="schedule-official-logo" src="./assets/moe-logo.png" alt="شعار وزارة التعليم"><h1>${escapeHtml(t.title||'جدول المعلم')}</h1><b>${escapeHtml(state.appMeta.teacher||t.teacherName||'')}</b></div><div><b>جدول المعلم</b><span>${escapeHtml(state.appMeta.year||'')}</span><span>${escapeHtml(t.semester||state.appMeta.semester||'')}</span></div>`}
 function openScheduleSlot(day,period){const t=currentTeacherSchedule();if(!t)return;editingScheduleSlot={day,period};const raw=t.slots?.[scheduleKey(day,period)]||{},pt=PERIOD_TIMES[period]||['',''];$('#scheduleSlotTitle').textContent=`${day} — الحصة ${arabicNum(period)}`;$('#scheduleSlotKind').value=raw.kind||'empty';$('#scheduleSlotClass').value=raw.className||'';$('#scheduleSlotSubject').value=raw.subject||'';$('#scheduleSlotStart').value=raw.start||pt[0]||'';$('#scheduleSlotEnd').value=raw.end||pt[1]||'';$('#scheduleSlotNote').value=raw.note||'';$('#scheduleSlotModal').showModal()}
