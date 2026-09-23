@@ -149,8 +149,17 @@
             <div id="assessmentEditor" hidden>
               <div class="assessment-selected-head"><div><p class="eyebrow" id="selectedAssessmentType"></p><h3 id="selectedAssessmentTitle"></h3><p class="subtle" id="selectedAssessmentMeta"></p></div><div class="view-actions no-print"><button class="btn" id="editAssessmentBtn">تعديل</button><button class="btn danger" id="deleteAssessmentBtn">حذف</button></div></div>
               <div class="table-toolbar no-print"><div class="searchbox"><span>⌕</span><input id="studentSearch" type="search" placeholder="بحث باسم الطالب"></div><button class="btn" id="addStudentBtn">＋ إضافة طالب</button><button class="btn" id="manageStudentsBtn">إدارة الطلاب</button></div>
-              <div class="table-wrap"><table class="gradebook" id="gradebookTable"></table></div>
+              <section class="quick-grade-panel no-print" id="quickGradePanel">
+                <div class="quick-grade-head"><div><b>الرصد السريع</b><small>اختر درجة لتعبئة الطلاب بسرعة، ثم عدّل الاستثناءات.</small></div><span id="assessmentAutosaveStatus">الحفظ تلقائي</span></div>
+                <div class="quick-grade-actions">
+                  <label class="quick-grade-mode"><input id="bulkOnlyEmpty" type="checkbox" checked><span>غير المرصودين فقط</span></label>
+                  <div class="quick-grade-presets" id="bulkGradeButtons"></div>
+                </div>
+              </section>
+              <div class="mobile-gradebook no-print" id="mobileGradeCards"></div>
+              <div class="table-wrap desktop-gradebook"><table class="gradebook" id="gradebookTable"></table></div>
               <div class="summary" id="assessmentSummary"></div>
+              <div class="assessment-peer-nav no-print" id="assessmentPeerNav"></div>
             </div>
           </div>
         </div>
