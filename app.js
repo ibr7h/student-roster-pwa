@@ -960,6 +960,7 @@ function updateSelectedScheduleMeta(field,value){
 function renderSchedule(){
   const t=currentTeacherSchedule(),counts=scheduleCounts(t);
   const teacher=$('#scheduleTeacherInput'),school=$('#scheduleSchoolInput'),title=$('#scheduleTitleInput'),semester=$('#scheduleSemesterInput'),start=$('#scheduleStartInput'),end=$('#scheduleEndInput');if(!teacher||!t)return;
+  syncScheduleEntryContext();
   renderScheduleLibrary();
   if(document.activeElement!==teacher)teacher.value=t.teacherName||'';
   if(document.activeElement!==school)school.value=t.school||'';
