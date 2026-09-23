@@ -1,0 +1,42 @@
+name: Validate v4.11.1 schedule picker fix
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-v4111.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate v4.11.1
+        run: |
+          node --check app.js
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          h=Path('index.html').read_text(encoding='utf-8')
+          a=Path('app.js').read_text(encoding='utf-8')
+          c=Path('styles.css').read_text(encoding='utf-8')
+          v=Path('version.js').read_text(encoding='utf-8')
+          ids=re.findall(r'\bid="([^"]+)"',h)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          if dup: raise SystemExit('duplicate ids: '+','.join(dup))
+          checks={
+            'version': "APP_VERSION='4.11.1'" in v and 'v4.11.1' in h,
+            'selector fix': "$$('[data-schedule-mode]').forEach" in a,
+            'picker div': '<div class="schedule-cell-picker no-print" id="scheduleCellPicker" hidden' in h,
+            'no native dialog api': 'dlg.showModal()' not in a and 'dlg?.open' not in a,
+            'open hidden false': 'sheet.hidden=false' in a,
+            'close hidden true': 'sheet.hidden=true' in a,
+            'viewport css': 'height:100dvh' in c and 'max-height:calc(100dvh' in c,
+            'safe area': 'env(safe-area-inset-top)' in c and 'env(safe-area-inset-bottom)' in c,
+            'overlay z': 'z-index:140' in c,
+            'cell mode': "if(scheduleEntryMode==='cell'){openScheduleCellPicker(day,period);return}" in a,
+          }
+          bad=[k for k,val in checks.items() if not val]
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          print('v4.11.1 schedule picker fix validation passed')
+          PY
