@@ -1,6 +1,6 @@
-// release 4.12.9 schedule-action-grid
+// release 4.13.0 code-cleanup
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.12.9');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.13.0');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
