@@ -756,7 +756,7 @@ function renderClassesModal(){const b=$('#classesBody');b.innerHTML=state.classe
 function addClass(){const name=$('#newClassName').value.trim(),grade=$('#newClassGrade').value.trim(),subject=$('#newClassSubject').value.trim();if(!name){toast('اكتب اسم الفصل');return}const c=makeClass(name,grade||'الصف',subject||'المادة',[]);state.classes.push(c);state.activeClassId=c.id;$('#newClassName').value='';$('#newClassGrade').value='';$('#newClassSubject').value='';renderClassesModal();renderAll();queueSave();toast('تمت إضافة الفصل')}
 
 
-let editingScheduleSlot=null,editingSupervisionId=null,scheduleEntryMode='distribution',scheduleEntrySubject='',scheduleEntryClassId='',scheduleEntryContextKey='',scheduleEntrySelected=new Set();
+let editingScheduleSlot=null,editingSupervisionId=null,scheduleEntryMode='cell',scheduleEntrySubject='',scheduleEntryClassId='',scheduleEntryContextKey='',scheduleEntrySelected=new Set(),scheduleCellPickerDay='',scheduleCellPickerPeriod=0;
 function scheduleKey(day,period){return `${day}-${period}`}
 function scheduleTimeLabel(start,end){const fmt=t=>{if(!t)return'';let [h,m]=t.split(':').map(Number),ap=h>=12?'م':'ص';h=h%12||12;return `${h}:${String(m).padStart(2,'0')} ${ap}`};return start&&end?`${fmt(start)} - ${fmt(end)}`:''}
 function scheduleSlot(day,period,t=currentTeacherSchedule()){const base=t?.slots?.[scheduleKey(day,period)]||null;if(!base)return null;const pt=PERIOD_TIMES[period]||[];return {...base,start:base.start||pt[0]||'',end:base.end||pt[1]||''}}
@@ -812,9 +812,12 @@ function scheduleEntrySlotLabel(key){
   return `${m[1]} ح${arabicNum(Number(m[2]))}`
 }
 function renderScheduleEntryControls(){
-  const subjectTabs=$('#scheduleSubjectTabs'),classSelect=$('#scheduleClassSelect'),summary=$('#scheduleEntrySummary');
+  const subjectTabs=$('#scheduleSubjectTabs'),classSelect=$('#scheduleClassSelect'),summary=$('#scheduleEntrySummary'),distribution=$('#scheduleDistributionControls'),hint=$('#scheduleCellModeHint');
   if(!subjectTabs||!classSelect||!summary)return;
   syncScheduleEntryContext();
+  if(distribution)distribution.hidden=scheduleEntryMode!=='distribution';
+  if(hint)hint.hidden=scheduleEntryMode!=='cell';
+  $('[data-schedule-mode]').forEach(b=>b.classList.toggle('active',b.dataset.scheduleMode===scheduleEntryMode));
   const subjects=scheduleTeachingSubjects(),classes=scheduleClassesForSubject(scheduleEntrySubject),c=scheduleEntryClass();
   subjectTabs.innerHTML=subjects.length?subjects.map(name=>`<button class="schedule-subject-chip ${scheduleSubjectKey(name)===scheduleSubjectKey(scheduleEntrySubject)?'active':''}" data-schedule-subject="${escapeHtml(name)}" style="--subject-color:${scheduleClassColor(name)}">${escapeHtml(name)}</button>`).join(''):`<span class="schedule-entry-empty">لا توجد مواد مرتبطة بالفصول. أضف المادة من إدارة الفصول أولًا.</span>`;
   classSelect.innerHTML=classes.length?classes.map(x=>`<option value="${escapeHtml(x.id)}" ${x.id===scheduleEntryClassId?'selected':''}>${escapeHtml(x.grade)} — ${escapeHtml(x.name)}</option>`).join(''):'<option value="">لا توجد فصول لهذه المادة</option>';
@@ -832,20 +835,21 @@ function renderScheduleEntryControls(){
   }
   $$('[data-schedule-subject]').forEach(b=>b.onclick=()=>{scheduleEntrySubject=b.dataset.scheduleSubject;scheduleEntryClassId='';scheduleEntryContextKey='';renderSchedule()});
   classSelect.onchange=()=>{scheduleEntryClassId=classSelect.value;scheduleEntryContextKey='';renderSchedule()};
-  const single=$('#scheduleSingleEditBtn');if(single)single.textContent=scheduleEntryMode==='distribution'?'تعديل فردي / انتظار':'العودة للتوزيع السريع';
   const saveBtn=$('#scheduleSaveDistributionBtn'),nextBtn=$('#scheduleNextClassBtn'),clearBtn=$('#scheduleClearSelectionBtn');
   if(saveBtn)saveBtn.disabled=scheduleEntryMode!=='distribution'||!c;
   if(nextBtn)nextBtn.disabled=scheduleEntryMode!=='distribution'||classes.length<2||!c;
   if(clearBtn)clearBtn.disabled=scheduleEntryMode!=='distribution'||!c||!scheduleEntrySelected.size
 }
-function toggleScheduleEntryMode(){
-  scheduleEntryMode=scheduleEntryMode==='distribution'?'single':'distribution';
-  if(scheduleEntryMode==='distribution')syncScheduleEntryContext(true);
+function setScheduleEntryMode(mode='cell'){
+  if(!['cell','distribution','single'].includes(mode))mode='cell';
+  scheduleEntryMode=mode;
+  if(mode==='distribution')syncScheduleEntryContext(true);
   renderSchedule()
 }
 function clearScheduleEntrySelection(){if(scheduleEntryMode!=='distribution')return;scheduleEntrySelected.clear();renderSchedule()}
 function handleScheduleCellClick(day,period){
-  if(scheduleEntryMode!=='distribution'){openScheduleSlot(day,period);return}
+  if(scheduleEntryMode==='cell'){openScheduleCellPicker(day,period);return}
+  if(scheduleEntryMode==='single'){openScheduleSlot(day,period);return}
   const c=scheduleEntryClass();if(!c){toast('اختر المادة والفصل أولًا');return}
   if(scheduleEntryConflict(day,period)){
     const slot=scheduleSlot(day,period),label=slot?.kind==='standby'?(slot.note||'انتظار'):`${slot?.className||'حصة'} · ${slot?.subject||''}`;
@@ -855,6 +859,63 @@ function handleScheduleCellClick(day,period){
   if(scheduleEntrySelected.has(key))scheduleEntrySelected.delete(key);else scheduleEntrySelected.add(key);
   renderSchedule()
 }
+
+function schedulePickerSubject(){
+  const subjects=scheduleTeachingSubjects(),stored=state.ui?.scheduleQuickSubject||scheduleEntrySubject||'';
+  return subjects.find(x=>scheduleSubjectKey(x)===scheduleSubjectKey(stored))||subjects[0]||''
+}
+function renderScheduleCellPicker(){
+  const dlg=$('#scheduleCellPicker');if(!dlg||!scheduleCellPickerDay||!scheduleCellPickerPeriod)return;
+  const t=currentTeacherSchedule(),slot=t?.slots?.[scheduleKey(scheduleCellPickerDay,scheduleCellPickerPeriod)]||null,subjects=scheduleTeachingSubjects();
+  let subject=schedulePickerSubject();
+  if(slot?.kind==='class'&&slot.subject){
+    const fromSlot=subjects.find(x=>scheduleSubjectKey(x)===scheduleSubjectKey(slot.subject));
+    if(fromSlot)subject=fromSlot
+  }
+  scheduleEntrySubject=subject;
+  state.ui ||= {};state.ui.scheduleQuickSubject=subject;
+  $('#scheduleCellPickerTitle').textContent=`${scheduleCellPickerDay} — الحصة ${arabicNum(scheduleCellPickerPeriod)}`;
+  const current=$('#scheduleCellPickerCurrent');
+  if(current)current.textContent=slot?(slot.kind==='standby'?(slot.note||'انتظار / احتياط'):`${slot.className||'فصل'} · ${slot.subject||''}`):'الحصة فارغة';
+  const subjectWrap=$('#scheduleCellPickerSubjects'),classWrap=$('#scheduleCellPickerClasses');
+  subjectWrap.innerHTML=subjects.length?subjects.map(name=>`<button class="schedule-picker-subject ${scheduleSubjectKey(name)===scheduleSubjectKey(subject)?'active':''}" data-picker-subject="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join(''):'<span class="schedule-picker-empty">لا توجد مواد مسجلة.</span>';
+  const classes=scheduleClassesForSubject(subject);
+  classWrap.innerHTML=classes.length?classes.map(c=>{
+    const active=slot?.kind==='class'&&sameScheduledClass(slot,c);
+    return `<button class="schedule-picker-class ${active?'active':''}" data-picker-class="${escapeHtml(c.id)}"><b>${escapeHtml(c.name)}</b><small>${escapeHtml(c.grade||'')}</small>${active?'<span>الحصة الحالية</span>':''}</button>`
+  }).join(''):'<span class="schedule-picker-empty">لا توجد فصول مرتبطة بهذه المادة.</span>';
+  $$('[data-picker-subject]').forEach(b=>b.onclick=()=>{scheduleEntrySubject=b.dataset.pickerSubject;state.ui.scheduleQuickSubject=scheduleEntrySubject;queueSave();renderScheduleCellPicker()});
+  $$('[data-picker-class]').forEach(b=>b.onclick=()=>assignScheduleCellClass(b.dataset.pickerClass));
+  const clear=$('#scheduleCellPickerClear');if(clear)clear.hidden=!slot;
+}
+function openScheduleCellPicker(day,period){
+  scheduleCellPickerDay=day;scheduleCellPickerPeriod=period;
+  const slot=scheduleSlot(day,period),subjects=scheduleTeachingSubjects();
+  if(slot?.kind==='class'&&slot.subject){
+    const found=subjects.find(x=>scheduleSubjectKey(x)===scheduleSubjectKey(slot.subject));
+    if(found){scheduleEntrySubject=found;state.ui.scheduleQuickSubject=found}
+  }else scheduleEntrySubject=schedulePickerSubject();
+  renderScheduleCellPicker();
+  const dlg=$('#scheduleCellPicker');if(dlg&&!dlg.open)dlg.showModal()
+}
+function closeScheduleCellPicker(){const dlg=$('#scheduleCellPicker');if(dlg?.open)dlg.close()}
+function assignScheduleCellClass(classId){
+  const t=currentTeacherSchedule(),c=findClass(classId);if(!t||!c||!scheduleCellPickerDay||!scheduleCellPickerPeriod)return;
+  const key=scheduleKey(scheduleCellPickerDay,scheduleCellPickerPeriod),pt=PERIOD_TIMES[scheduleCellPickerPeriod]||['',''];
+  t.slots[key]={kind:'class',classId:c.id,className:classScheduleCode(c)||c.name,subject:c.subject||scheduleEntrySubject||'',start:pt[0]||'',end:pt[1]||''};
+  scheduleEntrySubject=c.subject||scheduleEntrySubject;state.ui.scheduleQuickSubject=scheduleEntrySubject;
+  closeScheduleCellPicker();renderSchedule();renderReports();queueSave();toast(`تم تعيين ${c.name} — ${scheduleCellPickerDay} ح${arabicNum(scheduleCellPickerPeriod)}`)
+}
+function clearScheduleCell(){
+  const t=currentTeacherSchedule();if(!t||!scheduleCellPickerDay||!scheduleCellPickerPeriod)return;
+  delete t.slots[scheduleKey(scheduleCellPickerDay,scheduleCellPickerPeriod)];
+  closeScheduleCellPicker();renderSchedule();renderReports();queueSave();toast('تم تفريغ الحصة')
+}
+function openScheduleCellDetails(kind=''){
+  const day=scheduleCellPickerDay,period=scheduleCellPickerPeriod;closeScheduleCellPicker();openScheduleSlot(day,period);
+  if(kind==='standby'){$('#scheduleSlotKind').value='standby';if(!$('#scheduleSlotNote').value)$('#scheduleSlotNote').value='انتظار'}
+}
+
 function saveScheduleDistribution(){
   if(scheduleEntryMode!=='distribution')return;
   const t=currentTeacherSchedule(),c=scheduleEntryClass();if(!t||!c)return;
@@ -1487,7 +1548,7 @@ document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');i
 $('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;$('#assessmentRepeatToggle').onchange=renderAssessmentRepeatInfo;
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};$('#studentSearch').oninput=e=>{searchTerm=e.target.value;renderAssessments()};$('#addStudentBtn').onclick=addStudent;$('#assessmentAddStudentBtn').onclick=addStudent;$('#manageStudentsBtn').onclick=openStudents;$('#manageStudentsBtnTop').onclick=openStudents;$('#studentsAddBtn').onclick=()=>{addStudent();renderStudentsModal()};$('#studentsImportBtn').onclick=()=>$('#csvInput').click();$('#importBtn').onclick=()=>$('#csvInput').click();$('#csvInput').onchange=e=>{if(e.target.files[0])importCSV(e.target.files[0]);e.target.value=''};$('#exportCsvBtn').onclick=exportCurrentClassCSV;
 $('#manageClassesBtn').onclick=openClasses;$('#addClassBtn').onclick=addClass;$('#backupBtn').onclick=backup;$('#restoreBtn').onclick=()=>$('#restoreInput').click();$('#restoreInput').onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''};$('#recoveryScanBtn').onclick=scanAndRecoverAttendance;$('#dbDiagnosticBtn').onclick=runAttendanceDatabaseDiagnostic;$('#attendanceReferenceCsvBtn').onclick=()=>$('#attendanceReferenceCsvInput').click();$('#attendanceReferenceCsvInput').onchange=e=>{if(e.target.files[0])loadAttendanceReferenceCsv(e.target.files[0]);e.target.value=''};$('#attendanceDiagnosticClass').onchange=()=>{renderAttendanceReferenceSummary();renderAttendanceDiagnosticRows()};$('#diagnosticOnlyDifferences').onchange=renderAttendanceDiagnosticRows;$('#attendanceRecoveryFileBtn').onclick=()=>$('#attendanceRecoveryInput').click();$('#attendanceRecoveryInput').onchange=e=>{if(e.target.files[0])restoreAttendanceOnly(e.target.files[0]);e.target.value=''};$('#attendanceDate').onchange=renderAttendance;$('#printAttendanceReportBtn')?.addEventListener('click',printAttendanceReport);
-$('#addScheduleBtn').onclick=()=>openScheduleCreateModal(false);$('#scheduleSingleEditBtn').onclick=toggleScheduleEntryMode;$('#scheduleClearSelectionBtn').onclick=clearScheduleEntrySelection;$('#scheduleSaveDistributionBtn').onclick=saveScheduleDistribution;$('#scheduleNextClassBtn').onclick=nextScheduleEntryClass;$('#duplicateScheduleBtn').onclick=()=>openScheduleCreateModal(true);$('#activateScheduleBtn').onclick=setActiveTeacherSchedule;$('#archiveScheduleBtn').onclick=toggleArchiveTeacherSchedule;$('#newScheduleMode').onchange=scheduleCreateModeChanged;$('#newScheduleSemester').onchange=()=>{const cfg=scheduleTermConfig($('#newScheduleSemester').value);$('#newScheduleStart').value=cfg?.start||'';$('#newScheduleEnd').value=cfg?.end||''};$('#saveNewScheduleBtn').onclick=saveNewTeacherSchedule;$('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
+$('#addScheduleBtn').onclick=()=>openScheduleCreateModal(false);$('#scheduleCellEntryBtn').onclick=()=>setScheduleEntryMode('cell');$('#scheduleDistributionModeBtn').onclick=()=>setScheduleEntryMode('distribution');$('#scheduleSingleEditBtn').onclick=()=>setScheduleEntryMode('single');$('#scheduleClearSelectionBtn').onclick=clearScheduleEntrySelection;$('#scheduleSaveDistributionBtn').onclick=saveScheduleDistribution;$('#scheduleNextClassBtn').onclick=nextScheduleEntryClass;$('#duplicateScheduleBtn').onclick=()=>openScheduleCreateModal(true);$('#activateScheduleBtn').onclick=setActiveTeacherSchedule;$('#archiveScheduleBtn').onclick=toggleArchiveTeacherSchedule;$('#newScheduleMode').onchange=scheduleCreateModeChanged;$('#newScheduleSemester').onchange=()=>{const cfg=scheduleTermConfig($('#newScheduleSemester').value);$('#newScheduleStart').value=cfg?.start||'';$('#newScheduleEnd').value=cfg?.end||''};$('#saveNewScheduleBtn').onclick=saveNewTeacherSchedule;$('#scheduleCellPickerClose').onclick=closeScheduleCellPicker;$('#scheduleCellPickerClear').onclick=clearScheduleCell;$('#scheduleCellPickerDetails').onclick=()=>openScheduleCellDetails();$('#scheduleCellPickerStandby').onclick=()=>openScheduleCellDetails('standby');$('#addSupervisionBtn').onclick=()=>openSupervision();$('#printScheduleBtn').onclick=printTeacherSchedule;$('#saveScheduleSlotBtn').onclick=saveScheduleSlot;$('#saveSupervisionBtn').onclick=saveSupervision;$('#deleteSupervisionBtn').onclick=deleteSupervision;
 $('#reportPeriod').onchange=e=>{state.ui.reportPeriod=e.target.value;renderReports();queueSave()};
 $$('[data-report-open]').forEach(b=>b.onclick=()=>setReportTab(b.dataset.reportOpen));
 $$('[data-report-back]').forEach(b=>b.onclick=()=>showReportsHub());
