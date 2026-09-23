@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.7';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.12.8';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -971,12 +971,14 @@ function scheduleStateInfo(t){
 }
 function renderScheduleLibrary(){
   const tabs=$('#scheduleTabs'),status=$('#scheduleStatus'),t=currentTeacherSchedule();if(!tabs||!status||!t)return;
-  tabs.innerHTML=(state.teacherSchedules||[]).map(x=>{const st=scheduleStateInfo(x);return `<button class="schedule-tab ${x.id===t.id?'selected':''} ${st.kind}" data-schedule-select="${escapeHtml(x.id)}"><span>${escapeHtml(x.title||'جدول')}</span><small>${escapeHtml(st.label)}</small></button>`}).join('');
+  const list=state.teacherSchedules||[];
+  tabs.hidden=list.length<=1;
+  tabs.innerHTML=list.length>1?list.map(x=>{const st=scheduleStateInfo(x);return `<button class="schedule-tab ${x.id===t.id?'selected':''} ${st.kind}" data-schedule-select="${escapeHtml(x.id)}"><span>${escapeHtml(x.title||'جدول')}</span><small>${escapeHtml(st.label)}</small></button>`}).join(''):'';
   const overlap=schedulesOverlappingRange(t.startDate,t.endDate).filter(x=>x.id!==t.id);
   const st=scheduleStateInfo(t),range=`${t.startDate?formatDate(t.startDate):'بداية مفتوحة'} — ${t.endDate?formatDate(t.endDate):'نهاية مفتوحة'}`;
-  status.innerHTML=`<div><span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span><b>${escapeHtml(t.title||'جدول')}</b><small>${escapeHtml(t.semester||'')} · ${escapeHtml(range)}</small></div>${overlap.length?`<p class="schedule-overlap-note">يوجد تداخل في فترة السريان مع ${arabicNum(overlap.length)} جدول. عند التاريخ المتداخل يستخدم النظام الجدول ذو بداية السريان الأحدث.</p>`:''}`;
+  status.innerHTML=`<div class="schedule-current-main"><div class="schedule-current-title"><b>${escapeHtml(t.title||'جدول')}</b><span class="schedule-state-badge ${st.kind}">${escapeHtml(st.label)}</span></div><small>${escapeHtml(t.semester||'')} · ${escapeHtml(range)}</small></div>${overlap.length?`<p class="schedule-overlap-note">يوجد تداخل في فترة السريان مع ${arabicNum(overlap.length)} جدول. عند التاريخ المتداخل يستخدم النظام الجدول ذو بداية السريان الأحدث.</p>`:''}`;
   $$('[data-schedule-select]').forEach(b=>b.onclick=()=>selectTeacherSchedule(b.dataset.scheduleSelect));
-  const activate=$('#activateScheduleBtn'),archive=$('#archiveScheduleBtn'),del=$('#deleteScheduleBtn'),list=state.teacherSchedules||[];
+  const activate=$('#activateScheduleBtn'),archive=$('#archiveScheduleBtn'),del=$('#deleteScheduleBtn');
   if(activate){activate.disabled=t.id===state.activeScheduleId;activate.textContent=t.id===state.activeScheduleId?'✓ الجدول النشط':'✓ تعيين نشط'}
   if(archive){archive.textContent=t.archived?'إلغاء الأرشفة':'أرشفة';archive.disabled=!t.archived&&t.id===state.activeScheduleId&&list.filter(x=>!x.archived&&x.id!==t.id).length===0}
   if(del){
