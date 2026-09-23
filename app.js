@@ -826,8 +826,10 @@ function renderScheduleEntryControls(){
     const ma=a.match(/^(.*)-(\d+)$/),mb=b.match(/^(.*)-(\d+)$/);
     return SCHEDULE_DAYS.indexOf(ma?.[1])-SCHEDULE_DAYS.indexOf(mb?.[1])||Number(ma?.[2]||0)-Number(mb?.[2]||0)
   });
-  if(scheduleEntryMode!=='distribution'){
-    summary.innerHTML='<div class="schedule-entry-mode-note"><b>وضع التعديل الفردي</b><span>اضغط على أي خلية لفتح تفاصيلها أو إضافة انتظار.</span></div>'
+  if(scheduleEntryMode==='cell'){
+    summary.innerHTML='<div class="schedule-entry-mode-note"><b>الإدخال السريع</b><span>اضغط أي حصة ثم اختر المادة والفصل، وسيتم الحفظ مباشرة.</span></div>'
+  }else if(scheduleEntryMode==='single'){
+    summary.innerHTML='<div class="schedule-entry-mode-note"><b>التعديل المفصل</b><span>اضغط أي حصة لتعديل الوقت أو إضافة انتظار / احتياط.</span></div>'
   }else if(!c){
     summary.innerHTML='<div class="schedule-entry-mode-note"><b>اختر مادة وفصلًا</b><span>بعد الاختيار ستتمكن من تحديد الحصص من الشبكة.</span></div>'
   }else{
@@ -892,9 +894,15 @@ function openScheduleCellPicker(day,period){
     if(found){scheduleEntrySubject=found;state.ui.scheduleQuickSubject=found}
   }else scheduleEntrySubject=schedulePickerSubject();
   renderScheduleCellPicker();
-  const dlg=$('#scheduleCellPicker');if(dlg&&!dlg.open)dlg.showModal()
+  const sheet=$('#scheduleCellPicker');if(!sheet)return;
+  sheet.hidden=false;document.body.classList.add('schedule-picker-open');
+  requestAnimationFrame(()=>sheet.classList.add('visible'))
 }
-function closeScheduleCellPicker(){const dlg=$('#scheduleCellPicker');if(dlg?.open)dlg.close()}
+function closeScheduleCellPicker(){
+  const sheet=$('#scheduleCellPicker');if(!sheet)return;
+  sheet.classList.remove('visible');document.body.classList.remove('schedule-picker-open');
+  setTimeout(()=>{if(!sheet.classList.contains('visible'))sheet.hidden=true},160)
+}
 function assignScheduleCellClass(classId){
   const t=currentTeacherSchedule(),c=findClass(classId);if(!t||!c||!scheduleCellPickerDay||!scheduleCellPickerPeriod)return;
   const key=scheduleKey(scheduleCellPickerDay,scheduleCellPickerPeriod),pt=PERIOD_TIMES[scheduleCellPickerPeriod]||['',''];
