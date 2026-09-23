@@ -19,7 +19,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.12.6</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.12.7</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -160,7 +160,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.12.6</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.12.7</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -215,34 +215,51 @@
           <div class="view-actions no-print"><button class="btn primary" id="addScheduleBtn">＋ إضافة جدول</button><button class="btn" id="addSupervisionBtn">＋ مناوبة / إشراف</button><button class="btn" id="printScheduleBtn">⬇ حفظ PDF</button></div>
         </div>
 
-        <section class="schedule-library no-print">
-          <div class="schedule-library-head">
-            <div><p class="eyebrow">جداولي</p><h3>إدارة الجداول</h3></div>
-            <div class="schedule-library-actions">
-              <button class="btn tiny" id="duplicateScheduleBtn">⧉ نسخ الجدول</button>
-              <button class="btn tiny" id="activateScheduleBtn">✓ تعيين نشط</button>
-              <button class="btn tiny" id="archiveScheduleBtn">أرشفة</button>
-              <button class="btn tiny danger" id="deleteScheduleBtn">حذف الجدول</button>
+        <details class="schedule-library schedule-fold no-print" id="scheduleLibraryFold" data-schedule-fold="library" open>
+          <summary class="schedule-fold-summary">
+            <span><b>إدارة الجداول</b><small id="scheduleLibraryFoldMeta">الجدول الحالي وإجراءاته</small></span>
+            <i aria-hidden="true"></i>
+          </summary>
+          <div class="schedule-fold-body">
+            <div class="schedule-library-head">
+              <div><p class="eyebrow">جداولي</p><h3>إدارة الجداول</h3></div>
+              <div class="schedule-library-actions">
+                <button class="btn tiny" id="duplicateScheduleBtn">⧉ نسخ الجدول</button>
+                <button class="btn tiny" id="activateScheduleBtn">✓ تعيين نشط</button>
+                <button class="btn tiny" id="archiveScheduleBtn">أرشفة</button>
+                <button class="btn tiny danger" id="deleteScheduleBtn">حذف الجدول</button>
+              </div>
+            </div>
+            <div id="scheduleTabs" class="schedule-tabs"></div>
+            <div id="scheduleStatus" class="schedule-status"></div>
+          </div>
+        </details>
+
+        <details class="schedule-profile-summary schedule-fold no-print" id="scheduleProfileSummary" data-schedule-fold="profile" open>
+          <summary class="schedule-fold-summary">
+            <span><b>بيانات الجدول</b><small id="scheduleProfileFoldMeta">المعلم والمدرسة وفترة السريان</small></span>
+            <i aria-hidden="true"></i>
+          </summary>
+          <div class="schedule-fold-body">
+            <div class="schedule-profile-summary-head">
+              <div><p class="eyebrow">بيانات الجدول</p><h3 id="scheduleProfileTitle">الجدول الأساسي</h3></div>
+              <button class="btn tiny" data-nav="admin">تعديل من الإعدادات</button>
+            </div>
+            <div class="schedule-profile-grid">
+              <div><span>المعلم</span><b id="scheduleProfileTeacher">—</b></div>
+              <div><span>المدرسة</span><b id="scheduleProfileSchool">—</b></div>
+              <div><span>الفصل الدراسي</span><b id="scheduleProfileSemester">—</b></div>
+              <div><span>فترة السريان</span><b id="scheduleProfileValidity">—</b></div>
             </div>
           </div>
-          <div id="scheduleTabs" class="schedule-tabs"></div>
-          <div id="scheduleStatus" class="schedule-status"></div>
-        </section>
+        </details>
 
-        <section class="schedule-profile-summary no-print" id="scheduleProfileSummary">
-          <div class="schedule-profile-summary-head">
-            <div><p class="eyebrow">بيانات الجدول</p><h3 id="scheduleProfileTitle">الجدول الأساسي</h3></div>
-            <button class="btn tiny" data-nav="admin">تعديل من الإعدادات</button>
-          </div>
-          <div class="schedule-profile-grid">
-            <div><span>المعلم</span><b id="scheduleProfileTeacher">—</b></div>
-            <div><span>المدرسة</span><b id="scheduleProfileSchool">—</b></div>
-            <div><span>الفصل الدراسي</span><b id="scheduleProfileSemester">—</b></div>
-            <div><span>فترة السريان</span><b id="scheduleProfileValidity">—</b></div>
-          </div>
-        </section>
-
-        <section class="schedule-entry-panel no-print" id="scheduleEntryPanel">
+        <details class="schedule-entry-panel schedule-fold no-print" id="scheduleEntryPanel" data-schedule-fold="entry" open>
+          <summary class="schedule-fold-summary">
+            <span><b>إدخال الجدول</b><small id="scheduleEntryFoldMeta">الإدخال السريع مفعّل</small></span>
+            <i aria-hidden="true"></i>
+          </summary>
+          <div class="schedule-fold-body">
           <div class="schedule-entry-head">
             <div><p class="eyebrow">إدخال الجدول</p><h3>اختر طريقة الإدخال</h3><p class="subtle">الوضع الأسرع: اضغط أي حصة ثم اختر الفصل مباشرة.</p></div>
           </div>
@@ -283,7 +300,9 @@
               <button class="btn primary" id="scheduleSaveDistributionBtn">حفظ التوزيع</button>
             </div>
           </div>
-        </section>
+
+          </div>
+        </details>
 
         <div id="schedulePrintArea" class="schedule-print-area">
           <div id="schedulePrintHeader" class="schedule-print-header"></div>
@@ -421,7 +440,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.12.6</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.12.7</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
