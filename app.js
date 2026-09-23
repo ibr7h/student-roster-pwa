@@ -1,4 +1,4 @@
-const SCHEMA_VERSION=3;
+const SCHEMA_VERSION=4;
 const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.8.0';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
@@ -23,7 +23,8 @@ const ROSTER_HOLIDAYS=[
 const AR_DAY_BY_JS=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
 const makeTeacherSchedule=()=>({
-  teacherName:'ابراهيم بن حمود بن علي النعمي',school:'مدرسة ابو السلع الابتدائية والمتوسطة',title:'الجدول الأساسي 1',
+  id:uid(),teacherName:'ابراهيم بن حمود بن علي النعمي',school:'مدرسة ابو السلع الابتدائية والمتوسطة',title:'الجدول الأساسي 1',
+  semester:'الفصل الدراسي الأول',startDate:'2026-08-23',endDate:'2027-01-07',archived:false,
   slots:{
     'الأحد-4':{kind:'class',className:'2م د',subject:'الرقمية'},'الأحد-5':{kind:'standby',note:'منتظر 3'},'الأحد-6':{kind:'class',className:'3م ب',subject:'الرقمية'},'الأحد-7':{kind:'class',className:'2م ب',subject:'الرقمية'},
     'الاثنين-3':{kind:'standby',note:'منتظر 4'},'الاثنين-4':{kind:'class',className:'2م أ',subject:'الرقمية'},'الاثنين-5':{kind:'class',className:'2م ج',subject:'الرقمية'},'الاثنين-6':{kind:'class',className:'3م أ',subject:'الرقمية'},'الاثنين-7':{kind:'class',className:'3م ج',subject:'الرقمية'},
@@ -33,14 +34,16 @@ const makeTeacherSchedule=()=>({
   },
   supervision:[{id:uid(),day:'الثلاثاء',date:'10/10',start:'09:30',end:'09:55',title:'إشراف جديد',type:'إشراف',location:'البوابة الرئيسية، المقصف'}]
 });
+const initialTeacherSchedule=makeTeacherSchedule();
 let state={
   schemaVersion:SCHEMA_VERSION,
   appMeta:{school:'',region:'',year:'١٤٤٨ هـ',semester:'الفصل الدراسي الأول',teacher:'',principal:''},
   settings:{gradeAlertThreshold:60,absenceAlertThreshold:3,excludeExamWeek:true},
   classes:[makeClass('١ / أ','الأول المتوسط','المهارات الرقمية',seedStudents.map(makeStudent)),makeClass('١ / ب','الأول المتوسط','المهارات الرقمية',[])],
   activeClassId:null,
-  ui:{activeView:'dashboard',dismissedInstall:false,assessmentMonth:'all',reportPeriod:'all'},
-  teacherSchedule:makeTeacherSchedule()
+  activeScheduleId:initialTeacherSchedule.id,
+  teacherSchedules:[initialTeacherSchedule],
+  ui:{activeView:'dashboard',dismissedInstall:false,assessmentMonth:'all',reportPeriod:'all',scheduleId:initialTeacherSchedule.id}
 };
 state.activeClassId=state.classes[0].id;
 let saveTimer=null,openStudentId=null,editingAssessmentId=null,searchTerm='',reportStudentSearchTerm='';
@@ -56,6 +59,39 @@ function ensureStudent(s){s.grades ||= {};s.attendance ||= {};s.notes ||= '';ret
 function ensureAssessment(a){a.id ||= uid();a.title ||= 'تقييم';a.type ||= 'other';a.date ||= '';a.maxScore=Math.max(.5,Number(a.maxScore||a.max||10));a.note ||= '';return a}
 function ensureClass(c){c.grade ||= 'الأول المتوسط';c.subject ||= 'المهارات الرقمية';c.weeklySessions=Number(c.weeklySessions||(/الرقمية|الحاسب/i.test(c.subject)?2:1));c.students ||= [];c.students.forEach(ensureStudent);c.assessmentEvents ||= [];c.assessmentEvents.forEach(ensureAssessment);if(!c.selectedAssessmentId||!c.assessmentEvents.some(a=>a.id===c.selectedAssessmentId))c.selectedAssessmentId=c.assessmentEvents[0]?.id||null;return c}
 
+function scheduleTermConfig(semester=''){
+  const key=/الثاني/.test(String(semester))?'2':'1';
+  return ROSTER_ACADEMIC_TERMS[key]||ROSTER_ACADEMIC_TERMS['1']
+}
+function ensureTeacherSchedule(t,appMeta=null){
+  t ||= {};
+  const semester=t.semester||appMeta?.semester||'الفصل الدراسي الأول',cfg=scheduleTermConfig(semester);
+  t.id ||= uid();t.title ||= 'جدول المعلم';t.teacherName ||= appMeta?.teacher||'ابراهيم بن حمود بن علي النعمي';t.school ||= appMeta?.school||'مدرسة ابو السلع الابتدائية والمتوسطة';
+  t.semester=semester;t.startDate ||= cfg?.start||'';t.endDate ||= cfg?.end||'';t.archived=!!t.archived;t.slots ||= {};t.supervision ||= [];
+  return t
+}
+function currentTeacherSchedule(){
+  const list=state.teacherSchedules||[];
+  const selected=list.find(x=>x.id===state.ui?.scheduleId),active=list.find(x=>x.id===state.activeScheduleId);
+  return selected||active||list[0]||null
+}
+function activeTeacherSchedule(){return (state.teacherSchedules||[]).find(x=>x.id===state.activeScheduleId)||currentTeacherSchedule()}
+function scheduleForDate(date=''){
+  const list=(state.teacherSchedules||[]).filter(Boolean);
+  if(!date)return activeTeacherSchedule();
+  const matches=list.filter(t=>(!t.startDate||date>=t.startDate)&&(!t.endDate||date<=t.endDate));
+  if(matches.length){
+    return matches.sort((a,b)=>String(b.startDate||'').localeCompare(String(a.startDate||''))||(b.id===state.activeScheduleId?1:0)-(a.id===state.activeScheduleId?1:0))[0]
+  }
+  return activeTeacherSchedule()||list[0]||null
+}
+function schedulesOverlappingRange(start,end){
+  return (state.teacherSchedules||[]).filter(t=>{
+    const a=t.startDate||'0000-01-01',b=t.endDate||'9999-12-31';
+    return (!end||a<=end)&&(!start||b>=start)
+  })
+}
+
 function legacyType(field){const n=(field.name||'').toLowerCase();if(/واجب/.test(n))return'homework';if(/مشارك/.test(n))return'participation';if(/اختبار/.test(n))return'quiz';if(/مشروع|بحث/.test(n))return'project';if(/عملي|تطبيق/.test(n))return'practical';return'legacy'}
 function migrate(input){
   if(!input||!Array.isArray(input.classes))return null;
@@ -64,7 +100,12 @@ function migrate(input){
   x.appMeta.school ||= '';x.appMeta.region ||= '';
   x.settings ||= {gradeAlertThreshold:60,absenceAlertThreshold:3};
   x.settings.gradeAlertThreshold=Number(x.settings.gradeAlertThreshold??60);x.settings.absenceAlertThreshold=Number(x.settings.absenceAlertThreshold??3);x.settings.excludeExamWeek=x.settings.excludeExamWeek!==false;
-  x.teacherSchedule ||= makeTeacherSchedule();x.teacherSchedule.slots ||= {};x.teacherSchedule.supervision ||= [];x.teacherSchedule.teacherName ||= 'ابراهيم بن حمود بن علي النعمي';x.teacherSchedule.school ||= 'مدرسة ابو السلع الابتدائية والمتوسطة';x.teacherSchedule.title ||= 'الجدول الأساسي 1';if(!x.appMeta.teacher)x.appMeta.teacher=x.teacherSchedule.teacherName;if(!x.appMeta.school)x.appMeta.school=x.teacherSchedule.school;
+  if(!Array.isArray(x.teacherSchedules)||!x.teacherSchedules.length){
+    const legacy=x.teacherSchedule?clone(x.teacherSchedule):makeTeacherSchedule();
+    x.teacherSchedules=[ensureTeacherSchedule(legacy,x.appMeta)]
+  }else x.teacherSchedules=x.teacherSchedules.map(t=>ensureTeacherSchedule(t,x.appMeta));
+  x.activeScheduleId=x.teacherSchedules.some(t=>t.id===x.activeScheduleId)?x.activeScheduleId:(x.teacherSchedules.find(t=>!t.archived)?.id||x.teacherSchedules[0]?.id);
+  if(!x.appMeta.teacher)x.appMeta.teacher=x.teacherSchedules[0]?.teacherName||'';if(!x.appMeta.school)x.appMeta.school=x.teacherSchedules[0]?.school||'';
   const oldFields=Array.isArray(x.fields)?x.fields:[];
   x.classes.forEach(c=>{
     c.grade ||= x.meta?.grade||'الأول المتوسط';c.subject ||= x.meta?.subject||'المهارات الرقمية';c.students ||= [];
@@ -84,7 +125,8 @@ function migrate(input){
   });
   x.activeClassId=x.classes.some(c=>c.id===x.activeClassId)?x.activeClassId:x.classes[0]?.id;
   x.ui ||= {};x.ui.activeView=x.ui.activeView==='followup'?'assessments':(x.ui.activeView||'dashboard');x.ui.dismissedInstall=!!x.ui.dismissedInstall;x.ui.assessmentMonth ||= 'all';x.ui.reportPeriod ||= 'all';x.ui.reportTab ||= 'class';
-  x.schemaVersion=SCHEMA_VERSION;delete x.fields;delete x.meta;
+  x.ui.scheduleId=x.teacherSchedules.some(t=>t.id===x.ui.scheduleId)?x.ui.scheduleId:x.activeScheduleId;
+  x.schemaVersion=SCHEMA_VERSION;delete x.fields;delete x.meta;delete x.teacherSchedule;
   return x;
 }
 
