@@ -1,5 +1,5 @@
-const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.15.0';
+const SCHEMA_VERSION=5;
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.16.0';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -9,7 +9,7 @@ const clone=x=>typeof structuredClone==='function'?structuredClone(x):JSON.parse
 const seedStudents=['أحمد محمد علي','خالد حسن إبراهيم','سلمان عبدالله يحيى','زيد هادي أحمد'];
 const TYPE_LABELS={homework:'واجب',participation:'مشاركة',quiz:'اختبار قصير',project:'مشروع',practical:'تطبيق عملي',exam:'اختبار',other:'أخرى',legacy:'مرحّل'};
 const makeStudent=name=>({id:uid(),name,grades:{},attendance:{},notes:''});
-const makeClass=(name='١ / أ',grade='الأول المتوسط',subject='المهارات الرقمية',students=[])=>({id:uid(),name,grade,subject,students,assessmentEvents:[],selectedAssessmentId:null});
+const makeClass=(name='١ / أ',grade='الأول المتوسط',subject='المهارات الرقمية',students=[])=>({id:uid(),name,grade,subject,students,assessmentEvents:[],behaviorRecords:[],selectedAssessmentId:null});
 const SCHEDULE_DAYS=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
 const PERIOD_TIMES={1:['07:00','07:45'],2:['07:45','08:30'],3:['08:45','09:30'],4:['09:45','10:30'],5:['10:30','11:15'],6:['11:15','12:00'],7:['12:00','12:30']};
 const ROSTER_ACADEMIC_TERMS={
@@ -59,7 +59,7 @@ function findStudentClass(id){return state.classes.find(c=>c.students.some(s=>s.
 function findAssessment(id,c=currentClass()){return c?.assessmentEvents?.find(a=>a.id===id)}
 function ensureStudent(s){s.grades ||= {};s.attendance ||= {};s.notes ||= '';return s}
 function ensureAssessment(a){a.id ||= uid();a.title ||= 'تقييم';a.type ||= 'other';a.date ||= '';a.maxScore=Math.max(.5,Number(a.maxScore||a.max||10));a.note ||= '';return a}
-function ensureClass(c){c.grade ||= 'الأول المتوسط';c.subject ||= 'المهارات الرقمية';c.weeklySessions=Number(c.weeklySessions||(/الرقمية|الحاسب/i.test(c.subject)?2:1));c.students ||= [];c.students.forEach(ensureStudent);c.assessmentEvents ||= [];c.assessmentEvents.forEach(ensureAssessment);if(!c.selectedAssessmentId||!c.assessmentEvents.some(a=>a.id===c.selectedAssessmentId))c.selectedAssessmentId=c.assessmentEvents[0]?.id||null;return c}
+function ensureClass(c){c.grade ||= 'الأول المتوسط';c.subject ||= 'المهارات الرقمية';c.weeklySessions=Number(c.weeklySessions||(/الرقمية|الحاسب/i.test(c.subject)?2:1));c.students ||= [];c.students.forEach(ensureStudent);c.assessmentEvents ||= [];c.assessmentEvents.forEach(ensureAssessment);c.behaviorRecords ||= [];if(!c.selectedAssessmentId||!c.assessmentEvents.some(a=>a.id===c.selectedAssessmentId))c.selectedAssessmentId=c.assessmentEvents[0]?.id||null;return c}
 
 function scheduleTermConfig(semester=''){
   const key=/الثاني/.test(String(semester))?'2':'1';
@@ -427,13 +427,14 @@ function classAttendanceForDate(c,date){const out={present:0,absent:0,late:0,exc
 function riskForStudent(s,c,period='all'){const sc=scoreSummary(s,c,period),at=attendanceCounts(s,period),reasons=[];if(sc.performance!==null&&sc.performance<state.settings.gradeAlertThreshold)reasons.push(`المستوى ${pct(sc.performance)}`);if(at.absent>=state.settings.absenceAlertThreshold)reasons.push(`${arabicNum(at.absent)} غياب`);return {isRisk:reasons.length>0,reasons,score:sc,attendance:at}}
 function monthsForClass(c){const set=new Set();(c.assessmentEvents||[]).forEach(a=>{const m=monthKey(a.date);if(m)set.add(m)});c.students.forEach(s=>Object.keys(s.attendance||{}).forEach(d=>{const m=monthKey(d);if(m)set.add(m)}));return [...set].sort().reverse()}
 
-function renderAll(){renderAppMeta();renderClassBars();renderDashboard();renderAssessments();renderAttendance();renderSchedule();renderReports();renderInstallNote();renderDiagnosticClassOptions()}
+function renderAll(){renderAppMeta();renderClassBars();renderDashboard();renderAssessments();renderBehavior();renderAttendance();renderSchedule();renderReports();renderInstallNote();renderDiagnosticClassOptions()}
 function showView(name,saveUi=true){
-  if(!['dashboard','admin','assessments','attendance','schedule','reports'].includes(name))name='dashboard';
+  if(!['dashboard','admin','assessments','behavior','attendance','schedule','reports'].includes(name))name='dashboard';
   state.ui.activeView=name;
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
   $$('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
   if(name==='assessments')renderAssessments();
+  if(name==='behavior')renderBehavior();
   if(name==='attendance')renderAttendance();
   if(name==='schedule')renderSchedule();
   if(name==='reports'){renderReports();showReportsHub(false)}
@@ -472,7 +473,7 @@ function setActiveClass(id){
 
 function renderAppMeta(){$$('[data-app-meta]').forEach(inp=>{const k=inp.dataset.appMeta;if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';inp.oninput=()=>{state.appMeta[k]=inp.value;if(k==='teacher'||k==='school'){(state.teacherSchedules||[]).forEach(t=>{if(k==='teacher')t.teacherName=inp.value;else t.school=inp.value});renderScheduleHeader()}queueSave()}})}
 function classChipMarkup(c){return `<button class="chip ${c.id===state.activeClassId?'active':''}" data-class-switch="${c.id}">${escapeHtml(c.grade)} · ${escapeHtml(c.name)}</button>`}
-function renderClassBars(){['#assessmentClassbar','#attendanceClassbar','#reportsClassbar'].forEach(sel=>{const b=$(sel);if(!b)return;b.innerHTML=state.classes.map(classChipMarkup).join('')+`<button class="chip add" data-open-classes>＋ فصل</button>`});$$('[data-class-switch]').forEach(x=>x.onclick=()=>setActiveClass(x.dataset.classSwitch));$$('[data-open-classes]').forEach(x=>x.onclick=openClasses)}
+function renderClassBars(){['#assessmentClassbar','#behaviorClassbar','#attendanceClassbar','#reportsClassbar'].forEach(sel=>{const b=$(sel);if(!b)return;b.innerHTML=state.classes.map(classChipMarkup).join('')+`<button class="chip add" data-open-classes>＋ فصل</button>`});$$('[data-class-switch]').forEach(x=>x.onclick=()=>setActiveClass(x.dataset.classSwitch));$$('[data-open-classes]').forEach(x=>x.onclick=openClasses)}
 
 function schoolDateArabic(d=new Date()){
   try{return new Intl.DateTimeFormat('ar-SA-u-ca-gregory',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(d)}catch{return d.toLocaleDateString('ar-SA')}
@@ -647,7 +648,7 @@ function renderDashboard(){
   const students=allStudents(),today=localDateISO(),absentToday=students.filter(s=>s.attendance?.[today]==='absent').length;
   let riskCount=0;state.classes.forEach(c=>c.students.forEach(s=>{if(riskForStudent(s,c,'all').isRisk)riskCount++}));
   $('#dashboardKpis').innerHTML=`<div class="kpi"><span class="kpi-icon">👥</span><b>${arabicNum(students.length)}</b><span>إجمالي الطلاب</span></div><div class="kpi"><span class="kpi-icon">✓</span><b>${arabicNum(allAssessmentCount())}</b><span>التقييمات المسجلة</span></div><div class="kpi bad"><span class="kpi-icon">○</span><b>${arabicNum(absentToday)}</b><span>غياب اليوم</span></div><div class="kpi warn"><span class="kpi-icon">!</span><b>${arabicNum(riskCount)}</b><span>يحتاجون متابعة</span></div>`;
-  $('#classCards').innerHTML=state.classes.length?state.classes.map(c=>{const a=classAttendanceForDate(c,today),risks=c.students.filter(s=>riskForStudent(s,c,'all').isRisk).length;return `<article class="class-card"><div class="class-card-head"><div><h3>${escapeHtml(c.name)}</h3><div class="class-sub">${escapeHtml(c.grade)} · ${escapeHtml(c.subject)}</div></div><span class="count-badge">${arabicNum(c.students.length)} طالب</span></div><div class="class-card-metrics"><div class="mini-metric"><b>${arabicNum(c.assessmentEvents.length)}</b><span>تقييم</span></div><div class="mini-metric"><b>${arabicNum(a.absent)}</b><span>غائب اليوم</span></div><div class="mini-metric ${risks?'risk-text':''}"><b>${arabicNum(risks)}</b><span>متابعة</span></div></div><div class="class-card-actions"><button class="btn primary" data-open-class="${c.id}" data-target="assessments">التقييمات</button><button class="btn" data-open-class="${c.id}" data-target="attendance">الحضور</button><button class="btn" data-open-class="${c.id}" data-target="reports">التقارير</button></div></article>`}).join(''):`<div class="empty-state"><b>لا توجد فصول</b>أضف فصلًا لبدء السجل.</div>`;
+  $('#classCards').innerHTML=state.classes.length?state.classes.map(c=>{const a=classAttendanceForDate(c,today),risks=c.students.filter(s=>riskForStudent(s,c,'all').isRisk).length;return `<article class="class-card"><div class="class-card-head"><div><h3>${escapeHtml(c.name)}</h3><div class="class-sub">${escapeHtml(c.grade)} · ${escapeHtml(c.subject)}</div></div><span class="count-badge">${arabicNum(c.students.length)} طالب</span></div><div class="class-card-metrics"><div class="mini-metric"><b>${arabicNum(c.assessmentEvents.length)}</b><span>تقييم</span></div><div class="mini-metric"><b>${arabicNum(a.absent)}</b><span>غائب اليوم</span></div><div class="mini-metric ${risks?'risk-text':''}"><b>${arabicNum(risks)}</b><span>متابعة</span></div></div><div class="class-card-actions four-actions"><button class="btn primary" data-open-class="${c.id}" data-target="assessments">التقييمات</button><button class="btn" data-open-class="${c.id}" data-target="attendance">الحضور</button><button class="btn behavior-action" data-open-class="${c.id}" data-target="behavior">السلوك</button><button class="btn" data-open-class="${c.id}" data-target="reports">التقارير</button></div></article>`}).join(''):`<div class="empty-state"><b>لا توجد فصول</b>أضف فصلًا لبدء السجل.</div>`;
   $$('[data-open-class]').forEach(b=>b.onclick=()=>{setActiveClass(b.dataset.openClass);showView(b.dataset.target)})
 }
 
@@ -1935,5 +1936,5 @@ try{
   if(printMq?.addEventListener)printMq.addEventListener('change',onPrintMediaChange);else if(printMq?.addListener)printMq.addListener(onPrintMediaChange)
 }catch{}
 $('#checkUpdateBtn')?.addEventListener('click',()=>checkForAppUpdate({manual:true}));
-load().then(()=>startSchoolDayTicker());
+load().then(()=>{startSchoolDayTicker();initBehaviorModule()});
 initAppUpdater();
