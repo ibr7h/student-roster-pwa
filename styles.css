@@ -883,3 +883,130 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
 @media screen and (max-width:390px){
   #view-schedule .schedule-action-grid .btn{min-height:44px;font-size:9px}
 }
+
+
+.school-day-panel{
+  overflow:hidden;
+  padding:0;
+  border:0;
+  background:linear-gradient(135deg,#123f62 0%,#155f7e 58%,#176c79 100%);
+  color:#fff;
+  box-shadow:0 18px 42px rgba(18,63,98,.22);
+}
+.school-day-top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 150px;
+  gap:16px;
+  align-items:stretch;
+  padding:20px 20px 16px;
+}
+.school-day-date-block{min-width:0}
+.school-day-kicker{margin:0 0 4px;font-size:11px;font-weight:900;color:#bfe7f2;letter-spacing:.04em}
+.school-day-date-block h1{margin:0;font-size:clamp(22px,4vw,32px);line-height:1.25;color:#fff}
+.school-date-english{margin:5px 0 0;font-size:13px;font-weight:700;color:#d7edf4;text-align:right}
+.school-day-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.school-day-meta>span{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:5px 9px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  font-size:10px;
+  font-weight:800;
+}
+.school-live-clock{font-variant-numeric:tabular-nums}
+.school-week-block{
+  display:grid;
+  place-items:center;
+  align-content:center;
+  text-align:center;
+  min-height:118px;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:18px;
+  background:linear-gradient(145deg,#6f50c9,#5142a8);
+  box-shadow:0 10px 26px rgba(46,35,110,.25);
+}
+.school-week-block span{font-size:10px;font-weight:800;color:#e8e1ff}
+.school-week-block b{font-size:44px;line-height:1.05;margin:5px 0 2px}
+.school-week-block small{font-size:8.5px;color:#dfd9ff}
+.school-period-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+  gap:10px;
+  padding:0 14px 14px;
+}
+.school-period-card{
+  min-width:0;
+  border-radius:17px;
+  padding:14px;
+  color:#fff;
+  box-shadow:0 9px 24px rgba(8,32,48,.14);
+}
+.school-period-card.current{background:linear-gradient(135deg,#087f78,#0b9a83)}
+.school-period-card.next{background:linear-gradient(135deg,#d87a0b,#e99a18)}
+.school-period-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.school-period-card-head>span{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:900;color:rgba(255,255,255,.88)}
+.school-period-card-head>b{padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.17);font-size:9.5px;white-space:nowrap}
+.school-live-dot{width:8px;height:8px;border-radius:50%;background:#bdfaed;box-shadow:0 0 0 4px rgba(189,250,237,.14)}
+.school-period-card h2{margin:0;font-size:19px;line-height:1.3;color:#fff}
+.school-period-card p{margin:4px 0 11px;font-size:11px;color:rgba(255,255,255,.88);line-height:1.45}
+.school-period-time-row{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:10px;color:rgba(255,255,255,.9)}
+.school-period-time-row strong{font-size:11px;color:#fff}
+.school-period-progress{height:6px;margin-top:10px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden}
+.school-period-progress i{display:block;height:100%;width:0;border-radius:inherit;background:#d8fff7;transition:width .35s ease}
+.school-day-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid rgba(255,255,255,.13);
+  background:rgba(5,35,53,.18);
+}
+.school-day-footer>span{font-size:9.5px;color:#d8ebf2;line-height:1.45}
+.school-alert-btn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:11px;
+  min-height:38px;
+  padding:7px 10px;
+  background:#fff;
+  color:#154d69;
+  font:inherit;
+  font-size:9px;
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.school-alert-btn.enabled{background:#d9fff1;color:#08684e;border-color:#9be6ca}
+.school-alert-btn:disabled{opacity:.65;cursor:default}
+@media(max-width:680px){
+  #view-dashboard .school-day-panel{border-radius:16px}
+  .school-day-top{grid-template-columns:minmax(0,1fr) 112px;gap:10px;padding:15px 14px 12px}
+  .school-day-date-block h1{font-size:20px}
+  .school-date-english{font-size:11px;text-align:left}
+  .school-day-meta{margin-top:8px;gap:5px}
+  .school-day-meta>span{font-size:8.5px;min-height:27px;padding:4px 7px}
+  .school-week-block{min-height:102px;border-radius:15px}
+  .school-week-block span{font-size:8.5px}
+  .school-week-block b{font-size:38px}
+  .school-week-block small{font-size:7.5px}
+  .school-period-grid{grid-template-columns:1fr 1fr;gap:7px;padding:0 9px 9px}
+  .school-period-card{padding:11px 10px;border-radius:14px}
+  .school-period-card-head{margin-bottom:8px}
+  .school-period-card-head>span{font-size:8.5px}
+  .school-period-card-head>b{font-size:8px;padding:3px 6px}
+  .school-period-card h2{font-size:15px}
+  .school-period-card p{font-size:9px;margin:3px 0 9px}
+  .school-period-time-row{display:grid;gap:2px;font-size:8.5px}
+  .school-period-time-row strong{font-size:9px}
+  .school-day-footer{align-items:stretch;padding:9px}
+  .school-day-footer>span{display:none}
+  .school-alert-btn{width:100%;min-height:42px;font-size:9px}
+}
+@media(max-width:360px){
+  .school-day-top{grid-template-columns:1fr 96px}
+  .school-period-grid{grid-template-columns:1fr}
+}

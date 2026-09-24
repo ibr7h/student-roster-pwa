@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=4;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.13.1';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.14.0';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -38,7 +38,7 @@ const initialTeacherSchedule=makeTeacherSchedule();
 let state={
   schemaVersion:SCHEMA_VERSION,
   appMeta:{school:'',region:'',year:'١٤٤٨ هـ',semester:'الفصل الدراسي الأول',teacher:'',principal:''},
-  settings:{gradeAlertThreshold:60,absenceAlertThreshold:3,excludeExamWeek:true},
+  settings:{gradeAlertThreshold:60,absenceAlertThreshold:3,excludeExamWeek:true,schoolPeriodAlerts:false},
   classes:[makeClass('١ / أ','الأول المتوسط','المهارات الرقمية',seedStudents.map(makeStudent)),makeClass('١ / ب','الأول المتوسط','المهارات الرقمية',[])],
   activeClassId:null,
   activeScheduleId:initialTeacherSchedule.id,
@@ -47,6 +47,8 @@ let state={
 };
 state.activeClassId=state.classes[0].id;
 let saveTimer=null,openStudentId=null,editingAssessmentId=null,searchTerm='',reportStudentSearchTerm='';
+let schoolDayTimer=null;
+const SCHOOL_ALERT_STORAGE='student-roster-period-alerts';
 
 function localDateISO(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function monthKey(date){return /^\d{4}-\d{2}/.test(date||'')?String(date).slice(0,7):''}
@@ -99,7 +101,7 @@ function migrate(input){
   x.appMeta ||= {school:'',region:'',year:x.meta?.year||'١٤٤٨ هـ',semester:x.meta?.semester||'الفصل الدراسي الأول',teacher:x.meta?.teacher||'',principal:x.meta?.principal||''};
   x.appMeta.school ||= '';x.appMeta.region ||= '';
   x.settings ||= {gradeAlertThreshold:60,absenceAlertThreshold:3};
-  x.settings.gradeAlertThreshold=Number(x.settings.gradeAlertThreshold??60);x.settings.absenceAlertThreshold=Number(x.settings.absenceAlertThreshold??3);x.settings.excludeExamWeek=x.settings.excludeExamWeek!==false;
+  x.settings.gradeAlertThreshold=Number(x.settings.gradeAlertThreshold??60);x.settings.absenceAlertThreshold=Number(x.settings.absenceAlertThreshold??3);x.settings.excludeExamWeek=x.settings.excludeExamWeek!==false;x.settings.schoolPeriodAlerts=x.settings.schoolPeriodAlerts===true;
   if(!Array.isArray(x.teacherSchedules)||!x.teacherSchedules.length){
     const legacy=x.teacherSchedule?clone(x.teacherSchedule):makeTeacherSchedule();
     x.teacherSchedules=[ensureTeacherSchedule(legacy,x.appMeta)]
@@ -472,7 +474,176 @@ function renderAppMeta(){$$('[data-app-meta]').forEach(inp=>{const k=inp.dataset
 function classChipMarkup(c){return `<button class="chip ${c.id===state.activeClassId?'active':''}" data-class-switch="${c.id}">${escapeHtml(c.grade)} · ${escapeHtml(c.name)}</button>`}
 function renderClassBars(){['#assessmentClassbar','#attendanceClassbar','#reportsClassbar'].forEach(sel=>{const b=$(sel);if(!b)return;b.innerHTML=state.classes.map(classChipMarkup).join('')+`<button class="chip add" data-open-classes>＋ فصل</button>`});$$('[data-class-switch]').forEach(x=>x.onclick=()=>setActiveClass(x.dataset.classSwitch));$$('[data-open-classes]').forEach(x=>x.onclick=openClasses)}
 
+function schoolDateArabic(d=new Date()){
+  try{return new Intl.DateTimeFormat('ar-SA-u-ca-gregory',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(d)}catch{return d.toLocaleDateString('ar-SA')}
+}
+function schoolDateEnglish(d=new Date()){
+  try{return new Intl.DateTimeFormat('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(d)}catch{return d.toLocaleDateString('en-GB')}
+}
+function schoolHijriDate(d=new Date()){
+  try{return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{year:'numeric',month:'long',day:'numeric'}).format(d)}catch{return 'التاريخ الهجري غير متاح'}
+}
+function schoolClock(d=new Date()){
+  try{return new Intl.DateTimeFormat('ar-SA',{hour:'2-digit',minute:'2-digit'}).format(d)}catch{return d.toLocaleTimeString()}
+}
+function timeToMinutes(v=''){
+  const m=String(v).match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):null
+}
+function schoolWeekForDate(d,schedule){
+  const cfg=scheduleTermConfig(schedule?.semester||state.appMeta.semester||''),startText=schedule?.startDate||cfg?.start||'',endText=schedule?.endDate||cfg?.end||'';
+  if(!startText)return {number:null,status:'لم تُحدد بداية الفصل'};
+  const date=new Date(d.getFullYear(),d.getMonth(),d.getDate()),startRaw=new Date(startText+'T12:00:00');
+  if(Number.isNaN(startRaw.getTime()))return {number:null,status:'بداية الفصل غير صالحة'};
+  if(localDateISO(d)<startText)return {number:null,status:'لم يبدأ الفصل بعد'};
+  if(endText&&localDateISO(d)>endText)return {number:null,status:'انتهت فترة سريان الجدول'};
+  const sunday=x=>{const y=new Date(x.getFullYear(),x.getMonth(),x.getDate());y.setDate(y.getDate()-y.getDay());return y};
+  const number=Math.floor((sunday(date)-sunday(startRaw))/(7*86400000))+1;
+  return {number:Math.max(1,number),status:'حسب بداية الفصل'}
+}
+function schoolSlotText(slot){
+  if(!slot)return {title:'لا توجد حصة مسجلة',detail:'وقت متاح في جدولك'};
+  if(slot.kind==='standby')return {title:'انتظار / احتياط',detail:slot.note||'حصة انتظار'};
+  return {title:slot.subject||'حصة دراسية',detail:slot.className||'الفصل غير محدد'}
+}
+function schoolMinutesText(minutes,prefix='متبقي'){
+  if(!Number.isFinite(minutes))return '—';
+  if(minutes<=0)return 'الآن';
+  if(minutes<1)return prefix+' أقل من دقيقة';
+  return prefix+' '+arabicNum(Math.ceil(minutes))+' د';
+}
+function schoolDaySnapshot(now=new Date()){
+  const date=localDateISO(now),day=AR_DAY_BY_JS[now.getDay()],schedule=scheduleForDate(date),week=schoolWeekForDate(now,schedule);
+  const minute=now.getHours()*60+now.getMinutes()+now.getSeconds()/60;
+  const periods=Object.entries(PERIOD_TIMES).map(([period,times])=>{
+    const start=timeToMinutes(times[0]),end=timeToMinutes(times[1]);
+    return {period:Number(period),start,end,startText:times[0],endText:times[1],slot:schedule?.slots?.[scheduleKey(day,Number(period))]||null}
+  }).filter(x=>Number.isFinite(x.start)&&Number.isFinite(x.end));
+  const current=periods.find(x=>minute>=x.start&&minute<x.end)||null;
+  const next=periods.find(x=>x.start>minute&&x.slot)||null;
+  const first=periods[0],last=periods[periods.length-1],isSchoolDay=SCHEDULE_DAYS.includes(day);
+  let phase='between';
+  if(!isSchoolDay)phase='weekend';
+  else if(first&&minute<first.start)phase='before';
+  else if(last&&minute>=last.end)phase='after';
+  else if(current)phase='period';
+  const currentText=schoolSlotText(current?.slot);
+  const nextText=schoolSlotText(next?.slot);
+  const progress=current?Math.max(0,Math.min(100,(minute-current.start)/(current.end-current.start)*100)):0;
+  return {now,date,day,schedule,week,minute,periods,current,next,currentText,nextText,phase,progress}
+}
+function schoolAlertMarks(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(SCHOOL_ALERT_STORAGE)||'[]');
+    const today=localDateISO();return new Set(Array.isArray(raw)?raw.filter(x=>String(x).startsWith(today+'|')):[])
+  }catch{return new Set()}
+}
+function saveSchoolAlertMarks(set){
+  try{localStorage.setItem(SCHOOL_ALERT_STORAGE,JSON.stringify([...set]))}catch{}
+}
+async function showSchoolNotification(title,body,tag){
+  if(!('Notification'in window)||Notification.permission!=='granted')return false;
+  try{
+    const reg=await navigator.serviceWorker?.getRegistration();
+    if(reg){await reg.showNotification(title,{body,icon:'./icons/icon-192.png',badge:'./icons/icon-192.png',tag,data:{url:'./?view=schedule'}});return true}
+  }catch{}
+  return false
+}
+async function checkSchoolPeriodAlerts(snapshot=schoolDaySnapshot()){
+  if(!state.settings.schoolPeriodAlerts||!snapshot.schedule||!SCHEDULE_DAYS.includes(snapshot.day))return;
+  if(!('Notification'in window)||Notification.permission!=='granted')return;
+  const now=snapshot.minute,marks=schoolAlertMarks();
+  for(const p of snapshot.periods){
+    if(!p.slot)continue;
+    const desc=schoolSlotText(p.slot),startKey=`${snapshot.date}|start|${p.period}`,endKey=`${snapshot.date}|end5|${p.period}`;
+    if(now>=p.start&&now<p.start+1&&!marks.has(startKey)){
+      marks.add(startKey);saveSchoolAlertMarks(marks);
+      toast(`بدأت الحصة ${arabicNum(p.period)} — ${desc.title}`);
+      await showSchoolNotification(`بدأت الحصة ${arabicNum(p.period)}`,`${desc.title} · ${desc.detail}`,startKey)
+    }
+    const five=p.end-5;
+    if(now>=five&&now<five+1&&!marks.has(endKey)){
+      marks.add(endKey);saveSchoolAlertMarks(marks);
+      toast(`باقي ٥ دقائق على نهاية الحصة ${arabicNum(p.period)}`);
+      await showSchoolNotification('باقي ٥ دقائق على نهاية الحصة',`الحصة ${arabicNum(p.period)} · ${desc.title}`,endKey)
+    }
+  }
+}
+function renderSchoolAlertButton(){
+  const b=$('#schoolAlertBtn');if(!b)return;
+  if(!('Notification'in window)||!('serviceWorker'in navigator)){
+    b.textContent='التنبيهات غير مدعومة';b.disabled=true;b.classList.remove('enabled');return
+  }
+  b.disabled=false;
+  if(Notification.permission==='denied'){
+    b.textContent='🔕 التنبيهات محظورة من النظام';b.classList.remove('enabled');return
+  }
+  const enabled=state.settings.schoolPeriodAlerts&&Notification.permission==='granted';
+  b.textContent=enabled?'🔔 تنبيهات الحصص مفعّلة':'🔔 تفعيل تنبيهات الحصص';
+  b.classList.toggle('enabled',enabled)
+}
+async function toggleSchoolAlerts(){
+  if(!('Notification'in window)||!('serviceWorker'in navigator)){toast('التنبيهات غير مدعومة على هذا الجهاز');return}
+  if(Notification.permission==='denied'){toast('اسمح بالتنبيهات من إعدادات النظام أولًا');return}
+  if(Notification.permission!=='granted'){
+    const permission=await Notification.requestPermission();
+    if(permission!=='granted'){renderSchoolAlertButton();toast('لم يتم السماح بالتنبيهات');return}
+    state.settings.schoolPeriodAlerts=true
+  }else state.settings.schoolPeriodAlerts=!state.settings.schoolPeriodAlerts;
+  renderSchoolAlertButton();queueSave();
+  toast(state.settings.schoolPeriodAlerts?'تم تفعيل تنبيهات الحصص':'تم إيقاف تنبيهات الحصص')
+}
+function renderSchoolDayCard(now=new Date()){
+  if(!$('#schoolDayPanel'))return;
+  const s=schoolDaySnapshot(now);
+  $('#schoolDateArabic').textContent=schoolDateArabic(now);
+  $('#schoolDateEnglish').textContent=schoolDateEnglish(now);
+  $('#schoolHijriDate').textContent=schoolHijriDate(now)+' · أم القرى';
+  $('#schoolLiveClock').textContent=schoolClock(now);
+  $('#schoolWeekNumber').textContent=s.week.number?arabicNum(s.week.number):'—';
+  $('#schoolWeekStatus').textContent=s.week.status;
+
+  const currentNumber=$('#schoolCurrentPeriodNumber'),currentTitle=$('#schoolCurrentPeriodTitle'),currentDetail=$('#schoolCurrentPeriodDetail'),currentTime=$('#schoolCurrentPeriodTime'),remaining=$('#schoolCurrentRemaining'),progress=$('#schoolCurrentProgress');
+  if(s.current){
+    currentNumber.textContent='الحصة '+arabicNum(s.current.period);
+    currentTitle.textContent=s.currentText.title;
+    currentDetail.textContent=s.currentText.detail;
+    currentTime.textContent=s.current.startText+' — '+s.current.endText;
+    remaining.textContent=schoolMinutesText(s.current.end-s.minute,'متبقي');
+    progress.style.width=s.progress.toFixed(1)+'%'
+  }else{
+    currentNumber.textContent=s.phase==='before'?'قبل الدوام':s.phase==='after'?'انتهى اليوم':s.phase==='weekend'?'إجازة أسبوعية':'بين الحصص';
+    currentTitle.textContent=s.phase==='weekend'?'لا توجد حصص اليوم':s.phase==='after'?'انتهى اليوم الدراسي':s.phase==='before'?'لم تبدأ الحصص بعد':'لا توجد حصة الآن';
+    currentDetail.textContent=s.schedule?s.schedule.title||'جدول المعلم':'لا يوجد جدول فعّال لهذا التاريخ';
+    currentTime.textContent=s.phase==='before'&&s.periods[0]?'تبدأ الحصص '+s.periods[0].startText:'—';
+    remaining.textContent='—';progress.style.width='0%'
+  }
+
+  const nextNumber=$('#schoolNextPeriodNumber'),nextTitle=$('#schoolNextPeriodTitle'),nextDetail=$('#schoolNextPeriodDetail'),nextTime=$('#schoolNextPeriodTime'),nextIn=$('#schoolNextStartsIn');
+  if(s.next){
+    nextNumber.textContent='الحصة '+arabicNum(s.next.period);
+    nextTitle.textContent=s.nextText.title;
+    nextDetail.textContent=s.nextText.detail;
+    nextTime.textContent=s.next.startText+' — '+s.next.endText;
+    nextIn.textContent=schoolMinutesText(s.next.start-s.minute,'بعد')
+  }else{
+    nextNumber.textContent='—';
+    nextTitle.textContent=s.phase==='weekend'?'لا توجد حصة قادمة اليوم':'لا توجد حصة أخرى اليوم';
+    nextDetail.textContent=s.phase==='after'?'اكتمل جدول اليوم':'حسب جدولك الحالي';
+    nextTime.textContent='—';nextIn.textContent='—'
+  }
+  $('#schoolDayMessage').textContent=s.schedule?`${s.day} · ${s.schedule.title||'جدول المعلم'} · التحديث تلقائي`:'لا يوجد جدول فعّال لهذا اليوم';
+  renderSchoolAlertButton();
+  checkSchoolPeriodAlerts(s)
+}
+function startSchoolDayTicker(){
+  clearInterval(schoolDayTimer);
+  renderSchoolDayCard();
+  schoolDayTimer=setInterval(()=>renderSchoolDayCard(),20000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')renderSchoolDayCard()})
+}
+
 function renderDashboard(){
+  renderSchoolDayCard();
   const students=allStudents(),today=localDateISO(),absentToday=students.filter(s=>s.attendance?.[today]==='absent').length;
   let riskCount=0;state.classes.forEach(c=>c.students.forEach(s=>{if(riskForStudent(s,c,'all').isRisk)riskCount++}));
   $('#dashboardKpis').innerHTML=`<div class="kpi"><span class="kpi-icon">👥</span><b>${arabicNum(students.length)}</b><span>إجمالي الطلاب</span></div><div class="kpi"><span class="kpi-icon">✓</span><b>${arabicNum(allAssessmentCount())}</b><span>التقييمات المسجلة</span></div><div class="kpi bad"><span class="kpi-icon">○</span><b>${arabicNum(absentToday)}</b><span>غياب اليوم</span></div><div class="kpi warn"><span class="kpi-icon">!</span><b>${arabicNum(riskCount)}</b><span>يحتاجون متابعة</span></div>`;
@@ -1592,7 +1763,9 @@ async function initAppUpdater(){
   updateProgressEligible=hadController;
   try{
     navigator.serviceWorker.addEventListener('message',event=>{
-      const data=event.data||{};if(data.type!=='UPDATE_PROGRESS')return;
+      const data=event.data||{};
+      if(data.type==='OPEN_VIEW'){showView(data.view||'schedule');return}
+      if(data.type!=='UPDATE_PROGRESS')return;
       if(!updateProgressEligible&&!updateSplashActive)return;
       updateProgressEligible=true;updateSplashFromWorker(data)
     });
@@ -1641,6 +1814,7 @@ $('#printClassReportBtn').onclick=printClassReport;
 $('#saveStudentNotesBtn').onclick=saveStudentNotes;
 $('#printStudentBtn').onclick=printStudent;
 $('#dismissInstall').onclick=()=>{state.ui.dismissedInstall=true;renderInstallNote();queueSave()};
+$('#schoolAlertBtn')?.addEventListener('click',toggleSchoolAlerts);
 window.addEventListener('beforeprint',()=>{if(printSessionActive)printMediaEntered=true});
 window.addEventListener('afterprint',()=>{if(printSessionActive)cleanupPrintSession()});
 document.addEventListener('visibilitychange',()=>{
@@ -1656,5 +1830,5 @@ try{
   if(printMq?.addEventListener)printMq.addEventListener('change',onPrintMediaChange);else if(printMq?.addListener)printMq.addListener(onPrintMediaChange)
 }catch{}
 $('#checkUpdateBtn')?.addEventListener('click',()=>checkForAppUpdate({manual:true}));
-load();
+load().then(()=>startSchoolDayTicker());
 initAppUpdater();

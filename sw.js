@@ -1,6 +1,6 @@
-// release 4.13.1 report-action-safe-area
+// release 4.14.0 live-school-day
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.13.1');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.14.0');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
@@ -88,4 +88,16 @@ self.addEventListener('fetch',event=>{
       return response
     }))
   )
+});
+
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();
+  const target=event.notification.data?.url||'./?view=schedule';
+  event.waitUntil((async()=>{
+    const list=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const client of list){
+      if('focus'in client){await client.focus();try{client.postMessage({type:'OPEN_VIEW',view:'schedule'})}catch{}return}
+    }
+    if(self.clients.openWindow)await self.clients.openWindow(target)
+  })())
 });

@@ -19,7 +19,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.13.1</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.14.0</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -56,6 +56,53 @@
 
   <main>
     <section class="view active" id="view-dashboard" data-view="dashboard">
+      <section class="school-day-panel panel no-print" id="schoolDayPanel" aria-live="polite">
+        <div class="school-day-top">
+          <div class="school-day-date-block">
+            <p class="school-day-kicker">اليوم الدراسي</p>
+            <h1 id="schoolDateArabic">—</h1>
+            <p class="school-date-english" id="schoolDateEnglish" lang="en" dir="ltr">—</p>
+            <div class="school-day-meta">
+              <span class="school-hijri-date" id="schoolHijriDate">—</span>
+              <span class="school-live-clock" id="schoolLiveClock">—</span>
+            </div>
+          </div>
+          <div class="school-week-block">
+            <span>الأسبوع الدراسي</span>
+            <b id="schoolWeekNumber">—</b>
+            <small id="schoolWeekStatus">حسب بداية الفصل</small>
+          </div>
+        </div>
+
+        <div class="school-period-grid">
+          <article class="school-period-card current" id="schoolCurrentPeriod">
+            <div class="school-period-card-head">
+              <span><i class="school-live-dot"></i> الحصة الحالية</span>
+              <b id="schoolCurrentPeriodNumber">—</b>
+            </div>
+            <h2 id="schoolCurrentPeriodTitle">جارٍ تحديد الحصة…</h2>
+            <p id="schoolCurrentPeriodDetail">—</p>
+            <div class="school-period-time-row"><span id="schoolCurrentPeriodTime">—</span><strong id="schoolCurrentRemaining">—</strong></div>
+            <div class="school-period-progress" aria-hidden="true"><i id="schoolCurrentProgress"></i></div>
+          </article>
+
+          <article class="school-period-card next" id="schoolNextPeriod">
+            <div class="school-period-card-head">
+              <span>الحصة القادمة</span>
+              <b id="schoolNextPeriodNumber">—</b>
+            </div>
+            <h2 id="schoolNextPeriodTitle">جارٍ تحديد الحصة…</h2>
+            <p id="schoolNextPeriodDetail">—</p>
+            <div class="school-period-time-row"><span id="schoolNextPeriodTime">—</span><strong id="schoolNextStartsIn">—</strong></div>
+          </article>
+        </div>
+
+        <div class="school-day-footer">
+          <span id="schoolDayMessage">يتم تحديث الحالة تلقائيًا حسب جدولك.</span>
+          <button class="school-alert-btn" id="schoolAlertBtn" type="button">🔔 تفعيل تنبيهات الحصص</button>
+        </div>
+      </section>
+
       <div class="hero panel">
         <div><p class="eyebrow">لوحة السجلات</p><h1>متابعة زمنية للطلاب</h1><p>كل تقييم له اسم وتاريخ ودرجة مستقلة، والحضور محفوظ يوميًا، والتقارير قابلة للتصفية بالشهر.</p></div>
         <div class="hero-actions no-print"><button class="btn primary" id="dashAddAssessment">＋ تقييم جديد</button><button class="btn" id="dashAddStudent">＋ طالب</button></div>
@@ -160,7 +207,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.13.1</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.14.0</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -437,7 +484,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.13.1</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.14.0</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
