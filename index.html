@@ -20,7 +20,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.16.1</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.16.2</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -211,7 +211,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.16.1</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.16.2</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -534,7 +534,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.16.1</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.16.2</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
@@ -599,7 +599,15 @@
       <div class="behavior-rule-preview span2" id="behaviorRulePreview"></div>
       <div class="field span2"><label>الإجراء الذي اتخذه المعلم</label><textarea id="behaviorAction" rows="3" placeholder="اكتب الإجراء الذي تم فعليًا دون إضافة إجراء لم يحدث."></textarea></div>
       <div class="field"><label>مدى الاستجابة</label><select id="behaviorResponse"><option value="استجاب">استجاب</option><option value="استجابة جزئية">استجابة جزئية</option><option value="لم يستجب">لم يستجب</option><option value="غير مقيم">غير مقيم</option></select></div>
-      <div class="field"><label>عدد مرات التكرار</label><input id="behaviorRecurrence" type="number" min="1" step="1" value="1"></div>
+      <div class="behavior-recurrence-card span2" id="behaviorRecurrenceCard">
+        <div class="behavior-recurrence-primary"><span>تكرار نفس المخالفة</span><b id="behaviorOccurrenceOrdinal">المرة الأولى</b><small id="behaviorOccurrenceHint">لم يسبق تسجيل هذه المخالفة على الطالب.</small></div>
+        <div class="behavior-recurrence-total"><span>إجمالي مخالفات الطالب</span><b id="behaviorStudentViolationTotal">١</b><small>يشمل الواقعة الحالية بعد الحفظ</small></div>
+      </div>
+      <details class="behavior-history span2" id="behaviorHistory">
+        <summary><span>عرض السوابق لنفس المخالفة</span><b id="behaviorHistoryCount">٠</b></summary>
+        <div class="behavior-history-list" id="behaviorHistoryList"></div>
+      </details>
+      <input id="behaviorRecurrence" type="hidden" value="1">
       <div class="field span2"><label>ملاحظات الواقعة</label><textarea id="behaviorNotes" rows="3" placeholder="وصف مختصر وموضوعي للواقعة، دون أوصاف شخصية أو أحكام غير موثقة."></textarea></div>
       <label class="behavior-referral-toggle span2"><input id="behaviorReferred" type="checkbox"><span><b>إحالة داخلية لإدارة المدرسة</b><small>تُحفظ جهة الإحالة وتظهر في التقرير.</small></span></label>
       <div class="field span2" id="behaviorReferralTargetWrap" hidden><label>جهة الإحالة الداخلية</label><select id="behaviorReferralTarget"><option>وكيل الشؤون التعليمية</option><option>وكيل شؤون الطلبة</option><option>مدير المدرسة</option><option>إدارة المدرسة</option></select></div>
