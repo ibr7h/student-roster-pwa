@@ -1090,3 +1090,6 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   .assessment-row-type{font-size:7.5px}
   .assessment-row-progress b{font-size:8.5px}
 }
+
+.class-card-actions.four-actions .behavior-action{border-color:#d9bf77;background:#fff8e6;color:#765713}
+@media(max-width:680px){.class-card-actions.four-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
