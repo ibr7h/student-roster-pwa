@@ -159,6 +159,19 @@ function behaviorNowPeriod(){
 }
 function behaviorEsc(v){return escapeHtml(v??'')}
 function behaviorRecordDateLabel(v){return v?formatDate(v):'بدون تاريخ'}
+function behaviorAudience(){return typeof schoolAudience==='function'?schoolAudience():{key:'boys',girls:false,type:'بنين',student:'الطالب',studentBare:'طالب',students:'الطلاب',teacher:'المعلم',subjectTeacher:'معلم المادة',principal:'مدير المدرسة',counselor:'الموجه الطلابي',deputyStudents:'وكيل شؤون الطلبة',educationalDeputy:'وكيل الشؤون التعليمية',recipient:'المكرم',honorific:'حفظه الله',shownAbove:'الموضح أعلاه',statePronoun:'حالته',owner:'صاحب'}}
+function behaviorReferralTargets(){
+  const g=behaviorAudience();
+  return [g.educationalDeputy,g.deputyStudents,g.principal,'إدارة المدرسة']
+}
+function behaviorReferralTargetForAudience(raw=''){
+  const g=behaviorAudience(),s=String(raw||'');
+  if(/الشؤون التعليمية/.test(s))return g.educationalDeputy;
+  if(/شؤون (الطلبة|الطالبات)/.test(s))return g.deputyStudents;
+  if(/مدير|مديرة/.test(s))return g.principal;
+  if(/إدارة المدرسة/.test(s))return 'إدارة المدرسة';
+  return s||g.educationalDeputy
+}
 
 function behaviorSuggestedPeriodForAttendance(c,date){
   if(!c||!date)return '';
@@ -281,7 +294,8 @@ function openBehaviorModal(id='',prefill={}){
   $('#behaviorResponse').value=record?.response||'استجاب';
   $('#behaviorNotes').value=record?.notes||'';
   $('#behaviorReferred').checked=!!record?.referred;
-  $('#behaviorReferralTarget').value=record?.referralTarget||'وكيل الشؤون التعليمية';
+  const referralSelect=$('#behaviorReferralTarget');if(referralSelect){const selected=behaviorReferralTargetForAudience(record?.referralTarget||'');referralSelect.innerHTML=behaviorReferralTargets().map(x=>`<option>${behaviorEsc(x)}</option>`).join('');referralSelect.value=selected}
+
   $('#behaviorReferralTargetWrap').hidden=!$('#behaviorReferred').checked;
   $('#deleteBehaviorBtn').hidden=!record;
   const autoContext=$('#behaviorAutoContext');
@@ -289,8 +303,8 @@ function openBehaviorModal(id='',prefill={}){
     const fromAttendance=!record&&prefill?.source==='attendance';
     autoContext.hidden=!fromAttendance;
     if(fromAttendance)autoContext.innerHTML=requestedPeriod
-      ?`<b>تم التحديد من شاشة الحضور</b><span>الطالب والتاريخ والحصة ${arabicNum(requestedPeriod)} محددة تلقائيًا. يمكنك تغيير التاريخ أو الحصة قبل الحفظ.</span>`
-      :'<b>تم التحديد من شاشة الحضور</b><span>تم تحديد الطالب والتاريخ تلقائيًا. لم يتم افتراض الحصة لعدم وجود حصة واحدة مؤكدة؛ يمكنك اختيارها يدويًا.</span>'
+      ?`<b>تم التحديد من شاشة الحضور</b><span>${behaviorAudience().student} والتاريخ والحصة ${arabicNum(requestedPeriod)} محددة تلقائيًا. يمكنك تغيير التاريخ أو الحصة قبل الحفظ.</span>`
+      :`<b>تم التحديد من شاشة الحضور</b><span>تم تحديد ${behaviorAudience().student} والتاريخ تلقائيًا. لم يتم افتراض الحصة لعدم وجود حصة واحدة مؤكدة؛ يمكنك اختيارها يدويًا.</span>`
   }
   renderBehaviorRulePreview();
   if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','')
@@ -309,7 +323,7 @@ function saveBehaviorRecord(){
     violationCode:rule.code,violationLabel:rule.label,degree:rule.degree,deduction:BEHAVIOR_DEDUCTION[rule.degree]||0,urgent:!!rule.urgent,
     actionTaken:String($('#behaviorAction')?.value||'').trim(),response:$('#behaviorResponse')?.value||'غير مقيم',
     recurrence:occurrence.ordinal,notes:String($('#behaviorNotes')?.value||'').trim(),
-    referred:!!$('#behaviorReferred')?.checked,referralTarget:$('#behaviorReferred')?.checked?($('#behaviorReferralTarget')?.value||'وكيل الشؤون التعليمية'):'',
+    referred:!!$('#behaviorReferred')?.checked,referralTarget:$('#behaviorReferred')?.checked?($('#behaviorReferralTarget')?.value||behaviorAudience().educationalDeputy):'',
     ruleEdition:BEHAVIOR_RULE_EDITION,createdAt:existing?.createdAt||now.toISOString(),updatedAt:now.toISOString()
   };
   if(existing)Object.assign(existing,rec);else c.behaviorRecords.push(rec);
@@ -323,7 +337,7 @@ function deleteBehaviorRecord(){
 
 function behaviorPrintBase(){
   const base=new URL('./',location.href).href;
-  return {base,school:state.appMeta?.school||'اسم المدرسة',region:state.appMeta?.region||'إدارة التعليم',teacher:state.appMeta?.teacher||'معلم المادة',year:state.appMeta?.year||'',principal:state.appMeta?.principal||''}
+  const g=behaviorAudience();return {base,school:state.appMeta?.school||'اسم المدرسة',region:state.appMeta?.region||'إدارة التعليم',teacher:state.appMeta?.teacher||g.subjectTeacher,year:state.appMeta?.year||'',principal:state.appMeta?.principal||'',audience:g}
 }
 function behaviorPrintDocument(title,body,{landscape=false,confidential=false}={}){
   const w=window.open('','_blank');if(!w){toast('تعذر فتح نافذة الطباعة. اسمح بالنوافذ المنبثقة للتطبيق.');return}
@@ -341,11 +355,11 @@ function printBehaviorSummaryReport(){
   const total=records.length,referred=records.filter(r=>r.referred).length,high=records.filter(r=>Number(r.degree)>=4||r.urgent).length;
   const byDegree=[1,2,3,4,5].map(d=>[d,records.filter(r=>Number(r.degree)===d).length]).filter(x=>x[1]);
   const rows=records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td><td>${behaviorEsc(r.response||'—')}</td><td>${r.referred?behaviorEsc(r.referralTarget||'إدارة المدرسة'):'—'}</td></tr>`).join('');
-  const body=`<div class="meta"><div><span>الصف / الفصل</span><b>${behaviorEsc(c.grade||'—')} — ${behaviorEsc(c.name||'—')}</b></div><div><span>المادة</span><b>${behaviorEsc(c.subject||'—')}</b></div><div><span>الفترة</span><b>${behaviorEsc(state.appMeta?.semester||state.appMeta?.year||'—')}</b></div></div>
+  const g=behaviorAudience(),body=`<div class="meta"><div><span>الصف / الفصل</span><b>${behaviorEsc(c.grade||'—')} — ${behaviorEsc(c.name||'—')}</b></div><div><span>المادة</span><b>${behaviorEsc(c.subject||'—')}</b></div><div><span>الفترة</span><b>${behaviorEsc(state.appMeta?.semester||state.appMeta?.year||'—')}</b></div></div>
   <div class="meta"><div><span>إجمالي الرصد</span><b>${arabicNum(total)}</b></div><div><span>المحال للإدارة</span><b>${arabicNum(referred)}</b></div><div><span>درجة رابعة فأعلى</span><b>${arabicNum(high)}</b></div></div>
   <div class="box"><b>التوزيع حسب درجة المشكلة</b>${byDegree.map(([d,n])=>`الدرجة ${behaviorDegreeLabel(d)}: ${arabicNum(n)}`).join(' · ')}</div>
-  <table><thead><tr><th style="width:4%">م</th><th style="width:16%">الطالب/الطالبة</th><th style="width:22%">المشكلة السلوكية</th><th style="width:8%">الدرجة</th><th style="width:11%">التاريخ</th><th style="width:7%">الحصة</th><th style="width:12%">الاستجابة</th><th style="width:20%">الإحالة</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="signatures"><div><span>معلم المادة</span><b>${behaviorEsc(state.appMeta?.teacher||'—')}</b><span>التوقيع: __________________</span></div><div><span>مدير المدرسة</span><b>${behaviorEsc(state.appMeta?.principal||'—')}</b><span>التوقيع: __________________</span></div></div>`;
+  <table><thead><tr><th style="width:4%">م</th><th style="width:16%">${g.student}</th><th style="width:22%">المشكلة السلوكية</th><th style="width:8%">الدرجة</th><th style="width:11%">التاريخ</th><th style="width:7%">الحصة</th><th style="width:12%">الاستجابة</th><th style="width:20%">الإحالة</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="signatures"><div><span>${g.subjectTeacher}</span><b>${behaviorEsc(state.appMeta?.teacher||'—')}</b><span>التوقيع: __________________</span></div><div><span>${g.principal}</span><b>${behaviorEsc(state.appMeta?.principal||'—')}</b><span>التوقيع: __________________</span></div></div>`;
   behaviorPrintDocument('تقرير السلوك والانضباط',body,{landscape:true})
 }
 
@@ -356,33 +370,33 @@ function printBehaviorTeacherLog(recordId=''){
   const c=currentClass();if(!c)return;
   const records=(c.behaviorRecords||[]).filter(r=>!recordId||r.id===recordId).sort((x,y)=>String(x.date||'').localeCompare(String(y.date||'')));
   if(!records.length){toast('لا توجد مخالفات لطباعة النموذج');return}
-  const x=behaviorPrintBase();
+  const x=behaviorPrintBase(),g=x.audience;
   const body=`<div class="meta"><div><span>المادة</span><b>${behaviorEsc(c.subject||'—')}</b></div><div><span>الصف</span><b>${behaviorEsc(c.grade||'—')}</b></div><div><span>الفصل</span><b>${behaviorEsc(c.name||'—')}</b></div></div>
-  <table><thead><tr><th style="width:4%">م</th><th style="width:15%">اسم الطالب/الطالبة</th><th style="width:18%">المشكلة السلوكية</th><th style="width:7%">درجة المشكلة</th><th style="width:17%">الإجراء المتخذ</th><th style="width:10%">مدى الاستجابة</th><th style="width:8%">عدد مرات التكرار</th><th style="width:11%">التاريخ</th><th style="width:6%">الحصة</th></tr></thead><tbody>${behaviorTeacherLogRows(records,c)}</tbody></table>
-  <div class="signatures"><div><span>المعلم / المعلمة</span><b>${behaviorEsc(x.teacher)}</b><span>التوقيع: __________________</span></div><div><span>التاريخ</span><b>${behaviorEsc(localDateISO())}</b><span>__________________</span></div></div>`;
-  behaviorPrintDocument('نموذج رصد المعلم لمشكلة سلوكية',body,{landscape:true})
+  <table><thead><tr><th style="width:4%">م</th><th style="width:15%">${g.studentName||('اسم '+g.student)}</th><th style="width:18%">المشكلة السلوكية</th><th style="width:7%">درجة المشكلة</th><th style="width:17%">الإجراء المتخذ</th><th style="width:10%">مدى الاستجابة</th><th style="width:8%">عدد مرات التكرار</th><th style="width:11%">التاريخ</th><th style="width:6%">الحصة</th></tr></thead><tbody>${behaviorTeacherLogRows(records,c)}</tbody></table>
+  <div class="signatures"><div><span>${g.teacher}</span><b>${behaviorEsc(x.teacher)}</b><span>التوقيع: __________________</span></div><div><span>التاريخ</span><b>${behaviorEsc(localDateISO())}</b><span>__________________</span></div></div>`;
+  behaviorPrintDocument(`نموذج رصد ${g.teacher} لمشكلة سلوكية`,body,{landscape:true})
 }
 function behaviorRecordById(id,c=currentClass()){return c?.behaviorRecords?.find(r=>r.id===id)||null}
 function printBehaviorInternalReferral(id){
   const c=currentClass(),r=behaviorRecordById(id,c);if(!c||!r)return;
-  const x=behaviorPrintBase(),student=behaviorStudentName(r.studentId,c),target=r.referralTarget||'وكيل الشؤون التعليمية';
-  const body=`<div class="meta"><div><span>الطالب/الطالبة</span><b>${behaviorEsc(student)}</b></div><div><span>الصف / الفصل</span><b>${behaviorEsc(c.grade)} — ${behaviorEsc(c.name)}</b></div><div><span>التاريخ / الحصة</span><b>${behaviorEsc(r.date)} · ${r.period?'ح '+arabicNum(r.period):'—'}</b></div></div>
-  <p class="intro">سعادة/ <b>${behaviorEsc(target)}</b> حفظه الله<br>السلام عليكم ورحمة الله وبركاته،<br>أحيل إليكم الطالب/الطالبة الموضح أعلاه بعد رصد المشكلة السلوكية التالية؛ لاستكمال ما يلزم وفق قواعد السلوك والمواظبة والصلاحيات المعتمدة في المدرسة.</p>
+  const x=behaviorPrintBase(),g=x.audience,student=behaviorStudentName(r.studentId,c),target=behaviorReferralTargetForAudience(r.referralTarget);
+  const body=`<div class="meta"><div><span>${g.student}</span><b>${behaviorEsc(student)}</b></div><div><span>الصف / الفصل</span><b>${behaviorEsc(c.grade)} — ${behaviorEsc(c.name)}</b></div><div><span>التاريخ / الحصة</span><b>${behaviorEsc(r.date)} · ${r.period?'ح '+arabicNum(r.period):'—'}</b></div></div>
+  <p class="intro">سعادة/ <b>${behaviorEsc(target)}</b> ${g.honorific}<br>السلام عليكم ورحمة الله وبركاته،<br>أحيل إليكم ${g.student} ${g.shownAbove} بعد رصد المشكلة السلوكية التالية؛ لاستكمال ما يلزم وفق قواعد السلوك والمواظبة والصلاحيات المعتمدة في المدرسة.</p>
   <div class="box"><b>المشكلة السلوكية — الدرجة ${behaviorDegreeLabel(r.degree)}</b>${behaviorEsc(r.violationLabel)}</div>
-  <div class="box"><b>إجراء المعلم ومدى الاستجابة</b>${behaviorEsc(r.actionTaken||'لم يدون إجراء')} — ${behaviorEsc(r.response||'غير مقيم')}</div>
+  <div class="box"><b>إجراء ${g.teacher} ومدى الاستجابة</b>${behaviorEsc(r.actionTaken||'لم يدون إجراء')} — ${behaviorEsc(r.response||'غير مقيم')}</div>
   <div class="box"><b>ملاحظات</b>${behaviorEsc(r.notes||'لا توجد')}</div>
-  <div class="signatures"><div><span>المعلم / المعلمة</span><b>${behaviorEsc(x.teacher)}</b><span>التوقيع: __________________</span></div><div><span>المستلم</span><b>${behaviorEsc(target)}</b><span>التوقيع والتاريخ: __________________</span></div></div>`;
+  <div class="signatures"><div><span>${g.teacher}</span><b>${behaviorEsc(x.teacher)}</b><span>التوقيع: __________________</span></div><div><span>المستلم</span><b>${behaviorEsc(target)}</b><span>التوقيع والتاريخ: __________________</span></div></div>`;
   behaviorPrintDocument('إحالة داخلية لمخالفة سلوكية',body,{confidential:true})
 }
 function printBehaviorOfficialReferral(id){
   const c=currentClass(),r=behaviorRecordById(id,c);if(!c||!r)return;
-  const student=behaviorStudentName(r.studentId,c);
-  const body=`<p class="intro">المكرم/المكرمة <b>الموجه الطلابي / الموجهة الطلابية</b> حفظه/ها الله<br>السلام عليكم ورحمة الله وبركاته،<br>نحيل إليكم الطالب/الطالبة <b>${behaviorEsc(student)}</b> بالصف <b>${behaviorEsc(c.grade)} — ${behaviorEsc(c.name)}</b>، ذي المشكلة السلوكية من <b>الدرجة ${behaviorDegreeLabel(r.degree)}</b> وهي:</p>
+  const g=behaviorAudience(),student=behaviorStudentName(r.studentId,c);
+  const body=`<p class="intro">${g.recipient} <b>${g.counselor}</b> ${g.honorific}<br>السلام عليكم ورحمة الله وبركاته،<br>نحيل إليكم ${g.student} <b>${behaviorEsc(student)}</b> بالصف <b>${behaviorEsc(c.grade)} — ${behaviorEsc(c.name)}</b>، ${g.owner} المشكلة السلوكية من <b>الدرجة ${behaviorDegreeLabel(r.degree)}</b> وهي:</p>
   <div class="box"><b>المشكلة السلوكية</b>${behaviorEsc(r.violationLabel)}</div>
-  <p class="intro">يرجى متابعة الطالب/الطالبة ودراسة حالته/ها ووضع الحلول التربوية والعلاجية المناسبة وفق القواعد والإجراءات المعتمدة.</p>
+  <p class="intro">يرجى متابعة ${g.student} ودراسة ${g.statePronoun} ووضع الحلول التربوية والعلاجية المناسبة وفق القواعد والإجراءات المعتمدة.</p>
   <div class="box"><b>بيانات الرصد المساندة</b>التاريخ: ${behaviorEsc(r.date||'—')} · الحصة: ${r.period?arabicNum(r.period):'—'} · ترتيب التكرار: المرة ${behaviorOccurrenceLabel(behaviorRecordOccurrenceOrdinal(r,c))}</div>
-  <div class="signatures"><div><span>وكيل / وكيلة شؤون الطلبة</span><b>الاسم: __________________</b><span>التوقيع: __________________</span><span>التاريخ: __________________</span></div><div><span>الختم الرسمي</span><div class="stamp"></div></div></div>`;
-  behaviorPrintDocument('إحالة طالب / طالبة',body,{confidential:true})
+  <div class="signatures"><div><span>${g.deputyStudents}</span><b>الاسم: __________________</b><span>التوقيع: __________________</span><span>التاريخ: __________________</span></div><div><span>الختم الرسمي</span><div class="stamp"></div></div></div>`;
+  behaviorPrintDocument(`إحالة ${g.studentBare}`,body,{confidential:true})
 }
 
 function initBehaviorModule(){
