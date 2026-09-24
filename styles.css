@@ -292,7 +292,8 @@
 .student-report-open{white-space:nowrap}
 
 @media(max-width:760px){
-  #view-reports{padding-bottom:74px}
+  #view-reports{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+  #view-reports.report-detail-mode{padding-bottom:calc(172px + env(safe-area-inset-bottom))}
   .reports-shell-head{grid-template-columns:1fr;padding:14px 13px 12px;border-radius:15px;gap:10px}
   .reports-title-block h1{font-size:21px}
   .reports-period-field{width:100%}
@@ -312,11 +313,11 @@
   .report-detail-icon{width:42px;height:42px;border-radius:12px}
   .report-detail-title h2{font-size:15px}
   .report-detail-title p{font-size:9px}
-  .report-detail-body{padding:11px 11px 92px}
+  .report-detail-body{padding:11px 11px calc(116px + env(safe-area-inset-bottom))}
   .report-settings-grid,.attendance-settings-grid{grid-template-columns:1fr}
   .attendance-report-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .report-action-bar{position:fixed;z-index:30;right:10px;left:10px;bottom:74px;margin:0;padding:8px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.96);box-shadow:0 8px 30px rgba(18,40,58,.14);backdrop-filter:blur(12px)}
-  .report-action-bar .btn{flex:1;min-width:0}
+  .report-action-bar{position:fixed;z-index:40;left:50%;right:auto;bottom:calc(max(10px,env(safe-area-inset-bottom)) + 74px);transform:translateX(-50%);width:min(520px,calc(100% - 24px));box-sizing:border-box;margin:0;padding:8px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.96);box-shadow:0 8px 30px rgba(18,40,58,.14);backdrop-filter:blur(12px)}
+  .report-action-bar .btn{flex:1;min-width:0;min-height:52px;display:grid;place-items:center;text-align:center;line-height:1.35;padding:8px 6px}
   .report-preview-box{padding:8px}
   .student-report-row{grid-template-columns:28px minmax(0,1fr) auto;grid-template-areas:"idx person action" ". quick quick";gap:7px 8px;padding:9px}
   .student-report-index{grid-area:idx}
