@@ -1,5 +1,5 @@
-const SCHEMA_VERSION=5;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.16.2';
+const SCHEMA_VERSION=6;
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.17.0';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -37,7 +37,7 @@ const makeTeacherSchedule=()=>({
 const initialTeacherSchedule=makeTeacherSchedule();
 let state={
   schemaVersion:SCHEMA_VERSION,
-  appMeta:{school:'',region:'',year:'١٤٤٨ هـ',semester:'الفصل الدراسي الأول',teacher:'',principal:''},
+  appMeta:{school:'',region:'',year:'١٤٤٨ هـ',semester:'الفصل الدراسي الأول',teacher:'',principal:'',schoolGender:'boys'},
   settings:{gradeAlertThreshold:60,absenceAlertThreshold:3,excludeExamWeek:true,schoolPeriodAlerts:false},
   classes:[makeClass('١ / أ','الأول المتوسط','المهارات الرقمية',seedStudents.map(makeStudent)),makeClass('١ / ب','الأول المتوسط','المهارات الرقمية',[])],
   activeClassId:null,
@@ -98,8 +98,8 @@ function legacyType(field){const n=(field.name||'').toLowerCase();if(/واجب/.
 function migrate(input){
   if(!input||!Array.isArray(input.classes))return null;
   const x=clone(input);
-  x.appMeta ||= {school:'',region:'',year:x.meta?.year||'١٤٤٨ هـ',semester:x.meta?.semester||'الفصل الدراسي الأول',teacher:x.meta?.teacher||'',principal:x.meta?.principal||''};
-  x.appMeta.school ||= '';x.appMeta.region ||= '';
+  x.appMeta ||= {school:'',region:'',year:x.meta?.year||'١٤٤٨ هـ',semester:x.meta?.semester||'الفصل الدراسي الأول',teacher:x.meta?.teacher||'',principal:x.meta?.principal||'',schoolGender:'boys'};
+  x.appMeta.school ||= '';x.appMeta.region ||= '';x.appMeta.schoolGender=x.appMeta.schoolGender==='girls'?'girls':'boys';
   x.settings ||= {gradeAlertThreshold:60,absenceAlertThreshold:3};
   x.settings.gradeAlertThreshold=Number(x.settings.gradeAlertThreshold??60);x.settings.absenceAlertThreshold=Number(x.settings.absenceAlertThreshold??3);x.settings.excludeExamWeek=x.settings.excludeExamWeek!==false;x.settings.schoolPeriodAlerts=x.settings.schoolPeriodAlerts===true;
   if(!Array.isArray(x.teacherSchedules)||!x.teacherSchedules.length){
@@ -410,6 +410,24 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show'
 function arabicNum(n){return Number(n||0).toLocaleString('ar-SA',{maximumFractionDigits:2})}
 function pct(n){return n===null||n===undefined?'—':`${Math.round(Number(n)||0).toLocaleString('ar-SA')}٪`}
 function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function schoolAudience(meta=state?.appMeta||{}){
+  const girls=meta?.schoolGender==='girls';
+  return {
+    key:girls?'girls':'boys',girls,type:girls?'بنات':'بنين',
+    student:girls?'الطالبة':'الطالب',studentBare:girls?'طالبة':'طالب',students:girls?'الطالبات':'الطلاب',
+    studentName:girls?'اسم الطالبة':'اسم الطالب',
+    teacher:girls?'المعلمة':'المعلم',teacherBare:girls?'معلمة':'معلم',teacherName:girls?'اسم المعلمة':'اسم المعلم',
+    subjectTeacher:girls?'معلمة المادة':'معلم المادة',
+    principal:girls?'مديرة المدرسة':'مدير المدرسة',principalName:girls?'اسم المديرة':'اسم المدير',
+    counselor:girls?'الموجهة الطلابية':'الموجه الطلابي',
+    deputyStudents:girls?'وكيلة شؤون الطالبات':'وكيل شؤون الطلبة',
+    educationalDeputy:girls?'وكيلة الشؤون التعليمية':'وكيل الشؤون التعليمية',
+    recipient:girls?'المكرمة':'المكرم',honorific:girls?'حفظها الله':'حفظه الله',
+    shownAbove:girls?'الموضحة أعلاه':'الموضح أعلاه',
+    statePronoun:girls?'حالتها':'حالته',
+    owner:girls?'صاحبة':'صاحب'
+  }
+}
 function typeLabel(t){return TYPE_LABELS[t]||'أخرى'}
 function statusLabel(s){return ({present:'حاضر',absent:'غائب',late:'متأخر',excused:'مستأذن'})[s]||'غير مسجل'}
 function formatDate(d){if(!d)return'بدون تاريخ';try{return new Intl.DateTimeFormat('ar-SA',{year:'numeric',month:'short',day:'numeric'}).format(new Date(d+'T12:00:00'))}catch{return d}}
@@ -471,7 +489,43 @@ function setActiveClass(id){
   renderAll();if(state.ui.activeView==='reports')showReportsHub(false);queueSave()
 }
 
-function renderAppMeta(){$$('[data-app-meta]').forEach(inp=>{const k=inp.dataset.appMeta;if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';inp.oninput=()=>{state.appMeta[k]=inp.value;if(k==='teacher'||k==='school'){(state.teacherSchedules||[]).forEach(t=>{if(k==='teacher')t.teacherName=inp.value;else t.school=inp.value});renderScheduleHeader()}queueSave()}})}
+function renderAppMeta(){
+  $$('[data-app-meta]').forEach(inp=>{
+    const k=inp.dataset.appMeta;
+    if(document.activeElement!==inp)inp.value=state.appMeta[k]||'';
+    inp.oninput=()=>{
+      state.appMeta[k]=inp.value;
+      if(k==='teacher'||k==='school'){
+        (state.teacherSchedules||[]).forEach(t=>{
+          if(k==='teacher')t.teacherName=inp.value;
+          else t.school=inp.value
+        });
+        renderScheduleHeader()
+      }
+      queueSave()
+    }
+  });
+  const audience=schoolAudience();
+  $$('[data-school-gender]').forEach(btn=>{
+    const active=btn.dataset.schoolGender===audience.key;
+    btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',active?'true':'false');
+    btn.onclick=()=>{
+      const next=btn.dataset.schoolGender==='girls'?'girls':'boys';
+      if(state.appMeta.schoolGender===next)return;
+      state.appMeta.schoolGender=next;
+      renderAppMeta();renderDashboard();renderAssessments();renderAttendance();renderReports();
+      if(typeof renderBehavior==='function')renderBehavior();
+      queueSave();toast('تم اعتماد صياغة مدارس '+schoolAudience().type)
+    }
+  });
+  if($('#schoolGenderStatus'))$('#schoolGenderStatus').textContent=audience.type;
+  if($('#teacherProfileLabel'))$('#teacherProfileLabel').textContent=audience.teacherName;
+  if($('#principalProfileLabel'))$('#principalProfileLabel').textContent=audience.principal;
+  if($('#teacherProfileInput'))$('#teacherProfileInput').placeholder=audience.teacherName;
+  if($('#principalProfileInput'))$('#principalProfileInput').placeholder=audience.principalName;
+  if($('#adminStaffHint'))$('#adminStaffHint').textContent=`بيانات ${audience.teacher} و${audience.principal}.`;
+  if($('#schoolGenderImpact'))$('#schoolGenderImpact').innerHTML=`<span>Aa</span><div><b>الصياغة الرسمية: ${audience.type}</b><small>ستستخدم التقارير والخطابات: ${audience.student} · ${audience.subjectTeacher} · ${audience.principal} · ${audience.counselor}.</small></div>`;
+}
 function classChipMarkup(c){return `<button class="chip ${c.id===state.activeClassId?'active':''}" data-class-switch="${c.id}">${escapeHtml(c.grade)} · ${escapeHtml(c.name)}</button>`}
 function renderClassBars(){['#assessmentClassbar','#behaviorClassbar','#attendanceClassbar','#reportsClassbar'].forEach(sel=>{const b=$(sel);if(!b)return;b.innerHTML=state.classes.map(classChipMarkup).join('')+`<button class="chip add" data-open-classes>＋ فصل</button>`});$$('[data-class-switch]').forEach(x=>x.onclick=()=>setActiveClass(x.dataset.classSwitch));$$('[data-open-classes]').forEach(x=>x.onclick=openClasses)}
 
@@ -826,7 +880,7 @@ function mobileGradeCard(st,a,c){
 function renderGradebook(a,c){
   const term=searchTerm.trim().toLowerCase(),students=term?c.students.filter(s=>s.name.toLowerCase().includes(term)):c.students;
   const table=$('#gradebookTable');
-  if(table)table.innerHTML=`<thead><tr><th>م</th><th>اسم الطالب</th><th>الدرجة / ${arabicNum(a.maxScore)}</th><th>النسبة</th><th>الحالة</th><th class="no-print">التقرير</th></tr></thead><tbody>${students.length?students.map(st=>{const idx=c.students.findIndex(x=>x.id===st.id),g=assessmentGradeState(st,a);return `<tr><td>${arabicNum(idx+1)}</td><td class="student-name-cell">${escapeHtml(st.name)}</td><td><input class="grade-input" data-grade="${st.id}" type="number" min="0" max="${a.maxScore}" step="0.5" value="${g.has?g.value:''}" placeholder="—"></td><td>${pct(g.percent)}</td><td>${g.has?(g.percent>=state.settings.gradeAlertThreshold?'<span class="status-tag ok">جيد</span>':'<span class="status-tag risk">متابعة</span>'):'<span class="status-tag neutral">غير مرصود</span>'}</td><td class="no-print"><button class="btn tiny" data-report="${st.id}">عرض</button></td></tr>`}).join(''):`<tr><td colspan="6" class="empty-cell">${term?'لا توجد نتائج مطابقة':'لا يوجد طلاب في هذا الفصل'}</td></tr>`}</tbody>`;
+  if(table){const audience=schoolAudience();table.innerHTML=`<thead><tr><th>م</th><th>${audience.studentName}</th><th>الدرجة / ${arabicNum(a.maxScore)}</th><th>النسبة</th><th>الحالة</th><th class="no-print">التقرير</th></tr></thead><tbody>${students.length?students.map(st=>{const idx=c.students.findIndex(x=>x.id===st.id),g=assessmentGradeState(st,a);return `<tr><td>${arabicNum(idx+1)}</td><td class="student-name-cell">${escapeHtml(st.name)}</td><td><input class="grade-input" data-grade="${st.id}" type="number" min="0" max="${a.maxScore}" step="0.5" value="${g.has?g.value:''}" placeholder="—"></td><td>${pct(g.percent)}</td><td>${g.has?(g.percent>=state.settings.gradeAlertThreshold?'<span class="status-tag ok">جيد</span>':'<span class="status-tag risk">متابعة</span>'):'<span class="status-tag neutral">غير مرصود</span>'}</td><td class="no-print"><button class="btn tiny" data-report="${st.id}">عرض</button></td></tr>`}).join(''):`<tr><td colspan="6" class="empty-cell">${term?'لا توجد نتائج مطابقة':'لا يوجد طلاب في هذا الفصل'}</td></tr>`}</tbody>`}
   const mobile=$('#mobileGradeCards');
   if(mobile)mobile.innerHTML=students.length?students.map(st=>mobileGradeCard(st,a,c)).join(''):`<div class="empty-state compact-empty"><b>لا توجد نتائج</b>${term?'غيّر عبارة البحث.':'لا يوجد طلاب في هذا الفصل.'}</div>`;
   renderQuickGradeControls(a,c);
@@ -1018,9 +1072,9 @@ function saveAssessment(){
 
 function deleteAssessment(){const c=currentClass(),a=findAssessment(c.selectedAssessmentId,c);if(!a)return;if(!confirm(`حذف «${a.title}» وجميع درجاته؟`))return;c.assessmentEvents=c.assessmentEvents.filter(x=>x.id!==a.id);c.students.forEach(s=>delete s.grades?.[a.id]);c.selectedAssessmentId=c.assessmentEvents[0]?.id||null;renderAll();queueSave();toast('تم حذف التقييم')}
 
-function addStudent(){const c=currentClass();if(!c)return;const name=prompt('اسم الطالب:');if(!name?.trim())return;c.students.push(makeStudent(name.trim()));renderAll();queueSave();toast('تمت إضافة الطالب')}
+function addStudent(){const c=currentClass();if(!c)return;const audience=schoolAudience(),name=prompt(audience.studentName+':');if(!name?.trim())return;c.students.push(makeStudent(name.trim()));renderAll();queueSave();toast('تمت إضافة '+audience.student)}
 function openStudents(){renderStudentsModal();$('#studentsModal').showModal()}
-function renderStudentsModal(){const c=currentClass();$('#studentsModalTitle').textContent=`إدارة الطلاب — ${c.name}`;$('#studentsBody').innerHTML=c.students.length?c.students.map((s,i)=>`<div class="student-manage-row" data-student-manage="${s.id}"><span>${arabicNum(i+1)}</span><input value="${escapeHtml(s.name)}" data-student-rename="${s.id}"><button class="iconbtn" data-student-up="${s.id}" title="أعلى">↑</button><button class="iconbtn" data-student-down="${s.id}" title="أسفل">↓</button><button class="iconbtn" data-student-move="${s.id}" title="نقل">↪</button><button class="iconbtn" data-student-delete="${s.id}" title="حذف">×</button></div>`).join(''):`<div class="empty-state"><b>لا يوجد طلاب</b>أضف طالبًا أو استورد CSV.</div>`;$$('[data-student-rename]').forEach(i=>i.onchange=()=>{const s=findStudent(i.dataset.studentRename);if(s)s.name=i.value.trim()||s.name;renderAll();renderStudentsModal();queueSave()});$$('[data-student-up]').forEach(b=>b.onclick=()=>moveStudentRelative(b.dataset.studentUp,-1));$$('[data-student-down]').forEach(b=>b.onclick=()=>moveStudentRelative(b.dataset.studentDown,1));$$('[data-student-delete]').forEach(b=>b.onclick=()=>deleteStudent(b.dataset.studentDelete));$$('[data-student-move]').forEach(b=>b.onclick=()=>moveStudentClass(b.dataset.studentMove))}
+function renderStudentsModal(){const c=currentClass(),audience=schoolAudience();$('#studentsModalTitle').textContent=`إدارة ${audience.students} — ${c.name}`;$('#studentsBody').innerHTML=c.students.length?c.students.map((s,i)=>`<div class="student-manage-row" data-student-manage="${s.id}"><span>${arabicNum(i+1)}</span><input value="${escapeHtml(s.name)}" data-student-rename="${s.id}"><button class="iconbtn" data-student-up="${s.id}" title="أعلى">↑</button><button class="iconbtn" data-student-down="${s.id}" title="أسفل">↓</button><button class="iconbtn" data-student-move="${s.id}" title="نقل">↪</button><button class="iconbtn" data-student-delete="${s.id}" title="حذف">×</button></div>`).join(''):`<div class="empty-state"><b>لا يوجد طلاب</b>أضف طالبًا أو استورد CSV.</div>`;$$('[data-student-rename]').forEach(i=>i.onchange=()=>{const s=findStudent(i.dataset.studentRename);if(s)s.name=i.value.trim()||s.name;renderAll();renderStudentsModal();queueSave()});$$('[data-student-up]').forEach(b=>b.onclick=()=>moveStudentRelative(b.dataset.studentUp,-1));$$('[data-student-down]').forEach(b=>b.onclick=()=>moveStudentRelative(b.dataset.studentDown,1));$$('[data-student-delete]').forEach(b=>b.onclick=()=>deleteStudent(b.dataset.studentDelete));$$('[data-student-move]').forEach(b=>b.onclick=()=>moveStudentClass(b.dataset.studentMove))}
 function moveStudentRelative(id,delta){const a=currentClass().students,i=a.findIndex(s=>s.id===id),j=i+delta;if(i<0||j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];renderAll();renderStudentsModal();queueSave()}
 function deleteStudent(id){const c=findStudentClass(id),s=findStudent(id);if(!c||!s)return;if(!confirm(`حذف الطالب «${s.name}» وجميع درجاته وحضوره؟`))return;c.students=c.students.filter(x=>x.id!==id);renderAll();renderStudentsModal();queueSave()}
 function moveStudentClass(id){const from=findStudentClass(id),s=findStudent(id);if(!from||!s)return;if(state.classes.length<2){toast('أضف فصلًا آخر أولًا');return}const targets=state.classes.filter(c=>c.id!==from.id),choices=targets.map((c,i)=>`${i+1}) ${c.grade} · ${c.name}`).join('\n'),n=Number(prompt(`انقل «${s.name}» إلى:\n${choices}`));if(!n||!targets[n-1])return;const target=targets[n-1];from.students=from.students.filter(x=>x.id!==id);target.students.push(s);target.students.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'ar',{sensitivity:'base',ignorePunctuation:true,numeric:true}));renderAll();renderStudentsModal();queueSave();toast('تم نقل الطالب وترتيبه أبجديًا')}
@@ -1489,12 +1543,12 @@ function compactClassOfficialHeader(title,c,periodText){
   return `<header class="compact-class-header" dir="rtl"><div class="compact-class-gov"><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(region)}</span><span>${escapeHtml(school)}</span></div><div class="compact-class-logo"><img src="./assets/moe-logo.png" alt="شعار وزارة التعليم"></div><div class="compact-class-title"><h1>${escapeHtml(title)}</h1><span>${escapeHtml(periodText||m.semester||'')}</span><small>${escapeHtml(m.year||'')}</small></div></header><div class="compact-class-meta" dir="rtl"><span><b>الصف:</b> ${escapeHtml(c.grade||'—')}</span><span><b>الفصل:</b> ${escapeHtml(c.name||'—')}</span><span><b>المادة:</b> ${escapeHtml(c.subject||'—')}</span></div>`;
 }
 function attendanceRegisterSheet(c,period='all'){
-  const sessions=plannedAttendanceSessions(c,period),meta=plannedAttendanceMeta(c,sessions,period),periodText=period==='all'?state.appMeta.semester:monthLabel(period);
+  const audience=schoolAudience(),sessions=plannedAttendanceSessions(c,period),meta=plannedAttendanceMeta(c,sessions,period),periodText=period==='all'?state.appMeta.semester:monthLabel(period);
   if(!sessions.length)return `<div class="attendance-official-print"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-empty-print">لا توجد حصص مخططة أو بيانات حضور في هذه الفترة.</div>${officialReportSignatures()}</section></div>`;
   const heads=sessions.map((x,j)=>`<th class="att-session ${x.historical?'att-session-history':''}" title="${x.historical?'سجل سابق محفوظ':''}"><b>ح${arabicNum(j+1)}${x.historical?'*':''}</b><small>${arabicNum(Number(x.date.slice(8)))}/${arabicNum(Number(x.date.slice(5,7)))}</small></th>`).join('');
-  const rows=(c.students||[]).map((st,i)=>{const all=attendanceCountsForSessions(st,sessions),cells=sessions.map(x=>`<td class="att-session att-${escapeHtml(st.attendance?.[x.date]||'none')}">${attendanceMark(st.attendance?.[x.date])}</td>`).join('');return `<tr><td class="att-num">${arabicNum(i+1)}</td><td class="att-name">${escapeHtml(st.name)}</td>${cells}<td class="att-total">${arabicNum(all.present)}</td><td class="att-total">${arabicNum(all.absent)}</td><td class="att-total">${arabicNum(all.late)}</td><td class="att-total">${arabicNum(all.excused)}</td></tr>`}).join('')||`<tr><td colspan="${sessions.length+6}">لا يوجد طلاب في الفصل</td></tr>`;
+  const rows=(c.students||[]).map((st,i)=>{const all=attendanceCountsForSessions(st,sessions),cells=sessions.map(x=>`<td class="att-session att-${escapeHtml(st.attendance?.[x.date]||'none')}">${attendanceMark(st.attendance?.[x.date])}</td>`).join('');return `<tr><td class="att-num">${arabicNum(i+1)}</td><td class="att-name">${escapeHtml(st.name)}</td>${cells}<td class="att-total">${arabicNum(all.present)}</td><td class="att-total">${arabicNum(all.absent)}</td><td class="att-total">${arabicNum(all.late)}</td><td class="att-total">${arabicNum(all.excused)}</td></tr>`}).join('')||`<tr><td colspan="${sessions.length+6}">لا توجد ${audience.students} في الفصل</td></tr>`;
   const historyText=meta.historicalSessions?` · سجلات سابقة محفوظة: ${arabicNum(meta.historicalSessions)}`:'';const planText=period==='all'&&meta.cfg?`أسابيع الخطة: ${arabicNum(meta.cfg.plannedWeeks)} · أسابيع التدريس بعد استبعاد الاختبارات: ${arabicNum(meta.teachingWeeks)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)} · الخانات المخططة: ${arabicNum(meta.plannedSessions)}${historyText}`:`الخانات المخططة: ${arabicNum(meta.plannedSessions)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}${historyText}`;
-  return `<div class="attendance-official-print one-page-attendance"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-plan-summary">${planText}</div><div class="attendance-page-note"><span>الحصص ١–${arabicNum(sessions.length)}</span><span>صفحة واحدة</span></div><div class="attendance-legend"><span><b>ح</b> حاضر</span><span><b>غ</b> غائب</span><span><b>ت</b> متأخر</span><span><b>إ</b> مستأذن</span><span><b>—</b> غير مسجل</span></div><table class="attendance-register-table"><thead><tr><th class="att-num">م</th><th class="att-name">اسم الطالب</th>${heads}<th class="att-total">ح</th><th class="att-total">غ</th><th class="att-total">ت</th><th class="att-total">إ</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</section></div>`;
+  return `<div class="attendance-official-print one-page-attendance"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-plan-summary">${planText}</div><div class="attendance-page-note"><span>الحصص ١–${arabicNum(sessions.length)}</span><span>صفحة واحدة</span></div><div class="attendance-legend"><span><b>ح</b> حاضر</span><span><b>غ</b> غائب</span><span><b>ت</b> متأخر</span><span><b>إ</b> مستأذن</span><span><b>—</b> غير مسجل</span></div><table class="attendance-register-table"><thead><tr><th class="att-num">م</th><th class="att-name">${audience.studentName}</th>${heads}<th class="att-total">ح</th><th class="att-total">غ</th><th class="att-total">ت</th><th class="att-total">إ</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</section></div>`;
 }
 function renderAttendanceRegister(){
   const c=currentClass(),sel=$('#attendanceReportPeriod'),preview=$('#attendanceReportPreview');if(!c||!sel||!preview)return;
@@ -1560,7 +1614,7 @@ function attendancePdfCell(ctx,x,y,w,h,text,{align='center',size=17,weight='400'
 function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCount){
   const W=1684,H=1190,M=46,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
-  const gov=state.appMeta||{},right=W-M,left=M,center=W/2;
+  const gov=state.appMeta||{},audience=schoolAudience(gov),right=W-M,left=M,center=W/2;
   attendancePdfText(ctx,'المملكة العربية السعودية',right,44,19,'700');
   attendancePdfText(ctx,'وزارة التعليم',right,70,17,'400');
   attendancePdfText(ctx,gov.region||'إدارة التعليم',right,94,16,'400');
@@ -1591,7 +1645,7 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
   const sessionTitleSize=count>24?11:14,dateSize=count>24?9:12,sessionCellSize=count>24?11:14;
   let x=W-M;
   attendancePdfCell(ctx,x-numW,tableY,numW,headH,'م',{size:14,weight:'700',fill:'#eef0f2'});x-=numW;
-  attendancePdfCell(ctx,x-nameW,tableY,nameW,headH,'اسم الطالب',{align:'right',size:16,weight:'700',fill:'#eef0f2'});x-=nameW;
+  attendancePdfCell(ctx,x-nameW,tableY,nameW,headH,audience.studentName,{align:'right',size:16,weight:'700',fill:'#eef0f2'});x-=nameW;
   part.items.forEach((sess,j)=>{
     const sx=x-sessionW;ctx.fillStyle='#eef0f2';ctx.fillRect(sx,tableY,sessionW,headH);ctx.strokeStyle='#5f6670';ctx.strokeRect(sx,tableY,sessionW,headH);
     attendancePdfText(ctx,`ح${arabicNum(part.start+j+1)}${sess.historical?'*':''}`,sx+sessionW/2,tableY+17,sessionTitleSize,'700','center');
@@ -1610,10 +1664,10 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
 
   const signY=Math.min(H-50,tableY+headH+students.length*rowH+38);
   attendancePdfLine(ctx,M,signY-20,W-M,signY-20,1,'#444');
-  attendancePdfText(ctx,'معلم المادة',W*0.72,signY,14,'400','center');
+  attendancePdfText(ctx,audience.subjectTeacher,W*0.72,signY,14,'400','center');
   attendancePdfText(ctx,state.appMeta.teacher||'—',W*0.72,signY+22,16,'700','center');
   attendancePdfText(ctx,'التوقيع: __________________',W*0.72,signY+44,12,'400','center');
-  attendancePdfText(ctx,'مدير المدرسة',W*0.28,signY,14,'400','center');
+  attendancePdfText(ctx,audience.principal,W*0.28,signY,14,'400','center');
   attendancePdfText(ctx,state.appMeta.principal||'—',W*0.28,signY+22,16,'700','center');
   attendancePdfText(ctx,'التوقيع: __________________',W*0.28,signY+44,12,'400','center');
   const data=canvas.toDataURL('image/jpeg',0.95),bytes=base64Bytes(data.split(',')[1]);
@@ -1646,19 +1700,19 @@ function openAttendanceLandscapePdf(){
 function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);if(isIOSLike())openAttendanceLandscapePdf();else runPrintSession('print-attendance-report','landscape')}
 
 function studentOfficialHeader(c,periodText,studentName=''){
-  const m=state.appMeta||{},school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم';
+  const m=state.appMeta||{},audience=schoolAudience(m),school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم';
   return `<header class="student-official-header" dir="rtl">
     <div class="student-official-gov"><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(region)}</span><span>${escapeHtml(school)}</span></div>
     <div class="student-official-logo"><img src="./assets/moe-logo.png" alt="شعار وزارة التعليم"></div>
-    <div class="student-official-title"><h1>تقرير متابعة طالب</h1><span>${escapeHtml(periodText||m.semester||'')}</span><small>${escapeHtml(m.year||'')}</small></div>
+    <div class="student-official-title"><h1>تقرير متابعة ${audience.studentBare}</h1><span>${escapeHtml(periodText||m.semester||'')}</span><small>${escapeHtml(m.year||'')}</small></div>
   </header>
   <div class="student-identity-strip" dir="rtl">
-    <div><span>الطالب</span><b>${escapeHtml(studentName||'—')}</b></div>
+    <div><span>${audience.student}</span><b>${escapeHtml(studentName||'—')}</b></div>
     <div><span>الصف / الفصل</span><b>${escapeHtml(c.grade||'—')} — ${escapeHtml(c.name||'—')}</b></div>
     <div><span>المادة</span><b>${escapeHtml(c.subject||'—')}</b></div>
   </div>`;
 }
-function officialReportSignatures(){return `<footer class="official-signatures"><div><span>معلم المادة</span><b>${escapeHtml(state.appMeta.teacher||'—')}</b><em>التوقيع: __________________</em></div><div><span>مدير المدرسة</span><b>${escapeHtml(state.appMeta.principal||'—')}</b><em>التوقيع: __________________</em></div></footer>`}
+function officialReportSignatures(){const audience=schoolAudience();return `<footer class="official-signatures"><div><span>${audience.subjectTeacher}</span><b>${escapeHtml(state.appMeta.teacher||'—')}</b><em>التوقيع: __________________</em></div><div><span>${audience.principal}</span><b>${escapeHtml(state.appMeta.principal||'—')}</b><em>التوقيع: __________________</em></div></footer>`}
 function setPrintPage(orientation='portrait'){let el=document.getElementById('dynamicPrintPage');if(!el){el=document.createElement('style');el.id='dynamicPrintPage';document.head.appendChild(el)}el.textContent=`@page{size:A4 ${orientation};margin:10mm}`}
 function clearPrintPage(){document.getElementById('dynamicPrintPage')?.remove()}
 const PRINT_BODY_CLASSES=['print-student','print-class-summary','print-teacher-schedule','print-attendance-report'];
@@ -1684,18 +1738,18 @@ function buildClassLandscapePdf(){
   const c=currentClass(),period=$('#reportPeriod')?.value||state.ui.reportPeriod||'all';if(!c)throw new Error('No active class');
   const periodText=period==='all'?state.appMeta.semester:monthLabel(period),W=1684,H=1190,M=48,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
-  const gov=state.appMeta||{},right=W-M,left=M,center=W/2;
+  const gov=state.appMeta||{},audience=schoolAudience(gov),right=W-M,left=M,center=W/2;
   attendancePdfText(ctx,'المملكة العربية السعودية',right,44,19,'700');attendancePdfText(ctx,'وزارة التعليم',right,70,17,'400');attendancePdfText(ctx,gov.region||'إدارة التعليم',right,94,16,'400');attendancePdfText(ctx,gov.school||'المدرسة',right,117,16,'400');
   const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-51,20,102,81)}catch{}}
   attendancePdfText(ctx,'كشف متابعة الفصل',left,52,26,'700','left');attendancePdfText(ctx,periodText||gov.semester||'',left,83,17,'700','left');attendancePdfText(ctx,gov.year||'',left,108,16,'400','left');attendancePdfLine(ctx,M,140,W-M,140,2,'#2f3740');
   const metaY=151,metaH=39,metaW=(W-2*M)/3;[['الصف',c.grade||'—'],['الفصل',c.name||'—'],['المادة',c.subject||'—']].forEach((it,i)=>{const x=M+i*metaW;ctx.strokeStyle='#7b838c';ctx.strokeRect(x,metaY,metaW,metaH);attendancePdfText(ctx,`${it[0]}: ${it[1]}`,x+metaW-9,metaY+metaH/2,16,'700')});
   const tableY=212,tableW=W-2*M,numW=40,nameW=292,metricCount=9,metricW=(tableW-numW-nameW)/metricCount,headH=68;
   const headers=[['الواجبات'],['المشاركة','والتفاعل'],['المشاريع','والبحوث'],['التطبيقات','العملية'],['الاختبارات','القصيرة'],['الاختبارات'],['المجموع','المرصود'],['النسبة'],['الغياب']];
-  let x=W-M;attendancePdfCell(ctx,x-numW,tableY,numW,headH,'م',{size:14,weight:'700',fill:'#eef0f2'});x-=numW;attendancePdfCell(ctx,x-nameW,tableY,nameW,headH,'اسم الطالب',{align:'right',size:16,weight:'700',fill:'#eef0f2'});x-=nameW;
+  let x=W-M;attendancePdfCell(ctx,x-numW,tableY,numW,headH,'م',{size:14,weight:'700',fill:'#eef0f2'});x-=numW;attendancePdfCell(ctx,x-nameW,tableY,nameW,headH,audience.studentName,{align:'right',size:16,weight:'700',fill:'#eef0f2'});x-=nameW;
   headers.forEach(lines=>{const sx=x-metricW;ctx.fillStyle='#eef0f2';ctx.fillRect(sx,tableY,metricW,headH);ctx.strokeStyle='#5f6670';ctx.strokeRect(sx,tableY,metricW,headH);lines.forEach((line,j)=>attendancePdfText(ctx,line,sx+metricW/2,tableY+headH/2+(j-(lines.length-1)/2)*17,12,'700','center'));x-=metricW});
   const students=c.students||[],available=H-tableY-headH-92,rowH=Math.max(20,Math.min(26,Math.floor(available/Math.max(1,students.length))));
   students.forEach((st,row)=>{const sc=scoreSummary(st,c,period),at=attendanceCounts(st,period),vals=[assessmentTypeScore(st,c,period,'homework'),assessmentTypeScore(st,c,period,'participation'),assessmentTypeScore(st,c,period,'project'),assessmentTypeScore(st,c,period,'practical'),assessmentTypeScore(st,c,period,'quiz'),assessmentTypeScore(st,c,period,'exam'),sc.gradedMax?`${arabicNum(sc.earned)}/${arabicNum(sc.gradedMax)}`:'—',pct(sc.performance),arabicNum(at.absent)];let cx=W-M,y=tableY+headH+row*rowH;attendancePdfCell(ctx,cx-numW,y,numW,rowH,arabicNum(row+1),{size:12});cx-=numW;attendancePdfCell(ctx,cx-nameW,y,nameW,rowH,st.name,{align:'right',size:13,weight:'600'});cx-=nameW;vals.forEach(v=>{attendancePdfCell(ctx,cx-metricW,y,metricW,rowH,v,{size:11,weight:'500'});cx-=metricW})});
-  const signY=Math.min(H-50,tableY+headH+students.length*rowH+40);attendancePdfLine(ctx,M,signY-20,W-M,signY-20,1,'#444');attendancePdfText(ctx,'معلم المادة',W*0.72,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.teacher||'—',W*0.72,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.72,signY+44,12,'400','center');attendancePdfText(ctx,'مدير المدرسة',W*0.28,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.principal||'—',W*0.28,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.28,signY+44,12,'400','center');
+  const signY=Math.min(H-50,tableY+headH+students.length*rowH+40);attendancePdfLine(ctx,M,signY-20,W-M,signY-20,1,'#444');attendancePdfText(ctx,audience.subjectTeacher,W*0.72,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.teacher||'—',W*0.72,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.72,signY+44,12,'400','center');attendancePdfText(ctx,audience.principal,W*0.28,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.principal||'—',W*0.28,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.28,signY+44,12,'400','center');
   const data=canvas.toDataURL('image/jpeg',0.95),bytes=base64Bytes(data.split(',')[1]);return buildJpegPdf([{bytes,width:W,height:H}])
 }
 function openClassLandscapePdf(){
@@ -1707,9 +1761,9 @@ function openClassLandscapePdf(){
 }
 
 function classOfficialSheet(c,period='all'){
-  const periodText=period==='all'?state.appMeta.semester:monthLabel(period);
-  const rows=c.students.map((st,i)=>{const sc=scoreSummary(st,c,period),at=attendanceCounts(st,period);return `<tr><td class="sheet-num">${arabicNum(i+1)}</td><td class="sheet-name">${escapeHtml(st.name)}</td><td>${assessmentTypeScore(st,c,period,'homework')}</td><td>${assessmentTypeScore(st,c,period,'participation')}</td><td>${assessmentTypeScore(st,c,period,'project')}</td><td>${assessmentTypeScore(st,c,period,'practical')}</td><td>${assessmentTypeScore(st,c,period,'quiz')}</td><td>${assessmentTypeScore(st,c,period,'exam')}</td><td>${sc.gradedMax?`${arabicNum(sc.earned)} / ${arabicNum(sc.gradedMax)}`:'—'}</td><td>${pct(sc.performance)}</td><td>${arabicNum(at.absent)}</td></tr>`}).join('')||'<tr><td colspan="11">لا يوجد طلاب في الفصل</td></tr>';
-  return `<div class="official-class-print landscape-class-report">${compactClassOfficialHeader('كشف متابعة الفصل',c,periodText)}<table class="official-class-sheet"><thead><tr><th>م</th><th>اسم الطالب</th><th>الواجبات</th><th>المشاركة والتفاعل</th><th>المشاريع والبحوث</th><th>التطبيقات العملية</th><th>الاختبارات القصيرة</th><th>الاختبارات</th><th>المجموع المرصود</th><th>النسبة</th><th>الغياب</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</div>`;
+  const audience=schoolAudience(),periodText=period==='all'?state.appMeta.semester:monthLabel(period);
+  const rows=c.students.map((st,i)=>{const sc=scoreSummary(st,c,period),at=attendanceCounts(st,period);return `<tr><td class="sheet-num">${arabicNum(i+1)}</td><td class="sheet-name">${escapeHtml(st.name)}</td><td>${assessmentTypeScore(st,c,period,'homework')}</td><td>${assessmentTypeScore(st,c,period,'participation')}</td><td>${assessmentTypeScore(st,c,period,'project')}</td><td>${assessmentTypeScore(st,c,period,'practical')}</td><td>${assessmentTypeScore(st,c,period,'quiz')}</td><td>${assessmentTypeScore(st,c,period,'exam')}</td><td>${sc.gradedMax?`${arabicNum(sc.earned)} / ${arabicNum(sc.gradedMax)}`:'—'}</td><td>${pct(sc.performance)}</td><td>${arabicNum(at.absent)}</td></tr>`}).join('')||`<tr><td colspan="11">لا توجد ${audience.students} في الفصل</td></tr>`;
+  return `<div class="official-class-print landscape-class-report">${compactClassOfficialHeader('كشف متابعة الفصل',c,periodText)}<table class="official-class-sheet"><thead><tr><th>م</th><th>${audience.studentName}</th><th>الواجبات</th><th>المشاركة والتفاعل</th><th>المشاريع والبحوث</th><th>التطبيقات العملية</th><th>الاختبارات القصيرة</th><th>الاختبارات</th><th>المجموع المرصود</th><th>النسبة</th><th>الغياب</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</div>`;
 }
 function renderReports(){
   const c=currentClass();if(!c)return;
@@ -1742,7 +1796,7 @@ function openStudentReport(id){
   const trendReady=eventsForPeriod(c,period).filter(x=>x.date&&st.grades?.[x.id]!==undefined&&st.grades?.[x.id]!==null&&x.maxScore>0).length>=2;
   const trendSection=trendReady?`<section class='report-section'><h3>تطور المستوى</h3>${trendChart(st,c,period)}</section>`:'';
   $('#studentModalTitle').textContent=`تقرير ${st.name}`;
-  $('#studentReportPrint').innerHTML=`${studentOfficialHeader(c,periodText,st.name)}${r.isRisk?`<div class='risk-box report-risk'><b>يحتاج متابعة</b><span>${escapeHtml(r.reasons.join(' · '))}</span></div>`:''}<div class='student-summary-strip'><div><span>الأداء المرصود</span><b>${pct(sc.performance)}</b></div><div><span>اكتمال الرصد</span><b>${pct(sc.completion)}</b></div><div><span>الغياب</span><b>${arabicNum(a.absent)}</b></div><div><span>التأخر</span><b>${arabicNum(a.late)}</b></div></div>${trendSection}<section class='report-section'><h3>سجل التقييمات</h3><table class='detail-table'><thead><tr><th>التاريخ</th><th>النوع</th><th>التقييم</th><th>الدرجة</th><th>النسبة</th></tr></thead><tbody>${studentAssessmentRows(st,c,period)}</tbody></table></section><section class='report-section'><h3>سجل الحضور والغياب</h3><div class='student-attendance-summary'><span>حاضر <b>${arabicNum(a.present)}</b></span><span>غائب <b>${arabicNum(a.absent)}</b></span><span>متأخر <b>${arabicNum(a.late)}</b></span><span>مستأذن <b>${arabicNum(a.excused)}</b></span></div><table class='detail-table attendance-history'><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${recentAttendanceRows(st,period)}</tbody></table></section>${st.notes?`<div class='student-report-header note-box'><b>ملاحظات المعلم</b><p>${escapeHtml(st.notes)}</p></div>`:''}${officialReportSignatures()}`;
+  $('#studentReportPrint').innerHTML=`${studentOfficialHeader(c,periodText,st.name)}${r.isRisk?`<div class='risk-box report-risk'><b>يحتاج متابعة</b><span>${escapeHtml(r.reasons.join(' · '))}</span></div>`:''}<div class='student-summary-strip'><div><span>الأداء المرصود</span><b>${pct(sc.performance)}</b></div><div><span>اكتمال الرصد</span><b>${pct(sc.completion)}</b></div><div><span>الغياب</span><b>${arabicNum(a.absent)}</b></div><div><span>التأخر</span><b>${arabicNum(a.late)}</b></div></div>${trendSection}<section class='report-section'><h3>سجل التقييمات</h3><table class='detail-table'><thead><tr><th>التاريخ</th><th>النوع</th><th>التقييم</th><th>الدرجة</th><th>النسبة</th></tr></thead><tbody>${studentAssessmentRows(st,c,period)}</tbody></table></section><section class='report-section'><h3>سجل الحضور والغياب</h3><div class='student-attendance-summary'><span>حاضر <b>${arabicNum(a.present)}</b></span><span>غائب <b>${arabicNum(a.absent)}</b></span><span>متأخر <b>${arabicNum(a.late)}</b></span><span>مستأذن <b>${arabicNum(a.excused)}</b></span></div><table class='detail-table attendance-history'><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${recentAttendanceRows(st,period)}</tbody></table></section>${st.notes?`<div class='student-report-header note-box'><b>ملاحظات ${schoolAudience().teacher}</b><p>${escapeHtml(st.notes)}</p></div>`:''}${officialReportSignatures()}`;
   $('#studentNotes').value=st.notes||'';if(!$('#studentModal').open)$('#studentModal').showModal();
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
