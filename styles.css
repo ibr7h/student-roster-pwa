@@ -1141,3 +1141,5 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   .admin-profile-fields{grid-template-columns:1fr}
   .admin-profile-fields .span2{grid-column:auto}
 }
+
+.school-gender-status.girls{background:#f1e8f6;color:#7c4f98}
