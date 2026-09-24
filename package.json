@@ -1,7 +1,7 @@
 {
   "name": "student-roster-pwa",
   "private": true,
-  "version": "4.18.0",
+  "version": "4.18.1",
   "scripts": {
     "validate": "node scripts/validate.cjs"
   }
