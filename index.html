@@ -20,7 +20,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.16.2</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.17.0</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -126,15 +126,49 @@
 
       <div class="admin-settings-stack no-print">
         <section class="panel admin-card admin-profile-card">
-          <div class="section-head">
-            <div><p class="eyebrow">١ · البيانات الأساسية</p><h2>المدرسة والمعلم</h2><p class="subtle">بيانات عامة للتطبيق والكليشة والتقارير. تُعدّل عادةً مرة واحدة فقط.</p></div>
+          <div class="admin-profile-head">
+            <div>
+              <p class="eyebrow">١ · البيانات الأساسية</p>
+              <h2 id="adminProfileTitle">هوية المدرسة والتقارير</h2>
+              <p class="subtle">تُستخدم هذه البيانات تلقائيًا في الكليشة والتقارير والخطابات الرسمية.</p>
+            </div>
+            <span class="school-gender-status" id="schoolGenderStatus">بنين</span>
           </div>
-          <div class="meta-grid dashboard-meta">
-            <div class="field"><label>اسم المعلم</label><input data-app-meta="teacher" placeholder="اسم المعلم"></div>
-            <div class="field"><label>المدرسة</label><input data-app-meta="school" placeholder="اسم المدرسة"></div>
-            <div class="field"><label>المنطقة / مكتب التعليم</label><input data-app-meta="region" placeholder="المنطقة التعليمية"></div>
-            <div class="field"><label>العام الدراسي</label><input data-app-meta="year" placeholder="١٤٤٨ هـ"></div>
-            <div class="field"><label>مدير المدرسة</label><input data-app-meta="principal" placeholder="اسم المدير"></div>
+
+          <div class="school-gender-picker" role="radiogroup" aria-label="نوع المدرسة">
+            <button type="button" class="school-gender-option" data-school-gender="boys" aria-pressed="true">
+              <span class="school-gender-icon">ب</span>
+              <span><b>بنين</b><small>طالب · معلم · مدير</small></span>
+              <i>✓</i>
+            </button>
+            <button type="button" class="school-gender-option" data-school-gender="girls" aria-pressed="false">
+              <span class="school-gender-icon">ن</span>
+              <span><b>بنات</b><small>طالبة · معلمة · مديرة</small></span>
+              <i>✓</i>
+            </button>
+          </div>
+
+          <div class="admin-profile-sections">
+            <section class="admin-profile-section">
+              <div class="admin-profile-section-head"><span class="admin-profile-section-icon">⌂</span><div><b>بيانات المدرسة</b><small>تظهر في رأس التقارير والخطابات.</small></div></div>
+              <div class="admin-profile-fields">
+                <div class="field span2"><label>اسم المدرسة</label><input data-app-meta="school" placeholder="اسم المدرسة"></div>
+                <div class="field span2"><label>المنطقة / مكتب التعليم</label><input data-app-meta="region" placeholder="المنطقة التعليمية"></div>
+                <div class="field"><label>العام الدراسي</label><input data-app-meta="year" placeholder="١٤٤٨ هـ"></div>
+              </div>
+            </section>
+
+            <section class="admin-profile-section staff-profile-section">
+              <div class="admin-profile-section-head"><span class="admin-profile-section-icon">◎</span><div><b>المسؤولون</b><small id="adminStaffHint">بيانات المعلم ومدير المدرسة.</small></div></div>
+              <div class="admin-profile-fields staff-profile-fields">
+                <div class="field span2"><label id="teacherProfileLabel">اسم المعلم</label><input data-app-meta="teacher" placeholder="اسم المعلم" id="teacherProfileInput"></div>
+                <div class="field span2"><label id="principalProfileLabel">مدير المدرسة</label><input data-app-meta="principal" placeholder="اسم المدير" id="principalProfileInput"></div>
+              </div>
+            </section>
+          </div>
+
+          <div class="school-gender-impact" id="schoolGenderImpact">
+            <span>Aa</span><div><b>الصياغة الرسمية: بنين</b><small>ستستخدم التقارير والخطابات: الطالب · معلم المادة · مدير المدرسة · الموجه الطلابي.</small></div>
           </div>
         </section>
 
@@ -211,7 +245,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.16.2</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.17.0</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -534,7 +568,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.16.2</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.17.0</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
