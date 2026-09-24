@@ -246,14 +246,54 @@ function behaviorRecordMarkup(r,c){
   </article>`
 }
 
-function behaviorViolationOptions(c=currentClass(),selected=''){
+function behaviorViolationSearchKey(v=''){
+  return String(v||'').normalize('NFKD')
+    .replace(/[\u064B-\u065F\u0670]/g,'')
+    .replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه')
+    .replace(/\s+/g,' ').trim().toLowerCase()
+}
+function behaviorViolationMatches(c=currentClass(),term=''){
+  const all=behaviorCatalog(c),q=behaviorViolationSearchKey(term);
+  if(!q)return all;
+  return all.filter(r=>{
+    const hay=behaviorViolationSearchKey([
+      r.label,r.code,
+      'الدرجة '+behaviorDegreeLabel(r.degree),
+      'درجه '+behaviorDegreeLabel(r.degree),
+      String(r.degree),arabicNum(r.degree),
+      'حسم '+String(BEHAVIOR_DEDUCTION[r.degree]||'')
+    ].join(' '));
+    return hay.includes(q)
+  })
+}
+function behaviorViolationOptions(c=currentClass(),selected='',term=''){
+  const matches=behaviorViolationMatches(c,term);
+  if(!matches.length)return '<option value="">لا توجد نتائج مطابقة</option>';
   const grouped=new Map();
-  behaviorCatalog(c).forEach(r=>{if(!grouped.has(r.degree))grouped.set(r.degree,[]);grouped.get(r.degree).push(r)});
+  matches.forEach(r=>{if(!grouped.has(r.degree))grouped.set(r.degree,[]);grouped.get(r.degree).push(r)});
   return [...grouped.entries()].sort((x,y)=>x[0]-y[0]).map(([degree,items])=>`<optgroup label="الدرجة ${behaviorDegreeLabel(degree)} — حسم ${arabicNum(BEHAVIOR_DEDUCTION[degree])}">${items.map(r=>`<option value="${r.code}" ${r.code===selected?'selected':''}>${behaviorEsc(r.label)}</option>`).join('')}</optgroup>`).join('')
+}
+function renderBehaviorViolationSearch({selected='',refreshPreview=true}={}){
+  const c=currentClass(),search=$('#behaviorViolationSearch'),select=$('#behaviorViolation'),meta=$('#behaviorViolationSearchMeta');
+  if(!c||!select)return;
+  const term=search?.value||'',matches=behaviorViolationMatches(c,term),total=behaviorCatalog(c).length;
+  const desired=selected||select.value||'';
+  select.innerHTML=behaviorViolationOptions(c,desired,term);
+  if(matches.length){
+    if(matches.some(r=>r.code===desired))select.value=desired;
+    else select.value=matches[0].code;
+  }else select.value='';
+  if(meta){
+    if(term.trim())meta.innerHTML=matches.length
+      ?`<b>${arabicNum(matches.length)}</b> نتائج من ${arabicNum(total)} مخالفة`
+      :'<b>لا توجد نتائج</b> جرّب كلمة أخرى أو امسح البحث.';
+    else meta.textContent=`إجمالي ${arabicNum(total)} مخالفة حسب المرحلة`
+  }
+  if(refreshPreview)renderBehaviorRulePreview()
 }
 function renderBehaviorRulePreview(){
   const select=$('#behaviorViolation'),box=$('#behaviorRulePreview');if(!select||!box)return;
-  const rule=behaviorRuleByCode(select.value,currentClass());if(!rule){box.innerHTML='';return}
+  const rule=behaviorRuleByCode(select.value,currentClass());if(!rule){box.className='behavior-rule-preview span2 empty';box.innerHTML='<p>اختر مخالفة من نتائج البحث.</p>';renderBehaviorRecurrenceInfo();return}
   box.className='behavior-rule-preview span2 '+(rule.urgent?'urgent':'');
   box.innerHTML=`<div><span>درجة المخالفة</span><b>${behaviorDegreeLabel(rule.degree)}</b></div><div><span>الحسم النظامي</span><b>${arabicNum(BEHAVIOR_DEDUCTION[rule.degree])} درجة</b></div><p>${behaviorEsc(behaviorRoleHint(rule))}</p>`;
   renderBehaviorRecurrenceInfo()
@@ -288,8 +328,8 @@ function openBehaviorModal(id='',prefill={}){
   $('#behaviorStudent').value=record?.studentId||requestedStudent||c.students[0]?.id||'';
   $('#behaviorDate').value=record?.date||requestedDate||localDateISO();
   $('#behaviorPeriod').value=String(record?.period||requestedPeriod||(prefill?.source==='attendance'?'':behaviorNowPeriod())||'');
-  $('#behaviorViolation').innerHTML=behaviorViolationOptions(c,record?.violationCode||'');
-  if(record?.violationCode)$('#behaviorViolation').value=record.violationCode;
+  const violationSearch=$('#behaviorViolationSearch');if(violationSearch)violationSearch.value='';
+  renderBehaviorViolationSearch({selected:record?.violationCode||'',refreshPreview:false});
   $('#behaviorAction').value=record?.actionTaken||'';
   $('#behaviorResponse').value=record?.response||'استجاب';
   $('#behaviorNotes').value=record?.notes||'';
@@ -407,6 +447,10 @@ function initBehaviorModule(){
   $('#saveBehaviorBtn')?.addEventListener('click',saveBehaviorRecord);
   $('#deleteBehaviorBtn')?.addEventListener('click',deleteBehaviorRecord);
   $('#behaviorViolation')?.addEventListener('change',renderBehaviorRulePreview);
+  $('#behaviorViolationSearch')?.addEventListener('input',()=>renderBehaviorViolationSearch());
+  $('#behaviorViolationSearch')?.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();const select=$('#behaviorViolation');if(select?.value){select.focus();renderBehaviorRulePreview()}}
+  });
   $('#behaviorStudent')?.addEventListener('change',renderBehaviorRulePreview);
   $('#behaviorDate')?.addEventListener('change',renderBehaviorRecurrenceInfo);
   $('#behaviorPeriod')?.addEventListener('change',renderBehaviorRecurrenceInfo);
