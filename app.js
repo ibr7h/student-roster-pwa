@@ -712,6 +712,7 @@ function renderAssessmentArchive(c){
   summary.innerHTML=`<div><span>جميع التقييمات</span><b>${arabicNum(all.length)}</b></div><div class="complete"><span>مكتمل الرصد</span><b>${arabicNum(completed)}</b></div><div class="pending"><span>قيد الرصد</span><b>${arabicNum(pending)}</b></div>`;
 
   renderMonthOptions(monthSelect,state.ui.assessmentMonth||'all',true,true);
+  if(monthSelect.value!==(state.ui.assessmentMonth||'all'))state.ui.assessmentMonth=monthSelect.value;
   typeBox.innerHTML=assessmentTypeFilterOptions().map(([key,label])=>`<button type="button" class="${(state.ui.assessmentTypeFilter||'all')===key?'active':''}" data-assessment-type="${key}">${label}</button>`).join('');
   if(search&&document.activeElement!==search)search.value=assessmentArchiveSearchTerm;
 
