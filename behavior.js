@@ -256,6 +256,21 @@ function behaviorPrintDocument(title,body,{landscape=false,confidential=false}={
   </style></head><body><div class="sheet">${confidential?'<div class="confidential">سري</div>':''}<header class="gov-head"><div class="right"><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${behaviorEsc(x.region)}</span><span>${behaviorEsc(x.school)}</span></div><img src="./assets/moe-logo.png" alt=""><div class="title"><h1>${behaviorEsc(title)}</h1><span>${behaviorEsc(x.year)}</span></div></header>${body}<div class="footnote">أُنشئ هذا المستند من سجل المعلم المحلي وفق حقول قواعد السلوك والمواظبة — ${BEHAVIOR_RULE_EDITION}. يجب استكمال التوقيعات والإجراءات من الجهات المخولة.</div></div><div class="screen-actions"><button class="primary" onclick="window.print()">طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div></body></html>`);
   w.document.close();try{w.focus()}catch{}
 }
+function printBehaviorSummaryReport(){
+  const c=currentClass();if(!c)return;
+  const records=(c.behaviorRecords||[]).slice().sort((x,y)=>String(x.date||'').localeCompare(String(y.date||'')));
+  if(!records.length){toast('لا توجد سجلات سلوكية لإعداد التقرير');return}
+  const total=records.length,referred=records.filter(r=>r.referred).length,high=records.filter(r=>Number(r.degree)>=4||r.urgent).length;
+  const byDegree=[1,2,3,4,5].map(d=>[d,records.filter(r=>Number(r.degree)===d).length]).filter(x=>x[1]);
+  const rows=records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td><td>${behaviorEsc(r.response||'—')}</td><td>${r.referred?behaviorEsc(r.referralTarget||'إدارة المدرسة'):'—'}</td></tr>`).join('');
+  const body=`<div class="meta"><div><span>الصف / الفصل</span><b>${behaviorEsc(c.grade||'—')} — ${behaviorEsc(c.name||'—')}</b></div><div><span>المادة</span><b>${behaviorEsc(c.subject||'—')}</b></div><div><span>الفترة</span><b>${behaviorEsc(state.appMeta?.semester||state.appMeta?.year||'—')}</b></div></div>
+  <div class="meta"><div><span>إجمالي الرصد</span><b>${arabicNum(total)}</b></div><div><span>المحال للإدارة</span><b>${arabicNum(referred)}</b></div><div><span>درجة رابعة فأعلى</span><b>${arabicNum(high)}</b></div></div>
+  <div class="box"><b>التوزيع حسب درجة المشكلة</b>${byDegree.map(([d,n])=>`الدرجة ${behaviorDegreeLabel(d)}: ${arabicNum(n)}`).join(' · ')}</div>
+  <table><thead><tr><th style="width:4%">م</th><th style="width:16%">الطالب/الطالبة</th><th style="width:22%">المشكلة السلوكية</th><th style="width:8%">الدرجة</th><th style="width:11%">التاريخ</th><th style="width:7%">الحصة</th><th style="width:12%">الاستجابة</th><th style="width:20%">الإحالة</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="signatures"><div><span>معلم المادة</span><b>${behaviorEsc(state.appMeta?.teacher||'—')}</b><span>التوقيع: __________________</span></div><div><span>مدير المدرسة</span><b>${behaviorEsc(state.appMeta?.principal||'—')}</b><span>التوقيع: __________________</span></div></div>`;
+  behaviorPrintDocument('تقرير السلوك والانضباط',body,{landscape:true})
+}
+
 function behaviorTeacherLogRows(records,c){
   return records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.actionTaken||'—')}</td><td>${behaviorEsc(r.response||'—')}</td><td>${arabicNum(r.recurrence||1)}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td></tr>`).join('')
 }
@@ -295,6 +310,7 @@ function printBehaviorOfficialReferral(id){
 function initBehaviorModule(){
   if(behaviorModuleReady)return;behaviorModuleReady=true;
   $('#addBehaviorBtn')?.addEventListener('click',()=>openBehaviorModal());
+  $('#printBehaviorReportBtn')?.addEventListener('click',printBehaviorSummaryReport);
   $('#printBehaviorLogBtn')?.addEventListener('click',()=>printBehaviorTeacherLog());
   $('#saveBehaviorBtn')?.addEventListener('click',saveBehaviorRecord);
   $('#deleteBehaviorBtn')?.addEventListener('click',deleteBehaviorRecord);
