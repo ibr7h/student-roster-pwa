@@ -39,3 +39,17 @@
   .behavior-modal .modalfooter{flex:0 0 auto;padding-bottom:max(2px,env(safe-area-inset-bottom))}
 }
 @media(max-width:390px){.behavior-tools{grid-template-columns:1fr}.behavior-search{grid-column:auto}.behavior-record-actions{grid-template-columns:1fr 1fr}}
+
+.attendance-row .student-name{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.attendance-student-label{min-width:0;overflow-wrap:anywhere}
+.attendance-behavior-btn{flex:0 0 auto;appearance:none;border:1px solid #e3bd63;background:#fff7df;color:#7a5710;border-radius:9px;min-height:34px;padding:6px 9px;font:inherit;font-size:9px;font-weight:900;cursor:pointer}
+.attendance-behavior-btn:active{transform:translateY(1px)}
+.behavior-auto-context{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #c9e0ed;border-radius:10px;background:#f1f8fc;color:#315b72}
+.behavior-auto-context[hidden]{display:none}
+.behavior-auto-context b{font-size:9px;white-space:nowrap}.behavior-auto-context span{font-size:8.5px;line-height:1.5}
+@media(max-width:680px){
+  .attendance-row .student-name{gap:6px}
+  .attendance-behavior-btn{min-height:32px;padding:5px 8px;font-size:8.5px}
+  .behavior-auto-context{display:grid;gap:3px}
+  .behavior-auto-context b{white-space:normal}
+}
