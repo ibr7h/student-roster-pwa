@@ -450,8 +450,8 @@ function showView(name,saveUi=true){
   if(!['dashboard','admin','assessments','behavior','attendance','schedule','reports'].includes(name))name='dashboard';
   state.ui.activeView=name;
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
-  $('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
-  $('.bottom-nav [data-nav]').forEach(b=>{if(b.dataset.nav===name)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  $$('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
+  $$('.bottom-nav [data-nav]').forEach(b=>{if(b.dataset.nav===name)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   if(name==='assessments')renderAssessments();
   if(name==='behavior')renderBehavior();
   if(name==='attendance')renderAttendance();
