@@ -1093,3 +1093,51 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
 
 .class-card-actions.four-actions .behavior-action{border-color:#d9bf77;background:#fff8e6;color:#765713}
 @media(max-width:680px){.class-card-actions.four-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+.admin-profile-card{overflow:hidden;border-color:#cbdde8}
+.admin-profile-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.admin-profile-head h2{margin:3px 0 5px}
+.school-gender-status{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:62px;min-height:32px;padding:6px 10px;border-radius:999px;background:#eaf3f9;color:#24658c;font-size:10px;font-weight:900}
+.school-gender-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:9px;border:1px solid #dde7ed;border-radius:15px;background:#f7fafc;margin-bottom:12px}
+.school-gender-option{appearance:none;display:grid;grid-template-columns:42px minmax(0,1fr) 24px;gap:9px;align-items:center;min-height:66px;padding:9px 11px;border:1px solid #dce4e9;border-radius:12px;background:#fff;color:var(--ink);text-align:right;font:inherit;cursor:pointer;transition:.15s}
+.school-gender-option:hover{border-color:#b9cfdd}
+.school-gender-option.active{border-color:#2b729d;background:#eef7fc;box-shadow:inset 0 0 0 1px #2b729d}
+.school-gender-option[data-school-gender="girls"].active{border-color:#8a5da5;background:#f8f1fb;box-shadow:inset 0 0 0 1px #8a5da5}
+.school-gender-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#e8f2f8;color:#24658c;font-size:19px;font-weight:950}
+.school-gender-option[data-school-gender="girls"] .school-gender-icon{background:#f1e8f6;color:#7c4f98}
+.school-gender-option>span:nth-child(2){display:grid;gap:2px;min-width:0}
+.school-gender-option b{font-size:13px}.school-gender-option small{font-size:8.5px;color:var(--muted)}
+.school-gender-option i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#dbe9f1;color:#fff;font-size:10px;font-style:normal;opacity:.3}
+.school-gender-option.active i{background:#2b729d;opacity:1}
+.school-gender-option[data-school-gender="girls"].active i{background:#8a5da5}
+.admin-profile-sections{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:10px}
+.admin-profile-section{border:1px solid #dde6eb;border-radius:14px;padding:12px;background:#fff}
+.admin-profile-section-head{display:flex;align-items:center;gap:8px;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid #edf1f4}
+.admin-profile-section-head>div{display:grid;gap:1px}.admin-profile-section-head b{font-size:11px}.admin-profile-section-head small{font-size:8.5px;color:var(--muted)}
+.admin-profile-section-icon{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:10px;background:#eef4f8;color:#2c6688;font-size:15px;font-weight:900}
+.staff-profile-section .admin-profile-section-icon{background:#f1edf8;color:#69518d}
+.admin-profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.admin-profile-fields .span2{grid-column:1/-1}
+.admin-profile-fields .field{margin:0}
+.school-gender-impact{display:grid;grid-template-columns:38px minmax(0,1fr);gap:9px;align-items:center;margin-top:10px;padding:10px 11px;border:1px solid #d9e4ea;border-radius:12px;background:#f8fbfd}
+.school-gender-impact>span{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#173f5f;color:#fff;font-size:11px;font-weight:900}
+.school-gender-impact>div{display:grid;gap:2px}.school-gender-impact b{font-size:10px}.school-gender-impact small{font-size:8.7px;line-height:1.5;color:var(--muted)}
+@media(max-width:760px){
+  .admin-profile-head{margin-bottom:10px}
+  .admin-profile-sections{grid-template-columns:1fr}
+  .school-gender-picker{padding:7px;gap:7px}
+  .school-gender-option{min-height:62px;padding:8px;grid-template-columns:38px minmax(0,1fr) 20px}
+  .school-gender-icon{width:38px;height:38px}
+  .admin-profile-section{padding:10px}
+}
+@media(max-width:430px){
+  .admin-profile-head{display:grid}
+  .school-gender-status{justify-self:start}
+  .school-gender-picker{grid-template-columns:1fr 1fr}
+  .school-gender-option{grid-template-columns:34px minmax(0,1fr);min-height:58px}
+  .school-gender-option i{display:none}
+  .school-gender-icon{width:34px;height:34px;font-size:16px}
+  .school-gender-option small{font-size:7.8px}
+  .admin-profile-fields{grid-template-columns:1fr}
+  .admin-profile-fields .span2{grid-column:auto}
+}
