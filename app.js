@@ -725,7 +725,7 @@ function renderAssessmentArchive(c){
   const currentMonth=assessmentArchiveCurrentMonth(),selectedAssessment=findAssessment(c.selectedAssessmentId,c),selectedKey=selectedAssessment?assessmentArchiveMonthKey(selectedAssessment):'';
   const collapsed=state.ui.assessmentArchiveCollapsed||{};
   listEl.innerHTML=ordered.length?ordered.map(([key,items],idx)=>{
-    const defaultOpen=selectedMonth!=='all'||key===selectedKey||key===currentMonth||(!selectedKey&&key!==currentMonth&&idx===0);
+    const defaultOpen=selectedMonth!=='all'||(selectedKey?key===selectedKey:(key===currentMonth||idx===0));
     const open=Object.prototype.hasOwnProperty.call(collapsed,key)?!collapsed[key]:defaultOpen;
     return assessmentArchiveGroupMarkup(key,items,c,open)
   }).join(''):`<div class="empty-state compact-empty"><b>لا توجد نتائج</b>${all.length?'غيّر البحث أو عوامل التصفية.':'أضف أول واجب أو اختبار.'}</div>`;
@@ -741,7 +741,7 @@ function renderAssessmentArchive(c){
 function renderAssessmentPeriodTabs(){
   const box=$('#assessmentPeriodTabs');if(!box)return;
   const current=assessmentArchiveCurrentMonth(),previous=assessmentArchivePreviousMonth(),value=state.ui.assessmentMonth||'all';
-  $$('[data-assessment-period]').forEach(b=>{
+  $$$('[data-assessment-period]').forEach(b=>{
     const target=b.dataset.assessmentPeriod==='current'?current:b.dataset.assessmentPeriod==='previous'?previous:'all';
     b.classList.toggle('active',value===target);
     b.disabled=b.dataset.assessmentPeriod!=='all'&&!currentClass()?.assessmentEvents?.some(a=>monthKey(a.date)===target);
