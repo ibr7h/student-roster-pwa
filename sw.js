@@ -1,7 +1,7 @@
-// release 4.15.0 assessment-archive
+// release 4.16.0 behavior-and-referral
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.15.0');
-const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.16.0');
+const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
   try{
