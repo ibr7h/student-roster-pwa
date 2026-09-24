@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=6;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.17.1';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.0';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -450,7 +450,8 @@ function showView(name,saveUi=true){
   if(!['dashboard','admin','assessments','behavior','attendance','schedule','reports'].includes(name))name='dashboard';
   state.ui.activeView=name;
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
-  $$('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
+  $('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
+  $('.bottom-nav [data-nav]').forEach(b=>{if(b.dataset.nav===name)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   if(name==='assessments')renderAssessments();
   if(name==='behavior')renderBehavior();
   if(name==='attendance')renderAttendance();
