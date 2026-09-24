@@ -111,6 +111,16 @@ function behaviorPhase(c=currentClass()){
 function behaviorCatalog(c=currentClass()){return BEHAVIOR_CATALOG[behaviorPhase(c)]||BEHAVIOR_CATALOG.secondary}
 function behaviorRuleByCode(code,c=currentClass()){return behaviorCatalog(c).find(x=>x.code===code)||Object.values(BEHAVIOR_CATALOG).flat().find(x=>x.code===code)||null}
 function behaviorDegreeLabel(n){return ({1:'الأولى',2:'الثانية',3:'الثالثة',4:'الرابعة',5:'الخامسة'})[Number(n)]||'—'}
+function behaviorOccurrenceLabel(n){
+  const words={1:'الأولى',2:'الثانية',3:'الثالثة',4:'الرابعة',5:'الخامسة',6:'السادسة',7:'السابعة',8:'الثامنة',9:'التاسعة',10:'العاشرة'};
+  return words[Number(n)]||('رقم '+arabicNum(n))
+}
+function behaviorPreviousTimesText(n){
+  n=Number(n)||0;if(n===0)return 'لم يسبق تسجيل هذه المخالفة على الطالب قبل هذه الواقعة.';
+  if(n===1)return 'سبق تسجيل هذه المخالفة مرة واحدة قبل هذه الواقعة.';
+  if(n===2)return 'سبق تسجيل هذه المخالفة مرتين قبل هذه الواقعة.';
+  return 'سبق تسجيل هذه المخالفة '+arabicNum(n)+' مرات قبل هذه الواقعة.'
+}
 function behaviorRoleHint(rule){
   if(!rule)return '';
   if(rule.urgent)return 'واقعة عالية الخطورة: سلّمها فورًا لإدارة المدرسة واتبع إجراءات السلامة والحماية المعتمدة بحسب طبيعة الواقعة.';
@@ -210,7 +220,7 @@ function behaviorRecordMarkup(r,c){
     <div class="behavior-record-main">
       <div class="behavior-record-title"><span class="behavior-degree degree-${Number(r.degree)||1}">الدرجة ${behaviorDegreeLabel(r.degree)}</span>${r.referred?'<span class="behavior-referred-tag">محال</span>':''}<b>${behaviorEsc(student)}</b></div>
       <h3>${behaviorEsc(r.violationLabel||rule.label)}</h3>
-      <div class="behavior-record-meta"><span>${behaviorEsc(behaviorRecordDateLabel(r.date))}</span><span>${r.period?'الحصة '+arabicNum(r.period):'الحصة غير محددة'}</span><span>التكرار: المرة ${arabicNum(behaviorRecordOccurrenceOrdinal(r,c))}</span><span>الحسم المرجعي: ${arabicNum(r.deduction??BEHAVIOR_DEDUCTION[r.degree]??0)} درجة</span></div>
+      <div class="behavior-record-meta"><span>${behaviorEsc(behaviorRecordDateLabel(r.date))}</span><span>${r.period?'الحصة '+arabicNum(r.period):'الحصة غير محددة'}</span><span>التكرار: المرة ${behaviorOccurrenceLabel(behaviorRecordOccurrenceOrdinal(r,c))}</span><span>الحسم المرجعي: ${arabicNum(r.deduction??BEHAVIOR_DEDUCTION[r.degree]??0)} درجة</span></div>
       ${r.actionTaken?`<p><b>الإجراء:</b> ${behaviorEsc(r.actionTaken)} · <b>الاستجابة:</b> ${behaviorEsc(r.response||'—')}</p>`:''}
       ${r.referred?`<p class="behavior-referral-line"><b>الإحالة الداخلية:</b> ${behaviorEsc(r.referralTarget||'إدارة المدرسة')}</p>`:''}
     </div>
@@ -240,16 +250,14 @@ function renderBehaviorRecurrenceInfo(){
   const info=behaviorOccurrenceInfo({studentId,code,date,period,editingId:behaviorEditingId||''},c);
   const occurrence=$('#behaviorOccurrenceOrdinal'),hint=$('#behaviorOccurrenceHint'),total=$('#behaviorStudentViolationTotal'),count=$('#behaviorHistoryCount'),list=$('#behaviorHistoryList'),hidden=$('#behaviorRecurrence');
   if(hidden)hidden.value=String(info.ordinal);
-  if(occurrence)occurrence.textContent='المرة '+arabicNum(info.ordinal);
-  if(hint)hint.textContent=info.prior.length
-    ?`سبق تسجيل هذه المخالفة ${arabicNum(info.prior.length)} ${info.prior.length===1?'مرة':'مرات'} قبل هذه الواقعة.`
-    :'لم يسبق تسجيل هذه المخالفة على الطالب قبل هذه الواقعة.';
+  if(occurrence)occurrence.textContent='المرة '+behaviorOccurrenceLabel(info.ordinal);
+  if(hint)hint.textContent=behaviorPreviousTimesText(info.prior.length);
   if(total)total.textContent=arabicNum(info.studentTotal);
   if(count)count.textContent=arabicNum(info.prior.length);
   if(list){
     list.innerHTML=info.prior.length?info.prior.slice().reverse().map((r,i)=>{
       const rule=behaviorRecordRule(r,c),order=behaviorRecordOccurrenceOrdinal(r,c);
-      return `<article class="behavior-history-row"><span class="behavior-history-order">المرة ${arabicNum(order)}</span><div><b>${behaviorEsc(rule.label||r.violationLabel||'مخالفة سلوكية')}</b><small>${behaviorEsc(behaviorRecordDateLabel(r.date))} · ${r.period?'الحصة '+arabicNum(r.period):'الحصة غير محددة'}${r.response?' · '+behaviorEsc(r.response):''}</small></div></article>`
+      return `<article class="behavior-history-row"><span class="behavior-history-order">المرة ${behaviorOccurrenceLabel(order)}</span><div><b>${behaviorEsc(rule.label||r.violationLabel||'مخالفة سلوكية')}</b><small>${behaviorEsc(behaviorRecordDateLabel(r.date))} · ${r.period?'الحصة '+arabicNum(r.period):'الحصة غير محددة'}${r.response?' · '+behaviorEsc(r.response):''}</small></div></article>`
     }).join(''):'<div class="behavior-history-empty">لا توجد سوابق لهذه المخالفة.</div>'
   }
 }
@@ -372,7 +380,7 @@ function printBehaviorOfficialReferral(id){
   const body=`<p class="intro">المكرم/المكرمة <b>الموجه الطلابي / الموجهة الطلابية</b> حفظه/ها الله<br>السلام عليكم ورحمة الله وبركاته،<br>نحيل إليكم الطالب/الطالبة <b>${behaviorEsc(student)}</b> بالصف <b>${behaviorEsc(c.grade)} — ${behaviorEsc(c.name)}</b>، ذي المشكلة السلوكية من <b>الدرجة ${behaviorDegreeLabel(r.degree)}</b> وهي:</p>
   <div class="box"><b>المشكلة السلوكية</b>${behaviorEsc(r.violationLabel)}</div>
   <p class="intro">يرجى متابعة الطالب/الطالبة ودراسة حالته/ها ووضع الحلول التربوية والعلاجية المناسبة وفق القواعد والإجراءات المعتمدة.</p>
-  <div class="box"><b>بيانات الرصد المساندة</b>التاريخ: ${behaviorEsc(r.date||'—')} · الحصة: ${r.period?arabicNum(r.period):'—'} · ترتيب التكرار: المرة ${arabicNum(behaviorRecordOccurrenceOrdinal(r,c))}</div>
+  <div class="box"><b>بيانات الرصد المساندة</b>التاريخ: ${behaviorEsc(r.date||'—')} · الحصة: ${r.period?arabicNum(r.period):'—'} · ترتيب التكرار: المرة ${behaviorOccurrenceLabel(behaviorRecordOccurrenceOrdinal(r,c))}</div>
   <div class="signatures"><div><span>وكيل / وكيلة شؤون الطلبة</span><b>الاسم: __________________</b><span>التوقيع: __________________</span><span>التاريخ: __________________</span></div><div><span>الختم الرسمي</span><div class="stamp"></div></div></div>`;
   behaviorPrintDocument('إحالة طالب / طالبة',body,{confidential:true})
 }
