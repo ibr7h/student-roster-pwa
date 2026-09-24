@@ -1,6 +1,6 @@
-// release 4.16.2 automatic-behavior-recurrence
+// release 4.17.0 school-gender-profile
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.16.2');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.17.0');
 const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
