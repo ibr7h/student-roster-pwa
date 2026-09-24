@@ -122,6 +122,28 @@ function behaviorRecordRule(r,c=currentClass()){return behaviorRuleByCode(r.viol
 function behaviorRecordCountForStudentRule(studentId,code,c=currentClass(),excludeId=''){
   return (c?.behaviorRecords||[]).filter(r=>r.id!==excludeId&&r.studentId===studentId&&r.violationCode===code).length
 }
+function behaviorOrderKey(r={}){
+  const date=String(r.date||'9999-12-31'),period=String(Number(r.period)||99).padStart(2,'0'),created=String(r.createdAt||'');
+  return `${date}|${period}|${created}|${String(r.id||'')}`
+}
+function behaviorOccurrenceInfo({studentId='',code='',date='',period='',editingId=''}={},c=currentClass()){
+  const records=(c?.behaviorRecords||[]),existing=editingId?records.find(r=>r.id===editingId):null;
+  if(!studentId||!code)return {ordinal:1,prior:[],sameTotal:0,studentTotal:0};
+  const sameOthers=records.filter(r=>r.id!==editingId&&r.studentId===studentId&&r.violationCode===code);
+  const candidate={
+    id:editingId||'__new__',studentId,violationCode:code,date:date||localDateISO(),period:Number(period)||'',
+    createdAt:existing?.createdAt||new Date().toISOString()
+  };
+  const ordered=[...sameOthers,candidate].sort((x,y)=>behaviorOrderKey(x).localeCompare(behaviorOrderKey(y)));
+  const pos=Math.max(0,ordered.findIndex(r=>r===candidate));
+  const prior=ordered.slice(0,pos);
+  const studentExisting=records.filter(r=>r.studentId===studentId&&r.id!==editingId).length;
+  return {ordinal:pos+1,prior,sameTotal:ordered.length,studentTotal:studentExisting+1}
+}
+function behaviorRecordOccurrenceOrdinal(record,c=currentClass()){
+  if(!record)return 1;
+  return behaviorOccurrenceInfo({studentId:record.studentId,code:record.violationCode,date:record.date,period:record.period,editingId:record.id},c).ordinal
+}
 function behaviorNowPeriod(){
   try{return schoolDaySnapshot(new Date()).current?.period||''}catch{return ''}
 }
@@ -188,7 +210,7 @@ function behaviorRecordMarkup(r,c){
     <div class="behavior-record-main">
       <div class="behavior-record-title"><span class="behavior-degree degree-${Number(r.degree)||1}">الدرجة ${behaviorDegreeLabel(r.degree)}</span>${r.referred?'<span class="behavior-referred-tag">محال</span>':''}<b>${behaviorEsc(student)}</b></div>
       <h3>${behaviorEsc(r.violationLabel||rule.label)}</h3>
-      <div class="behavior-record-meta"><span>${behaviorEsc(behaviorRecordDateLabel(r.date))}</span><span>${r.period?'الحصة '+arabicNum(r.period):'الحصة غير محددة'}</span><span>التكرار: ${arabicNum(r.recurrence||1)}</span><span>الحسم المرجعي: ${arabicNum(r.deduction??BEHAVIOR_DEDUCTION[r.degree]??0)} درجة</span></div>
+      <div class="behavior-record-meta"><span>${behaviorEsc(behaviorRecordDateLabel(r.date))}</span><span>${r.period?'الحصة '+arabicNum(r.period):'الحصة غير محددة'}</span><span>التكرار: المرة ${arabicNum(behaviorRecordOccurrenceOrdinal(r,c))}</span><span>الحسم المرجعي: ${arabicNum(r.deduction??BEHAVIOR_DEDUCTION[r.degree]??0)} درجة</span></div>
       ${r.actionTaken?`<p><b>الإجراء:</b> ${behaviorEsc(r.actionTaken)} · <b>الاستجابة:</b> ${behaviorEsc(r.response||'—')}</p>`:''}
       ${r.referred?`<p class="behavior-referral-line"><b>الإحالة الداخلية:</b> ${behaviorEsc(r.referralTarget||'إدارة المدرسة')}</p>`:''}
     </div>
@@ -211,9 +233,25 @@ function renderBehaviorRulePreview(){
   const rule=behaviorRuleByCode(select.value,currentClass());if(!rule){box.innerHTML='';return}
   box.className='behavior-rule-preview span2 '+(rule.urgent?'urgent':'');
   box.innerHTML=`<div><span>درجة المخالفة</span><b>${behaviorDegreeLabel(rule.degree)}</b></div><div><span>الحسم النظامي</span><b>${arabicNum(BEHAVIOR_DEDUCTION[rule.degree])} درجة</b></div><p>${behaviorEsc(behaviorRoleHint(rule))}</p>`;
-  const studentId=$('#behaviorStudent')?.value||'',exclude=behaviorEditingId||'';
-  const rec=behaviorRecordCountForStudentRule(studentId,rule.code,currentClass(),exclude)+1;
-  const recurrence=$('#behaviorRecurrence');if(recurrence&&!behaviorEditingId)recurrence.value=String(rec)
+  renderBehaviorRecurrenceInfo()
+}
+function renderBehaviorRecurrenceInfo(){
+  const c=currentClass(),studentId=$('#behaviorStudent')?.value||'',code=$('#behaviorViolation')?.value||'',date=$('#behaviorDate')?.value||localDateISO(),period=$('#behaviorPeriod')?.value||'';
+  const info=behaviorOccurrenceInfo({studentId,code,date,period,editingId:behaviorEditingId||''},c);
+  const occurrence=$('#behaviorOccurrenceOrdinal'),hint=$('#behaviorOccurrenceHint'),total=$('#behaviorStudentViolationTotal'),count=$('#behaviorHistoryCount'),list=$('#behaviorHistoryList'),hidden=$('#behaviorRecurrence');
+  if(hidden)hidden.value=String(info.ordinal);
+  if(occurrence)occurrence.textContent='المرة '+arabicNum(info.ordinal);
+  if(hint)hint.textContent=info.prior.length
+    ?`سبق تسجيل هذه المخالفة ${arabicNum(info.prior.length)} ${info.prior.length===1?'مرة':'مرات'} قبل هذه الواقعة.`
+    :'لم يسبق تسجيل هذه المخالفة على الطالب قبل هذه الواقعة.';
+  if(total)total.textContent=arabicNum(info.studentTotal);
+  if(count)count.textContent=arabicNum(info.prior.length);
+  if(list){
+    list.innerHTML=info.prior.length?info.prior.slice().reverse().map((r,i)=>{
+      const rule=behaviorRecordRule(r,c),order=behaviorRecordOccurrenceOrdinal(r,c);
+      return `<article class="behavior-history-row"><span class="behavior-history-order">المرة ${arabicNum(order)}</span><div><b>${behaviorEsc(rule.label||r.violationLabel||'مخالفة سلوكية')}</b><small>${behaviorEsc(behaviorRecordDateLabel(r.date))} · ${r.period?'الحصة '+arabicNum(r.period):'الحصة غير محددة'}${r.response?' · '+behaviorEsc(r.response):''}</small></div></article>`
+    }).join(''):'<div class="behavior-history-empty">لا توجد سوابق لهذه المخالفة.</div>'
+  }
 }
 function openBehaviorModal(id='',prefill={}){
   const c=currentClass(),dlg=$('#behaviorModal');if(!c||!dlg)return;
@@ -233,7 +271,6 @@ function openBehaviorModal(id='',prefill={}){
   if(record?.violationCode)$('#behaviorViolation').value=record.violationCode;
   $('#behaviorAction').value=record?.actionTaken||'';
   $('#behaviorResponse').value=record?.response||'استجاب';
-  $('#behaviorRecurrence').value=String(record?.recurrence||1);
   $('#behaviorNotes').value=record?.notes||'';
   $('#behaviorReferred').checked=!!record?.referred;
   $('#behaviorReferralTarget').value=record?.referralTarget||'وكيل الشؤون التعليمية';
@@ -255,13 +292,15 @@ function saveBehaviorRecord(){
   const studentId=$('#behaviorStudent')?.value||'',code=$('#behaviorViolation')?.value||'',rule=behaviorRuleByCode(code,c);
   if(!studentId||!rule){toast('اختر الطالب والمخالفة');return}
   const now=new Date(),existing=behaviorEditingId?c.behaviorRecords.find(r=>r.id===behaviorEditingId):null;
+  const recordDate=$('#behaviorDate')?.value||localDateISO(),recordPeriod=Number($('#behaviorPeriod')?.value)||'';
+  const occurrence=behaviorOccurrenceInfo({studentId,code:rule.code,date:recordDate,period:recordPeriod,editingId:behaviorEditingId||''},c);
   const rec={
     id:existing?.id||uid(),studentId,
-    date:$('#behaviorDate')?.value||localDateISO(),
-    period:Number($('#behaviorPeriod')?.value)||'',
+    date:recordDate,
+    period:recordPeriod,
     violationCode:rule.code,violationLabel:rule.label,degree:rule.degree,deduction:BEHAVIOR_DEDUCTION[rule.degree]||0,urgent:!!rule.urgent,
     actionTaken:String($('#behaviorAction')?.value||'').trim(),response:$('#behaviorResponse')?.value||'غير مقيم',
-    recurrence:Math.max(1,Number($('#behaviorRecurrence')?.value)||1),notes:String($('#behaviorNotes')?.value||'').trim(),
+    recurrence:occurrence.ordinal,notes:String($('#behaviorNotes')?.value||'').trim(),
     referred:!!$('#behaviorReferred')?.checked,referralTarget:$('#behaviorReferred')?.checked?($('#behaviorReferralTarget')?.value||'وكيل الشؤون التعليمية'):'',
     ruleEdition:BEHAVIOR_RULE_EDITION,createdAt:existing?.createdAt||now.toISOString(),updatedAt:now.toISOString()
   };
@@ -303,7 +342,7 @@ function printBehaviorSummaryReport(){
 }
 
 function behaviorTeacherLogRows(records,c){
-  return records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.actionTaken||'—')}</td><td>${behaviorEsc(r.response||'—')}</td><td>${arabicNum(r.recurrence||1)}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td></tr>`).join('')
+  return records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.actionTaken||'—')}</td><td>${behaviorEsc(r.response||'—')}</td><td>${arabicNum(behaviorRecordOccurrenceOrdinal(r,c))}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td></tr>`).join('')
 }
 function printBehaviorTeacherLog(recordId=''){
   const c=currentClass();if(!c)return;
@@ -333,7 +372,7 @@ function printBehaviorOfficialReferral(id){
   const body=`<p class="intro">المكرم/المكرمة <b>الموجه الطلابي / الموجهة الطلابية</b> حفظه/ها الله<br>السلام عليكم ورحمة الله وبركاته،<br>نحيل إليكم الطالب/الطالبة <b>${behaviorEsc(student)}</b> بالصف <b>${behaviorEsc(c.grade)} — ${behaviorEsc(c.name)}</b>، ذي المشكلة السلوكية من <b>الدرجة ${behaviorDegreeLabel(r.degree)}</b> وهي:</p>
   <div class="box"><b>المشكلة السلوكية</b>${behaviorEsc(r.violationLabel)}</div>
   <p class="intro">يرجى متابعة الطالب/الطالبة ودراسة حالته/ها ووضع الحلول التربوية والعلاجية المناسبة وفق القواعد والإجراءات المعتمدة.</p>
-  <div class="box"><b>بيانات الرصد المساندة</b>التاريخ: ${behaviorEsc(r.date||'—')} · الحصة: ${r.period?arabicNum(r.period):'—'} · عدد مرات التكرار: ${arabicNum(r.recurrence||1)}</div>
+  <div class="box"><b>بيانات الرصد المساندة</b>التاريخ: ${behaviorEsc(r.date||'—')} · الحصة: ${r.period?arabicNum(r.period):'—'} · ترتيب التكرار: المرة ${arabicNum(behaviorRecordOccurrenceOrdinal(r,c))}</div>
   <div class="signatures"><div><span>وكيل / وكيلة شؤون الطلبة</span><b>الاسم: __________________</b><span>التوقيع: __________________</span><span>التاريخ: __________________</span></div><div><span>الختم الرسمي</span><div class="stamp"></div></div></div>`;
   behaviorPrintDocument('إحالة طالب / طالبة',body,{confidential:true})
 }
@@ -347,6 +386,8 @@ function initBehaviorModule(){
   $('#deleteBehaviorBtn')?.addEventListener('click',deleteBehaviorRecord);
   $('#behaviorViolation')?.addEventListener('change',renderBehaviorRulePreview);
   $('#behaviorStudent')?.addEventListener('change',renderBehaviorRulePreview);
+  $('#behaviorDate')?.addEventListener('change',renderBehaviorRecurrenceInfo);
+  $('#behaviorPeriod')?.addEventListener('change',renderBehaviorRecurrenceInfo);
   $('#behaviorReferred')?.addEventListener('change',e=>{$('#behaviorReferralTargetWrap').hidden=!e.target.checked});
   $('#behaviorStudentFilter')?.addEventListener('change',e=>{behaviorStudentFilter=e.target.value;renderBehavior()});
   $('#behaviorDegreeFilter')?.addEventListener('change',e=>{behaviorDegreeFilter=e.target.value;renderBehavior()});
