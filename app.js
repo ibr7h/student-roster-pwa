@@ -741,7 +741,7 @@ function renderAssessmentArchive(c){
 function renderAssessmentPeriodTabs(){
   const box=$('#assessmentPeriodTabs');if(!box)return;
   const current=assessmentArchiveCurrentMonth(),previous=assessmentArchivePreviousMonth(),value=state.ui.assessmentMonth||'all';
-  $$$('[data-assessment-period]').forEach(b=>{
+  $$('[data-assessment-period]').forEach(b=>{
     const target=b.dataset.assessmentPeriod==='current'?current:b.dataset.assessmentPeriod==='previous'?previous:'all';
     b.classList.toggle('active',value===target);
     b.disabled=b.dataset.assessmentPeriod!=='all'&&!currentClass()?.assessmentEvents?.some(a=>monthKey(a.date)===target);
@@ -1893,7 +1893,7 @@ document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');i
 $('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;$('#assessmentRepeatToggle').onchange=renderAssessmentRepeatInfo;
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};
 $('#assessmentArchiveSearch')?.addEventListener('input',e=>{assessmentArchiveSearchTerm=e.target.value;renderAssessments()});
-$('[data-assessment-period]').forEach(b=>b.onclick=()=>{
+$$('[data-assessment-period]').forEach(b=>b.onclick=()=>{
   const current=assessmentArchiveCurrentMonth(),previous=assessmentArchivePreviousMonth();
   state.ui.assessmentMonth=b.dataset.assessmentPeriod==='current'?current:b.dataset.assessmentPeriod==='previous'?previous:'all';
   renderAssessments();queueSave()
