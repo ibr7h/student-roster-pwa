@@ -20,7 +20,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.17.0</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.17.1</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -245,7 +245,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.17.0</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.17.1</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -568,7 +568,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.17.0</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.17.1</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
@@ -629,7 +629,15 @@
       <div class="behavior-auto-context span2" id="behaviorAutoContext" hidden></div>
       <div class="field"><label>التاريخ</label><input id="behaviorDate" type="date"></div>
       <div class="field"><label>الحصة</label><select id="behaviorPeriod"><option value="">غير محددة</option><option value="1">الحصة الأولى</option><option value="2">الحصة الثانية</option><option value="3">الحصة الثالثة</option><option value="4">الحصة الرابعة</option><option value="5">الحصة الخامسة</option><option value="6">الحصة السادسة</option><option value="7">الحصة السابعة</option></select></div>
-      <div class="field span2"><label>المخالفة حسب اللائحة</label><select id="behaviorViolation"></select></div>
+      <div class="field span2 behavior-violation-field">
+        <label>المخالفة حسب اللائحة</label>
+        <div class="behavior-violation-search">
+          <span aria-hidden="true">⌕</span>
+          <input id="behaviorViolationSearch" type="search" autocomplete="off" enterkeyhint="search" placeholder="ابحث: تأخر، تنمر، تصوير، الدرجة الثالثة…">
+        </div>
+        <select id="behaviorViolation"></select>
+        <div class="behavior-violation-search-meta" id="behaviorViolationSearchMeta" aria-live="polite"></div>
+      </div>
       <div class="behavior-rule-preview span2" id="behaviorRulePreview"></div>
       <div class="field span2"><label>الإجراء الذي اتخذه المعلم</label><textarea id="behaviorAction" rows="3" placeholder="اكتب الإجراء الذي تم فعليًا دون إضافة إجراء لم يحدث."></textarea></div>
       <div class="field"><label>مدى الاستجابة</label><select id="behaviorResponse"><option value="استجاب">استجاب</option><option value="استجابة جزئية">استجابة جزئية</option><option value="لم يستجب">لم يستجب</option><option value="غير مقيم">غير مقيم</option></select></div>
