@@ -128,6 +128,25 @@ function behaviorNowPeriod(){
 function behaviorEsc(v){return escapeHtml(v??'')}
 function behaviorRecordDateLabel(v){return v?formatDate(v):'بدون تاريخ'}
 
+function behaviorSuggestedPeriodForAttendance(c,date){
+  if(!c||!date)return '';
+  try{
+    const d=new Date(date+'T12:00:00'),day=AR_DAY_BY_JS[d.getDay()],schedule=scheduleForDate(date);
+    const slots=scheduledSlotsForClass(c,schedule).filter(x=>x.day===day);
+    if(date===localDateISO()){
+      const snap=schoolDaySnapshot(new Date());
+      if(snap.current&&slots.some(x=>Number(x.period)===Number(snap.current.period)))return snap.current.period
+    }
+    return slots.length===1?slots[0].period:''
+  }catch{return ''}
+}
+function openBehaviorFromAttendance(studentId,date=''){
+  const c=currentClass();if(!c)return;
+  const selectedDate=date||$('#attendanceDate')?.value||localDateISO();
+  const period=behaviorSuggestedPeriodForAttendance(c,selectedDate);
+  openBehaviorModal('',{studentId,date:selectedDate,period,source:'attendance'})
+}
+
 function renderBehavior(){
   const view=$('#view-behavior');if(!view)return;
   const c=currentClass();if(!c)return;
@@ -196,16 +215,20 @@ function renderBehaviorRulePreview(){
   const rec=behaviorRecordCountForStudentRule(studentId,rule.code,currentClass(),exclude)+1;
   const recurrence=$('#behaviorRecurrence');if(recurrence&&!behaviorEditingId)recurrence.value=String(rec)
 }
-function openBehaviorModal(id=''){
+function openBehaviorModal(id='',prefill={}){
   const c=currentClass(),dlg=$('#behaviorModal');if(!c||!dlg)return;
+  if(id&&typeof id==='object'){prefill=id;id=''}
   c.behaviorRecords ||= [];
   behaviorEditingId=id||null;
   const record=id?c.behaviorRecords.find(r=>r.id===id):null;
+  const requestedStudent=!record&&prefill?.studentId&&c.students.some(s=>s.id===prefill.studentId)?prefill.studentId:'';
+  const requestedDate=!record&&prefill?.date?prefill.date:'';
+  const requestedPeriod=!record&&prefill?.period?prefill.period:'';
   $('#behaviorModalTitle').textContent=record?'تعديل رصد مخالفة':'رصد مخالفة سلوكية';
   $('#behaviorStudent').innerHTML=c.students.length?c.students.map(s=>`<option value="${behaviorEsc(s.id)}">${behaviorEsc(s.name)}</option>`).join(''):'<option value="">لا يوجد طلاب</option>';
-  $('#behaviorStudent').value=record?.studentId||c.students[0]?.id||'';
-  $('#behaviorDate').value=record?.date||localDateISO();
-  $('#behaviorPeriod').value=String(record?.period||behaviorNowPeriod()||'');
+  $('#behaviorStudent').value=record?.studentId||requestedStudent||c.students[0]?.id||'';
+  $('#behaviorDate').value=record?.date||requestedDate||localDateISO();
+  $('#behaviorPeriod').value=String(record?.period||requestedPeriod||(prefill?.source==='attendance'?'':behaviorNowPeriod())||'');
   $('#behaviorViolation').innerHTML=behaviorViolationOptions(c,record?.violationCode||'');
   if(record?.violationCode)$('#behaviorViolation').value=record.violationCode;
   $('#behaviorAction').value=record?.actionTaken||'';
@@ -216,6 +239,14 @@ function openBehaviorModal(id=''){
   $('#behaviorReferralTarget').value=record?.referralTarget||'وكيل الشؤون التعليمية';
   $('#behaviorReferralTargetWrap').hidden=!$('#behaviorReferred').checked;
   $('#deleteBehaviorBtn').hidden=!record;
+  const autoContext=$('#behaviorAutoContext');
+  if(autoContext){
+    const fromAttendance=!record&&prefill?.source==='attendance';
+    autoContext.hidden=!fromAttendance;
+    if(fromAttendance)autoContext.innerHTML=requestedPeriod
+      ?`<b>تم التحديد من شاشة الحضور</b><span>الطالب والتاريخ والحصة ${arabicNum(requestedPeriod)} محددة تلقائيًا. يمكنك تغيير التاريخ أو الحصة قبل الحفظ.</span>`
+      :'<b>تم التحديد من شاشة الحضور</b><span>تم تحديد الطالب والتاريخ تلقائيًا. لم يتم افتراض الحصة لعدم وجود حصة واحدة مؤكدة؛ يمكنك اختيارها يدويًا.</span>'
+  }
   renderBehaviorRulePreview();
   if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','')
 }
@@ -235,7 +266,7 @@ function saveBehaviorRecord(){
     ruleEdition:BEHAVIOR_RULE_EDITION,createdAt:existing?.createdAt||now.toISOString(),updatedAt:now.toISOString()
   };
   if(existing)Object.assign(existing,rec);else c.behaviorRecords.push(rec);
-  queueSave();renderBehavior();$('#behaviorModal')?.close();toast(existing?'تم تحديث الرصد':'تم حفظ الرصد السلوكي')
+  queueSave();renderBehavior();if(typeof renderAttendance==='function')renderAttendance();$('#behaviorModal')?.close();toast(existing?'تم تحديث الرصد':'تم حفظ الرصد السلوكي')
 }
 function deleteBehaviorRecord(){
   const c=currentClass(),r=behaviorEditingId?c?.behaviorRecords?.find(x=>x.id===behaviorEditingId):null;if(!c||!r)return;
