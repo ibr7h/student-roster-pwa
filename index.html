@@ -20,7 +20,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.17.1</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.18.0</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -245,7 +245,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.17.1</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.18.0</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -566,17 +566,27 @@
 </section>
   </main>
 
-  <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
+  <footer class="no-print" style="text-align:center;padding:16px 12px 18px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.17.1</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.18.0</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
-    <button data-nav="dashboard" class="active"><span>⌂</span><small>الرئيسية</small></button>
-    <button data-nav="assessments"><span>✓</span><small>التقييمات</small></button>
-    <button data-nav="attendance"><span>◷</span><small>الحضور</small></button>
-    <button data-nav="schedule"><span>▦</span><small>جدولي</small></button>
-    <button data-nav="reports"><span>▤</span><small>التقارير</small></button>
+    <button data-nav="dashboard" class="active" aria-current="page" aria-label="الرئيسية">
+      <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.7 12 3.5l8.5 7.2"/><path d="M5.5 9.6V21h13V9.6"/><path d="M9.2 21v-6.2h5.6V21"/></svg></span><small>الرئيسية</small>
+    </button>
+    <button data-nav="attendance" aria-label="الحضور">
+      <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.8 19.5c.6-3.4 2.4-5.2 5.2-5.2 2.1 0 3.7 1 4.6 2.8"/><path d="m15.4 18.2 2 2 3.8-4.4"/></svg></span><small>الحضور</small>
+    </button>
+    <button data-nav="schedule" aria-label="جدولي">
+      <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.2" width="17" height="15.2" rx="2.2"/><path d="M7.5 3.5v3.4M16.5 3.5v3.4M3.5 9.3h17"/><path d="M7.4 13h3M13.6 13h3M7.4 16.6h3M13.6 16.6h3"/></svg></span><small>جدولي</small>
+    </button>
+    <button data-nav="assessments" aria-label="التقييمات">
+      <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16" rx="2"/><path d="M9 4.5V3.2h6v1.3"/><path d="m8.5 12 1.6 1.6 3-3.2M8.5 17h7"/></svg></span><small>التقييمات</small>
+    </button>
+    <button data-nav="reports" aria-label="التقارير">
+      <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 20.5V11M12 20.5V5.5M19 20.5V8.5"/><path d="M3.5 20.5h17"/></svg></span><small>التقارير</small>
+    </button>
   </nav>
 </div>
 
