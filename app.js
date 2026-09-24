@@ -1901,7 +1901,7 @@ $$('[data-assessment-period]').forEach(b=>b.onclick=()=>{
   renderAssessments();queueSave()
 });
 $('#assessmentArchiveCollapseBtn')?.addEventListener('click',()=>{
-  const groups=$('[data-assessment-month-group]'),shouldOpen=groups.length&&groups.every(x=>!x.open);
+  const groups=$$('[data-assessment-month-group]'),shouldOpen=groups.length&&groups.every(x=>!x.open);
   groups.forEach(x=>{x.open=!!shouldOpen});
   const btn=$('#assessmentArchiveCollapseBtn');if(btn)btn.textContent=shouldOpen?'طي الكل':'فتح الكل'
 });
