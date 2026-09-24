@@ -159,7 +159,7 @@ function behaviorNowPeriod(){
 }
 function behaviorEsc(v){return escapeHtml(v??'')}
 function behaviorRecordDateLabel(v){return v?formatDate(v):'بدون تاريخ'}
-function behaviorAudience(){return typeof schoolAudience==='function'?schoolAudience():{key:'boys',girls:false,type:'بنين',student:'الطالب',studentBare:'طالب',students:'الطلاب',teacher:'المعلم',subjectTeacher:'معلم المادة',principal:'مدير المدرسة',counselor:'الموجه الطلابي',deputyStudents:'وكيل شؤون الطلبة',educationalDeputy:'وكيل الشؤون التعليمية',recipient:'المكرم',honorific:'حفظه الله',shownAbove:'الموضح أعلاه',statePronoun:'حالته',owner:'صاحب'}}
+function behaviorAudience(){return typeof schoolAudience==='function'?schoolAudience():{key:'boys',girls:false,type:'بنين',student:'الطالب',studentBare:'طالب',students:'الطلاب',studentName:'اسم الطالب',teacher:'المعلم',subjectTeacher:'معلم المادة',principal:'مدير المدرسة',counselor:'الموجه الطلابي',deputyStudents:'وكيل شؤون الطلبة',educationalDeputy:'وكيل الشؤون التعليمية',recipient:'المكرم',honorific:'حفظه الله',shownAbove:'الموضح أعلاه',statePronoun:'حالته',owner:'صاحب'}}
 function behaviorReferralTargets(){
   const g=behaviorAudience();
   return [g.educationalDeputy,g.deputyStudents,g.principal,'إدارة المدرسة']
@@ -354,7 +354,7 @@ function printBehaviorSummaryReport(){
   if(!records.length){toast('لا توجد سجلات سلوكية لإعداد التقرير');return}
   const total=records.length,referred=records.filter(r=>r.referred).length,high=records.filter(r=>Number(r.degree)>=4||r.urgent).length;
   const byDegree=[1,2,3,4,5].map(d=>[d,records.filter(r=>Number(r.degree)===d).length]).filter(x=>x[1]);
-  const rows=records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td><td>${behaviorEsc(r.response||'—')}</td><td>${r.referred?behaviorEsc(r.referralTarget||'إدارة المدرسة'):'—'}</td></tr>`).join('');
+  const rows=records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td><td>${behaviorEsc(r.response||'—')}</td><td>${r.referred?behaviorEsc(behaviorReferralTargetForAudience(r.referralTarget)):'—'}</td></tr>`).join('');
   const g=behaviorAudience(),body=`<div class="meta"><div><span>الصف / الفصل</span><b>${behaviorEsc(c.grade||'—')} — ${behaviorEsc(c.name||'—')}</b></div><div><span>المادة</span><b>${behaviorEsc(c.subject||'—')}</b></div><div><span>الفترة</span><b>${behaviorEsc(state.appMeta?.semester||state.appMeta?.year||'—')}</b></div></div>
   <div class="meta"><div><span>إجمالي الرصد</span><b>${arabicNum(total)}</b></div><div><span>المحال للإدارة</span><b>${arabicNum(referred)}</b></div><div><span>درجة رابعة فأعلى</span><b>${arabicNum(high)}</b></div></div>
   <div class="box"><b>التوزيع حسب درجة المشكلة</b>${byDegree.map(([d,n])=>`الدرجة ${behaviorDegreeLabel(d)}: ${arabicNum(n)}`).join(' · ')}</div>
