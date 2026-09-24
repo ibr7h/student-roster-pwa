@@ -19,7 +19,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.14.1</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.15.0</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -210,7 +210,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.14.1</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.15.0</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -222,7 +222,24 @@
           <div class="view-actions no-print"><button class="btn primary" id="addAssessmentBtn">＋ تقييم جديد</button><button class="btn" id="assessmentAddStudentBtn">＋ طالب</button><button class="btn" id="manageStudentsBtnTop">إدارة الطلاب</button><button class="btn" id="importBtn">⇧ استيراد أسماء الطلاب</button><button class="btn" id="exportCsvBtn">تصدير CSV</button></div>
         </div>
         <div class="assessment-layout">
-          <aside class="assessment-timeline no-print"><div class="timeline-toolbar"><b>سجل الأنشطة</b><select id="assessmentMonthFilter"><option value="all">كل الفصل</option></select></div><div id="assessmentList"></div></aside>
+          <aside class="assessment-timeline assessment-archive no-print">
+            <div class="assessment-archive-head">
+              <div><b>أرشيف التقييمات</b><small>منظم حسب الشهر وحالة الرصد</small></div>
+              <button class="assessment-archive-collapse" id="assessmentArchiveCollapseBtn" type="button" aria-label="طي جميع الأشهر">طي الكل</button>
+            </div>
+            <div class="assessment-archive-summary" id="assessmentArchiveSummary"></div>
+            <div class="assessment-period-tabs" id="assessmentPeriodTabs" aria-label="تصفية التقييمات حسب الفترة">
+              <button type="button" data-assessment-period="current">هذا الشهر</button>
+              <button type="button" data-assessment-period="previous">الشهر السابق</button>
+              <button type="button" data-assessment-period="all">كل الفصل</button>
+            </div>
+            <div class="assessment-archive-tools">
+              <label class="assessment-search"><span>⌕</span><input id="assessmentArchiveSearch" type="search" placeholder="ابحث باسم التقييم…"></label>
+              <select id="assessmentMonthFilter" aria-label="اختيار شهر التقييم"><option value="all">كل الفصل</option></select>
+            </div>
+            <div class="assessment-type-filters" id="assessmentTypeFilters" aria-label="تصفية التقييمات حسب النوع"></div>
+            <div id="assessmentList" class="assessment-month-groups"></div>
+          </aside>
           <div class="assessment-gradebook">
             <div id="assessmentEmpty" class="empty-state"><b>اختر تقييمًا أو أنشئ تقييمًا جديدًا</b>ستظهر هنا قائمة الطلاب لإدخال الدرجات.</div>
             <div id="assessmentEditor" hidden>
@@ -487,7 +504,7 @@
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 92px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.14.1</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.15.0</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
