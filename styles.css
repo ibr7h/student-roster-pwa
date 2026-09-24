@@ -1010,3 +1010,14 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   .school-day-top{grid-template-columns:1fr 96px}
   .school-period-grid{grid-template-columns:1fr}
 }
+
+
+.dashboard-import-btn{white-space:nowrap}
+@media(max-width:680px){
+  .dashboard-roster-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+  .dashboard-import-btn{min-height:42px;padding:8px 10px;font-size:10px}
+}
+@media(max-width:420px){
+  .dashboard-roster-head{grid-template-columns:1fr}
+  .dashboard-import-btn{width:100%;margin-top:8px}
+}

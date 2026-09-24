@@ -1,6 +1,6 @@
-// release 4.14.0 live-school-day
+// release 4.14.1 student-import-visibility
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.14.0');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.14.1');
 const ASSETS=['./','./index.html','./styles.css','./print.css','./app.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
