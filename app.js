@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=6;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.1';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.2';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -588,9 +588,9 @@ function schoolDaySnapshot(now=new Date()){
     const start=timeToMinutes(times[0]),end=timeToMinutes(times[1]);
     return {period:Number(period),start,end,startText:times[0],endText:times[1],slot:schedule?.slots?.[scheduleKey(day,Number(period))]||null}
   }).filter(x=>Number.isFinite(x.start)&&Number.isFinite(x.end));
-  const current=periods.find(x=>minute>=x.start&&minute<x.end)||null;
-  const next=periods.find(x=>x.start>minute&&x.slot)||null;
   const first=periods[0],last=periods[periods.length-1],isSchoolDay=SCHEDULE_DAYS.includes(day);
+  const current=isSchoolDay?(periods.find(x=>minute>=x.start&&minute<x.end)||null):null;
+  const next=isSchoolDay?(periods.find(x=>x.start>minute&&x.slot)||null):null;
   let phase='between';
   if(!isSchoolDay)phase='weekend';
   else if(first&&minute<first.start)phase='before';
@@ -599,7 +599,7 @@ function schoolDaySnapshot(now=new Date()){
   const currentText=schoolSlotText(current?.slot);
   const nextText=schoolSlotText(next?.slot);
   const progress=current?Math.max(0,Math.min(100,(minute-current.start)/(current.end-current.start)*100)):0;
-  return {now,date,day,schedule,week,minute,periods,current,next,currentText,nextText,phase,progress}
+  return {now,date,day,schedule,week,minute,periods,current,next,currentText,nextText,phase,progress,isSchoolDay}
 }
 function schoolAlertMarks(){
   try{
@@ -683,7 +683,7 @@ function renderSchoolDayCard(now=new Date()){
   }else{
     currentNumber.textContent=s.phase==='before'?'قبل الدوام':s.phase==='after'?'انتهى اليوم':s.phase==='weekend'?'إجازة أسبوعية':'بين الحصص';
     currentTitle.textContent=s.phase==='weekend'?'لا توجد حصص اليوم':s.phase==='after'?'انتهى اليوم الدراسي':s.phase==='before'?'لم تبدأ الحصص بعد':'لا توجد حصة الآن';
-    currentDetail.textContent=s.schedule?s.schedule.title||'جدول المعلم':'لا يوجد جدول فعّال لهذا التاريخ';
+    currentDetail.textContent=s.phase==='weekend'?'عطلة نهاية الأسبوع':(s.schedule?s.schedule.title||'جدول المعلم':'لا يوجد جدول فعّال لهذا التاريخ');
     currentTime.textContent=s.phase==='before'&&s.periods[0]?'تبدأ الحصص '+s.periods[0].startText:'—';
     remaining.textContent='—';progress.style.width='0%'
   }
@@ -698,10 +698,10 @@ function renderSchoolDayCard(now=new Date()){
   }else{
     nextNumber.textContent='—';
     nextTitle.textContent=s.phase==='weekend'?'لا توجد حصة قادمة اليوم':'لا توجد حصة أخرى اليوم';
-    nextDetail.textContent=s.phase==='after'?'اكتمل جدول اليوم':'حسب جدولك الحالي';
+    nextDetail.textContent=s.phase==='weekend'?'الدوام من الأحد إلى الخميس':(s.phase==='after'?'اكتمل جدول اليوم':'حسب جدولك الحالي');
     nextTime.textContent='—';nextIn.textContent='—'
   }
-  $('#schoolDayMessage').textContent=s.schedule?`${s.day} · ${s.schedule.title||'جدول المعلم'} · التحديث تلقائي`:'لا يوجد جدول فعّال لهذا اليوم';
+  $('#schoolDayMessage').textContent=s.phase==='weekend'?`${s.day} · عطلة نهاية الأسبوع`:(s.schedule?`${s.day} · ${s.schedule.title||'جدول المعلم'} · التحديث تلقائي`:'لا يوجد جدول فعّال لهذا اليوم');
   renderSchoolAlertButton();
   checkSchoolPeriodAlerts(s)
 }
