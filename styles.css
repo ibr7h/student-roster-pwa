@@ -344,7 +344,7 @@
 .report-preview-box.open{display:block}
 .report-preview-label{width:max-content;margin:0 auto 8px;padding:4px 8px;border-radius:999px;background:#dfe6eb;color:#52616c;font-size:9px;font-weight:800}
 .report-preview-box .print-report-header,.report-preview-box .attendance-report-preview{background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-inline:auto}
-.report-preview-box .print-report-header{min-width:920px;padding:10px}
+.report-preview-box .print-report-header{display:block;min-width:920px;padding:10px}
 .report-preview-box .attendance-report-preview{min-width:920px;padding:10px}
 
 .attendance-report-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
