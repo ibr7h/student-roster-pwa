@@ -308,6 +308,7 @@
           </div>
           <div class="view-actions no-print">
             <button class="btn primary" id="addBehaviorBtn">＋ رصد مخالفة</button>
+            <button class="btn official-forms-launch" id="officialFormsBtn">📄 النماذج الرسمية</button>
             <button class="btn" id="printBehaviorReportBtn">▤ تقرير السلوك</button><button class="btn" id="printBehaviorLogBtn">🖨 نموذج رصد المعلم</button>
           </div>
         </div>
@@ -331,7 +332,7 @@
       <section class="panel attendance-entry-panel">
         <div class="section-head attendance-head">
           <div><p class="eyebrow">الحضور اليومي</p><h2 id="attendanceHeading">تسجيل الحضور والغياب</h2><p class="subtle">هذه الشاشة للتسجيل فقط. الطباعة موجودة في مركز التقارير.</p></div>
-          <div class="attendance-date-wrap"><label for="attendanceDate">التاريخ</label><input id="attendanceDate" type="date"></div>
+          <div class="attendance-head-actions no-print"><button class="btn official-forms-launch" id="attendanceOfficialFormsBtn">📄 نماذج المواظبة</button><div class="attendance-date-wrap"><label for="attendanceDate">التاريخ</label><input id="attendanceDate" type="date"></div></div>
         </div>
         <div class="attendance-stats" id="attendanceStats"></div>
         <div class="attendance-actions no-print"><button class="btn" data-mark-all="present">تحديد غير المسجلين حاضر</button><button class="btn" data-clear-attendance>مسح حالة اليوم</button></div>
@@ -690,6 +691,37 @@
 
 <dialog class="modal" id="supervisionModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">المناوبة والإشراف</p><h3 id="supervisionModalTitle">إضافة مناوبة</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field"><label>اليوم</label><select id="supervisionDay"><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div><div class="field"><label>التاريخ</label><input id="supervisionDate" placeholder="مثال: 10/10"></div><div class="field"><label>من</label><input id="supervisionStart" type="time"></div><div class="field"><label>إلى</label><input id="supervisionEnd" type="time"></div><div class="field"><label>النوع</label><input id="supervisionType" placeholder="إشراف"></div><div class="field"><label>العنوان</label><input id="supervisionTitle" placeholder="إشراف جديد"></div><div class="field span2"><label>الموقع</label><input id="supervisionLocation" placeholder="البوابة الرئيسية، المقصف"></div></div><div class="modalfooter"><button class="btn danger" id="deleteSupervisionBtn" hidden>حذف</button><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveSupervisionBtn">حفظ</button></div></div></dialog>
 
+<dialog class="modal official-forms-modal" id="officialFormsModal">
+  <div class="modalbox">
+    <div class="modalhead">
+      <div><p class="eyebrow">النسخة التجريبية الجديدة</p><h3>النماذج الرسمية للسلوك والمواظبة</h3><small>وفق الإصدار الخامس 1447هـ / 2025م — تصميم A4 مستقل عن واجهة التطبيق.</small></div>
+      <button class="iconbtn" data-close aria-label="إغلاق">×</button>
+    </div>
+    <div class="modalbody official-forms-body">
+      <section class="official-forms-context">
+        <label class="field"><span>الطالب / الطالبة</span><select id="officialFormsStudent"></select></label>
+        <label class="field"><span>السجل السلوكي</span><select id="officialFormsRecord"><option value="">آخر سجل للطالب</option></select></label>
+        <div class="official-forms-stats" id="officialFormsStudentStats"></div>
+      </section>
+      <div class="official-forms-note"><b>خط الطباعة</b><span>النماذج تستخدم Sakkal Majalla عند توفره على الجهاز، مع بدائل عربية عند عدم توفر الخط. سنضمّن الخط محليًا لاحقًا إذا زُوّدنا بملف الخط المرخّص.</span></div>
+      <section class="official-forms-grid" id="officialFormsGrid">
+        <button type="button" class="official-form-card ready" data-official-form="teacher-log"><span>السلوك</span><b>نموذج رصد المعلم لمشكلة سلوكية</b><small>النموذج الرسمي العمودي — بيانات الفصل والسجل.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="behavior-undertaking"><span>السلوك</span><b>تعهد سلوكي</b><small>يعبّئ الطالب والمخالفة والدرجة تلقائيًا.</small></button>
+        <button type="button" class="official-form-card ready confidential" data-official-form="parent-notice"><span>سري</span><b>إشعار ولي الأمر بمشكلة سلوكية</b><small>مبني على السجل السلوكي المحدد.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="parent-invitation"><span>السلوك</span><b>خطاب دعوة ولي الأمر</b><small>اسم الطالب والصف يعبآن تلقائيًا.</small></button>
+        <button type="button" class="official-form-card ready confidential" data-official-form="high-risk"><span>سري للغاية</span><b>إبلاغ عن حالة عالية الخطورة</b><small>نموذج البلاغ والإجراءات السبعة.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="absence-excused"><span>المواظبة</span><b>إجراءات الغياب بعذر</b><small>عتبات ٣، ٥، ١٠ أيام.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="absence-unexcused"><span>المواظبة</span><b>إجراءات الغياب بدون عذر</b><small>٣ أيام، ٣ متصلة، ٥، ١٠ أيام.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="attendance-commitment"><span>المواظبة</span><b>تعهد الالتزام بالحضور</b><small>يقرأ الغياب بدون عذر من سجل الطالب.</small></button>
+        <button type="button" class="official-form-card pending" data-official-form="behavior-plan"><span>قيد البناء</span><b>خطة تعديل السلوك</b><small>نموذج رسمي من صفحتين.</small></button>
+        <button type="button" class="official-form-card pending" data-official-form="behavior-problem"><span>قيد البناء</span><b>نموذج رصد مشكلة سلوكية</b><small>نموذج الإدارة والتوقيعات.</small></button>
+        <button type="button" class="official-form-card pending" data-official-form="positive-compensation"><span>قيد البناء</span><b>فرص تعويض درجات السلوك الإيجابي</b><small>مرتبط بالدرجات المحسومة والتعويض.</small></button>
+      </section>
+    </div>
+    <div class="modalfooter"><button class="btn" data-close>إغلاق</button></div>
+  </div>
+</dialog>
+
 <dialog class="modal behavior-modal" id="behaviorModal">
   <div class="modalbox">
     <div class="modalhead"><div><p class="eyebrow">السلوك والانضباط</p><h3 id="behaviorModalTitle">رصد مخالفة سلوكية</h3></div><button class="iconbtn" data-close>×</button></div>
@@ -737,6 +769,7 @@
 <div class="toast no-print" id="toast"></div>
 <script src="version.js"></script>
 <script src="behavior.js"></script>
+<script src="official-forms.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
