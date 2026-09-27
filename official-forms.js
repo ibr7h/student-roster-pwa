@@ -26,7 +26,7 @@ function officialWrappedLines(ctx,text,maxWidth,size=21,weight='400',maxLines=4)
   }
   if(line&&lines.length<maxLines)lines.push(line);ctx.restore();return lines
 }
-function officialWrappedText(ctx,text,x,y,maxWidth,{size=21,weight='400',lineHeight=30,maxLines=4,align='right',color='#174b51'}={}){
+function officialWrappedText(ctx,text,x,y,maxWidth,{size=21,weight='400',lineHeight=30,maxLines=4,align='right',color='#194f5b'}={}){
   const lines=officialWrappedLines(ctx,text,maxWidth,size,weight,maxLines);
   lines.forEach((ln,i)=>officialText(ctx,ln,x,y+i*lineHeight,size,weight,align,color));
   return y+Math.max(1,lines.length)*lineHeight
@@ -43,19 +43,19 @@ function officialLogo(ctx,cx,y,w=150,h=90){
   if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,cx-w/2,y,w,h)}catch{}}
 }
 function officialHeader(ctx,title,{confidential='',titleY=250}={}){
-  const W=1240,M=72,gov=state.appMeta||{},center=W/2;
-  officialText(ctx,'المملكة العربية السعودية',W-M,86,23,'400');
-  officialText(ctx,'وزارة التعليم',W-M,123,23,'400');
-  officialLogo(ctx,center,55,170,100);
-  officialText(ctx,'المنطقة/المحافظة: '+(gov.region||'........................'),M,90,20,'400','left');
-  officialText(ctx,'المدرسة: '+(gov.school||'........................'),M,128,20,'400','left');
-  if(confidential)officialText(ctx,confidential,center,titleY-58,26,'700','center','#222');
-  officialText(ctx,title,center,titleY,32,'700','center');
+  const W=OFFICIAL_A4_WIDTH,M=OFFICIAL_A4_SIDE,gov=state.appMeta||{},center=W/2;
+  officialText(ctx,'المملكة العربية السعودية',W-M,92,28,'400');
+  officialText(ctx,'وزارة التعليـــــــــــــــــم',W-M,132,28,'400');
+  officialLogo(ctx,center,48,190,112);
+  officialText(ctx,'المنطقة/المحافظة: '+(gov.region||'........................'),M,96,26,'400','left');
+  officialText(ctx,'المدرسة: '+(gov.school||'........................'),M,139,26,'400','left');
+  if(confidential)officialText(ctx,confidential,center,titleY-62,30,'700','center','#222');
+  officialText(ctx,title,center,titleY,40,'700','center');
 }
 function officialPortraitCanvas(title,opts={}){
-  const canvas=document.createElement('canvas');canvas.width=1240;canvas.height=1754;
+  const canvas=document.createElement('canvas');canvas.width=OFFICIAL_A4_WIDTH;canvas.height=OFFICIAL_A4_HEIGHT;
   const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,1240,1754);
-  officialHeader(ctx,title,opts);return {canvas,ctx,W:1240,H:1754,M:72}
+  officialHeader(ctx,title,opts);return {canvas,ctx,W:OFFICIAL_A4_WIDTH,H:OFFICIAL_A4_HEIGHT,M:OFFICIAL_A4_SIDE}
 }
 function officialPage(canvas){
   const data=canvas.toDataURL('image/jpeg',0.97);
@@ -94,7 +94,7 @@ function officialTeacherLogPages(recordId=''){
     officialText(ctx,'المادة:',right,350,22,'400');officialDottedLine(ctx,150,350,right-90);officialText(ctx,c.subject||'',right-100,350,22,'400');
     officialText(ctx,'الصف:',right,405,22,'400');officialDottedLine(ctx,150,405,right-75);officialText(ctx,officialStudentGradeLine(c),right-90,405,22,'400');
     const y0=485,headH=125,rowH=105;
-    const widths=[40,120,185,90,150,140,145,115,111];
+    const widths=officialFitWidths([40,120,185,90,150,140,145,115,111],W,M);
     const heads=['م',g.studentName||'اسم الطالب','المشكلة السلوكية','درجة المشكلة','الإجراء المتخذ','مدى الاستجابة','عدد مرات تكرار المشكلة السلوكية','التاريخ','الحصة'];
     let x=W-M;
     heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:17,weight:'700',maxLines:4})});
@@ -173,7 +173,7 @@ function officialAbsenceProceduresPage(kind='excused'){
   officialText(ctx,'الصف:',650,535,23);officialDottedLine(ctx,M+50,535,590);officialText(ctx,c.name||'',575,535,22);
   const y0=625,headH=110,rowH=isExcused?165:135;
   const headers=isExcused?['عدد أيام الغياب','الإجراء المتخذ','تاريخ الإجراء',`توقيع ${g.student}`,'توقيع ولي الأمر']:['عدد أيام الغياب','الإجراء المتخذ','تاريخ الإجراء',`توقيع ${g.student}`,'توقيع ولي الأمر','عدد درجات المواظبة المحسومة'];
-  const widths=isExcused?[125,470,165,165,171]:[120,390,145,140,140,161];
+  const widths=officialFitWidths(isExcused?[125,470,165,165,171]:[120,390,145,140,140,161],W,M);
   let x=W-M;headers.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:18,weight:'700',maxLines:4})});
   const thresholds=isExcused?['٣ أيام','٥ أيام','١٠ أيام']:['٣ أيام','٣ أيام متصلة','٥ أيام','١٠ أيام'];
   thresholds.forEach((lab,ri)=>{let xx=W-M,y=y0+headH+ri*rowH;headers.forEach((h,i)=>{xx-=widths[i];officialCell(ctx,xx,y,widths[i],rowH,i===0?lab:'',{size:19,weight:i===0?'700':'400'})})});
@@ -228,7 +228,7 @@ function officialIncidentReportPage(){
   officialText(ctx,'□ صور     □ مقاطع فيديو     □ محادثات     □ أخرى: ................................................',right-25,y,20);y+=62;
   line('مكان ضبط الواقعة:','',right-190);
   officialText(ctx,'شهود الواقعة:',right,y,22,'700');y+=42;
-  const y0=y,headH=58,rowH=50,widths=[48,340,210,275,185],heads=['م','الاسم','الوظيفة','العمل المسند إليه','التوقيع'];
+  const y0=y,headH=58,rowH=50,widths=officialFitWidths([48,340,210,275,185],W,M),heads=['م','الاسم','الوظيفة','العمل المسند إليه','التوقيع'];
   let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:18,weight:'700'})});
   for(let ri=0;ri<7;ri++){let xx=W-M,yy=y0+headH+ri*rowH;[''+(ri+1),'','','',''].forEach((v,i)=>{xx-=widths[i];officialCell(ctx,xx,yy,widths[i],rowH,v,{size:17})})}
   officialSignatureBlock(ctx,930,1450,'الطالب/الطالبة',st.name);
@@ -243,7 +243,7 @@ function officialPositiveCompensationPage(){
   officialText(ctx,'اسم الطالب/ الطالبة:',right,450,22);officialDottedLine(ctx,M+40,450,right-220);officialText(ctx,st.name,right-235,450,20);
   officialText(ctx,'المرحلة:',right,510,22);officialDottedLine(ctx,730,510,right-105);officialText(ctx,c.grade||'',right-120,510,20);
   officialText(ctx,'الصف:',700,510,22);officialDottedLine(ctx,M+40,510,620);officialText(ctx,c.name||'',605,510,20);
-  const y0=585,headH=95,rowH=190,widths=[180,150,145,350,135,136],heads=['المشكلة السلوكية','نوعها ودرجتها','درجات السلوك المحسومة','فرص التعويض','الدرجات المكتسبة','توقيع الطالب'];
+  const y0=585,headH=95,rowH=190,widths=officialFitWidths([180,150,145,350,135,136],W,M),heads=['المشكلة السلوكية','نوعها ودرجتها','درجات السلوك المحسومة','فرص التعويض','الدرجات المكتسبة','توقيع الطالب'];
   let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:17,weight:'700',maxLines:4})});
   for(let ri=0;ri<3;ri++){
     const r=records[ri]||null,vals=r?[r.violationLabel||'',behaviorDegreeLabel(r.degree),arabicNum(r.deduction||0),'','', '']:['','','','','',''];
@@ -260,7 +260,7 @@ function officialBehaviorProblemPage(){
   officialText(ctx,'اسم الطالب / الطالبة:',right,445,22);officialDottedLine(ctx,M+40,445,right-235);officialText(ctx,st.name,right-250,445,20);
   officialText(ctx,'الصف:',right,505,22);officialDottedLine(ctx,700,505,right-80);officialText(ctx,c.grade||'',right-95,505,20);
   officialText(ctx,'الفصل:',670,505,22);officialDottedLine(ctx,M+40,505,580);officialText(ctx,c.name||'',565,505,20);
-  const y0=585,headH=100,rowH=150,widths=[155,125,110,125,260,120,100,101],heads=['المشكلة السلوكية','نوعها ودرجتها','تاريخها','درجات السلوك المحسومة','الإجراءات المتخذة','تاريخ الإجراء','توقيع الطالب','توقيع ولي الأمر'];
+  const y0=585,headH=100,rowH=150,widths=officialFitWidths([155,125,110,125,260,120,100,101],W,M),heads=['المشكلة السلوكية','نوعها ودرجتها','تاريخها','درجات السلوك المحسومة','الإجراءات المتخذة','تاريخ الإجراء','توقيع الطالب','توقيع ولي الأمر'];
   let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:16.5,weight:'700',maxLines:4})});
   for(let ri=0;ri<4;ri++){
     const r=records[ri]||null,vals=r?[r.violationLabel||'',behaviorDegreeLabel(r.degree),r.date?formatDate(r.date):'',arabicNum(r.deduction||0),r.actionTaken||'',r.updatedAt?formatDate(String(r.updatedAt).slice(0,10)):(r.date?formatDate(r.date):''),'','']:['','','','','','','',''];
@@ -276,7 +276,7 @@ function officialDistinguishedBehaviorPage(){
   officialText(ctx,'اسم الطالب/ الطالبة:',right,440,22);officialDottedLine(ctx,M+40,440,right-220);officialText(ctx,st.name,right-235,440,20);
   officialText(ctx,'المرحلة:',right,500,22);officialDottedLine(ctx,730,500,right-105);officialText(ctx,c.grade||'',right-120,500,20);
   officialText(ctx,'الصف:',700,500,22);officialDottedLine(ctx,M+40,500,620);officialText(ctx,c.name||'',605,500,20);
-  const y0=575,headH=100,rowH=92,widths=[170,150,115,270,120,145,126],heads=['موضوع ممارسة السلوك المتميز','نوع ممارسة السلوك المتميز','تاريخ التنفيذ','شواهد السلوك المتميز','الدرجة المكتسبة','اسم راصد السلوك','توقيع راصد السلوك'];
+  const y0=575,headH=100,rowH=92,widths=officialFitWidths([170,150,115,270,120,145,126],W,M),heads=['موضوع ممارسة السلوك المتميز','نوع ممارسة السلوك المتميز','تاريخ التنفيذ','شواهد السلوك المتميز','الدرجة المكتسبة','اسم راصد السلوك','توقيع راصد السلوك'];
   let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:16.5,weight:'700',maxLines:4})});
   for(let ri=0;ri<7;ri++){let xx=W-M,yy=y0+headH+ri*rowH;heads.forEach((_,i)=>{xx-=widths[i];officialCell(ctx,xx,yy,widths[i],rowH,'',{size:16})})}
   officialSignatureBlock(ctx,300,1445,g.principal,state.appMeta?.principal||'');
@@ -316,7 +316,7 @@ function officialBehaviorPlanPages(){
     officialText(ctx,'وصف المشكلة السلوكية',right,y,20);y+=38;officialDottedLine(ctx,M+30,y,right);if(r?.notes)officialWrappedText(ctx,r.notes,right-8,y,1000,{size:18,maxLines:2});y+=62;
     officialText(ctx,'المظاهر السلوكية التي تبدو عند الطالب',right,y,20);y+=38;officialDottedLine(ctx,M+30,y,right);y+=68;
     officialText(ctx,'ثالثاً: قياس شدة أو تكرار السلوك:',right,y,22,'700');y+=42;
-    const y0=y,headH=56,rowH=62,widths=[100,135,150,85,85,85,85,85,120],heads=['اليوم','التاريخ','فترة الملاحظة','1','2','3','4','5','المجموع'];
+    const y0=y,headH=56,rowH=62,widths=officialFitWidths([100,135,150,85,85,85,85,85,120],W,M),heads=['اليوم','التاريخ','فترة الملاحظة','1','2','3','4','5','المجموع'];
     let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:16.5,weight:'700',maxLines:2})});
     let xx=W-M;const vals=[r?.date?new Date(r.date+'T12:00:00').toLocaleDateString('ar-SA',{weekday:'long'}):'',r?.date?formatDate(r.date):'',r?.period?'الحصة '+arabicNum(r.period):'',r?'✓':'','','','','',r?arabicNum(behaviorRecordOccurrenceOrdinal(r,c)):''];
     vals.forEach((v,i)=>{xx-=widths[i];officialCell(ctx,xx,y0+headH,widths[i],rowH,v,{size:16})});y=y0+headH+rowH+55;
@@ -326,14 +326,14 @@ function officialBehaviorPlanPages(){
     pages.push(officialPage(canvas))
   }
   {
-    const canvas=document.createElement('canvas');canvas.width=1240;canvas.height=1754;const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,1240,1754);
-    const W=1240,M=72,right=W-M;officialLogo(ctx,180,45,165,98);
+    const canvas=document.createElement('canvas');canvas.width=OFFICIAL_A4_WIDTH;canvas.height=OFFICIAL_A4_HEIGHT;const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,1240,1754);
+    const W=OFFICIAL_A4_WIDTH,M=OFFICIAL_A4_SIDE,right=W-M;officialLogo(ctx,180,45,165,98);
     let y=245;officialText(ctx,'خامساً: تصميم خطة تعديل السلوك',right,y,24,'700');y+=58;
     officialText(ctx,'تعريف السلوك المرغوب في إكسابه للطالب/الطالبة إجرائياً.',right,y,21);y+=40;officialDottedLine(ctx,M+30,y,right);y+=70;
     officialText(ctx,'الإجراءات المستخدمة للحد من السلوك غير المرغوب فيه وتساعد على تحقيق السلوك المرغوب:',right,y,21,'700');y+=52;
     const procedures=[r?.actionTaken||'','','','','',''];procedures.forEach((v,i)=>{officialText(ctx,'الإجراء '+['الأول','الثاني','الثالث','الرابع','الخامس','السادس'][i]+':',right,y,20);officialDottedLine(ctx,M+30,y,right-125);if(v)officialWrappedText(ctx,v,right-140,y,850,{size:18,maxLines:2});y+=62});
     officialText(ctx,'متابعة السلوك:',right,y+10,22,'700');y+=58;
-    const y0=y,headH=56,rowH=62,widths=[100,135,150,85,85,85,85,85,120],heads=['اليوم','التاريخ','فترة الملاحظة','1','2','3','4','5','المجموع'];
+    const y0=y,headH=56,rowH=62,widths=officialFitWidths([100,135,150,85,85,85,85,85,120],W,M),heads=['اليوم','التاريخ','فترة الملاحظة','1','2','3','4','5','المجموع'];
     let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:16.5,weight:'700',maxLines:2})});
     let xx=W-M;heads.forEach((_,i)=>{xx-=widths[i];officialCell(ctx,xx,y0+headH,widths[i],rowH,'',{size:16})});y=y0+headH+rowH+65;
     officialText(ctx,'سادساً: تقييم فاعلية الخطة أو البرنامج:',right,y,22,'700');y+=52;
