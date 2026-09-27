@@ -1,0 +1,18 @@
+name: Validate Behavior Forms V2
+
+on:
+  push:
+    branches: [behavior-forms-v2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout V2
+        uses: actions/checkout@v6
+      - name: Validate source
+        run: node scripts/validate.cjs
