@@ -703,19 +703,22 @@
         <label class="field"><span>السجل السلوكي</span><select id="officialFormsRecord"><option value="">آخر سجل للطالب</option></select></label>
         <div class="official-forms-stats" id="officialFormsStudentStats"></div>
       </section>
-      <div class="official-forms-note"><b>خط الطباعة</b><span>النماذج تستخدم Sakkal Majalla عند توفره على الجهاز، مع بدائل عربية عند عدم توفر الخط. سنضمّن الخط محليًا لاحقًا إذا زُوّدنا بملف الخط المرخّص.</span></div>
+      <div class="official-forms-note"><b>خط الطباعة</b><span>التقارير مضبوطة على Sakkal Majalla كما في النماذج المرجعية، مع بدائل عربية تلقائية إذا لم يكن الخط متاحًا على الجهاز.</span></div>
       <section class="official-forms-grid" id="officialFormsGrid">
-        <button type="button" class="official-form-card ready" data-official-form="teacher-log"><span>السلوك</span><b>نموذج رصد المعلم لمشكلة سلوكية</b><small>النموذج الرسمي العمودي — بيانات الفصل والسجل.</small></button>
-        <button type="button" class="official-form-card ready" data-official-form="behavior-undertaking"><span>السلوك</span><b>تعهد سلوكي</b><small>يعبّئ الطالب والمخالفة والدرجة تلقائيًا.</small></button>
-        <button type="button" class="official-form-card ready confidential" data-official-form="parent-notice"><span>سري</span><b>إشعار ولي الأمر بمشكلة سلوكية</b><small>مبني على السجل السلوكي المحدد.</small></button>
-        <button type="button" class="official-form-card ready" data-official-form="parent-invitation"><span>السلوك</span><b>خطاب دعوة ولي الأمر</b><small>اسم الطالب والصف يعبآن تلقائيًا.</small></button>
-        <button type="button" class="official-form-card ready confidential" data-official-form="high-risk"><span>سري للغاية</span><b>إبلاغ عن حالة عالية الخطورة</b><small>نموذج البلاغ والإجراءات السبعة.</small></button>
-        <button type="button" class="official-form-card ready" data-official-form="absence-excused"><span>المواظبة</span><b>إجراءات الغياب بعذر</b><small>عتبات ٣، ٥، ١٠ أيام.</small></button>
-        <button type="button" class="official-form-card ready" data-official-form="absence-unexcused"><span>المواظبة</span><b>إجراءات الغياب بدون عذر</b><small>٣ أيام، ٣ متصلة، ٥، ١٠ أيام.</small></button>
         <button type="button" class="official-form-card ready" data-official-form="attendance-commitment"><span>المواظبة</span><b>تعهد الالتزام بالحضور</b><small>يقرأ الغياب بدون عذر من سجل الطالب.</small></button>
-        <button type="button" class="official-form-card pending" data-official-form="behavior-plan"><span>قيد البناء</span><b>خطة تعديل السلوك</b><small>نموذج رسمي من صفحتين.</small></button>
-        <button type="button" class="official-form-card pending" data-official-form="behavior-problem"><span>قيد البناء</span><b>نموذج رصد مشكلة سلوكية</b><small>نموذج الإدارة والتوقيعات.</small></button>
-        <button type="button" class="official-form-card pending" data-official-form="positive-compensation"><span>قيد البناء</span><b>فرص تعويض درجات السلوك الإيجابي</b><small>مرتبط بالدرجات المحسومة والتعويض.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="absence-excused"><span>المواظبة</span><b>نموذج إجراءات الغياب بعذر</b><small>عتبات ٣، ٥، ١٠ أيام.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="absence-unexcused"><span>المواظبة</span><b>نموذج إجراءات الغياب بدون عذر</b><small>٣ أيام، ٣ متصلة، ٥، ١٠ أيام.</small></button>
+        <button type="button" class="official-form-card ready confidential" data-official-form="high-risk"><span>سري للغاية</span><b>نموذج إبلاغ عن حالة عالية الخطورة</b><small>يعبئ بيانات الطالب والحالة تلقائيًا.</small></button>
+        <button type="button" class="official-form-card ready confidential" data-official-form="incident-report"><span>سري</span><b>محضر ضبط واقعة</b><small>المخالفة والدرجة من السجل المحدد، مع جدول الشهود.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="parent-invitation"><span>السلوك</span><b>خطاب دعوة ولي الأمر</b><small>اسم الطالب والصف يعبآن تلقائيًا.</small></button>
+        <button type="button" class="official-form-card ready confidential" data-official-form="parent-notice"><span>سري</span><b>إشعار ولي الأمر بمشكلة سلوكية</b><small>مبني على السجل السلوكي المحدد.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="positive-compensation"><span>السلوك</span><b>نموذج فرص تعويض درجات السلوك الإيجابي</b><small>يعرض المخالفات والدرجات المحسومة ويترك فرص التعويض للاعتماد.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="behavior-plan"><span>السلوك</span><b>نموذج خطة تعديل السلوك</b><small>ملف PDF من صفحتين وفق النموذج الرسمي.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="distinguished-behavior"><span>السلوك الإيجابي</span><b>نموذج رصد درجات السلوك المتميز</b><small>بيانات الطالب جاهزة وجدول الرصد الرسمي فارغ للتوثيق.</small></button>
+        <button type="button" class="official-form-card ready confidential" data-official-form="student-referral"><span>سري</span><b>إحالة طالب/ـة</b><small>يعبئ الطالب والصف والمشكلة ودرجتها تلقائيًا.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="behavior-problem"><span>السلوك</span><b>نموذج رصد مشكلة سلوكية</b><small>يعرض حتى أربع وقائع للطالب مع الإجراءات والدرجات المحسومة.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="behavior-undertaking"><span>السلوك</span><b>تعهد سلوكي</b><small>يعبئ الطالب والمخالفة والدرجة تلقائيًا.</small></button>
+        <button type="button" class="official-form-card ready" data-official-form="teacher-log"><span>السلوك</span><b>نموذج رصد المعلم لمشكلة سلوكية</b><small>النموذج الرسمي العمودي بستة أسطر لكل صفحة.</small></button>
       </section>
     </div>
     <div class="modalfooter"><button class="btn" data-close>إغلاق</button></div>
