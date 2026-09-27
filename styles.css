@@ -382,9 +382,9 @@
 .daily-behavior-meta{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #777}
 .daily-behavior-meta>div{padding:6px;text-align:center;border-inline-end:1px solid #bbb}.daily-behavior-meta>div:last-child{border-inline-end:0}
 .daily-behavior-meta span{display:block;font-size:8.5px;color:#555}.daily-behavior-meta b{font-size:12px}
-.daily-behavior-table{width:100%;border-collapse:collapse;table-layout:fixed}
-.daily-behavior-table th,.daily-behavior-table td{border:1px solid #666;padding:5px 4px;text-align:center;vertical-align:middle;font-size:9px;overflow-wrap:anywhere}
-.daily-behavior-table th{background:#eef1f4;font-weight:800}.daily-behavior-table .name{text-align:right;font-weight:800}.daily-behavior-table .action{text-align:right}
+.daily-behavior-table{width:100%;border-collapse:collapse;table-layout:fixed;direction:rtl}
+.daily-behavior-table th,.daily-behavior-table td{border:1px solid #666;padding:2px 3px;text-align:center;vertical-align:middle;font-size:9px;line-height:1.2;overflow-wrap:anywhere;direction:rtl}
+.daily-behavior-table th{background:#eef1f4;font-weight:800;padding-block:3px}.daily-behavior-table .name{text-align:right;font-weight:800}.daily-behavior-table .action{text-align:right}
 .daily-behavior-empty{padding:28px;text-align:center;border:1px dashed #aaa;border-radius:10px;color:#666}
 .daily-behavior-signatures{display:grid;grid-template-columns:1fr 1fr;gap:55px;margin-top:12px;padding-top:8px;border-top:1px solid #777;text-align:center}
 .daily-behavior-signatures>div{display:grid;gap:5px}.daily-behavior-signatures span{font-size:9px}.daily-behavior-signatures b{font-size:11px}
