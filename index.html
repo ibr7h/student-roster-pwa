@@ -572,12 +572,13 @@
         <div class="report-detail-head no-print">
           <button class="report-back-btn" data-report-back aria-label="العودة إلى مركز التقارير">→</button>
           <div class="report-detail-icon report-icon-behavior">!</div>
-          <div class="report-detail-title"><small>تقرير نهاية اليوم</small><h2>مخالفات اليوم الدراسي</h2><p>A4 بالعرض · جميع الفصول</p></div>
+          <div class="report-detail-title"><small>تقرير يوم أو فترة</small><h2>مخالفات اليوم الدراسي</h2><p>A4 بالعرض · جميع الفصول</p></div>
         </div>
         <div class="report-detail-body no-print">
           <div class="behavior-daily-toolbar">
-            <div class="field"><label>تاريخ التقرير</label><input id="dailyBehaviorReportDate" type="date"></div>
-            <div class="behavior-daily-scope"><b>نطاق التقرير</b><span>جميع الفصول المسجلة في التطبيق</span></div>
+            <div class="field"><label>من تاريخ</label><input id="dailyBehaviorReportStartDate" type="date"></div>
+            <div class="field"><label>إلى تاريخ</label><input id="dailyBehaviorReportEndDate" type="date"></div>
+            <div class="behavior-daily-scope"><b>نطاق التقرير</b><span>جميع الفصول · إذا تطابق التاريخان يظهر تقرير يوم واحد</span></div>
           </div>
           <div id="dailyBehaviorReportSummary" class="attendance-report-summary behavior-daily-summary"></div>
           <div class="report-action-bar">
