@@ -5,8 +5,10 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const fail=message=>{console.error('VALIDATION ERROR:',message);process.exitCode=1};
 const info=message=>console.log('✓',message);
-const index=read('index.html'),app=read('app.js'),styles=read('styles.css'),printCss=read('print.css'),sw=read('sw.js'),versionFile=read('version.js'),manifestText=read('manifest.webmanifest');
+const index=read('index.html'),app=read('app.js'),behavior=read('behavior.js'),officialForms=read('official-forms.js'),styles=read('styles.css'),printCss=read('print.css'),sw=read('sw.js'),versionFile=read('version.js'),manifestText=read('manifest.webmanifest');
 try{new vm.Script(app,{filename:'app.js'});info('app.js syntax')}catch(e){fail(e.message)}
+try{new vm.Script(behavior,{filename:'behavior.js'});info('behavior.js syntax')}catch(e){fail(e.message)}
+try{new vm.Script(officialForms,{filename:'official-forms.js'});info('official-forms.js syntax')}catch(e){fail(e.message)}
 try{new vm.Script(sw,{filename:'sw.js'});info('sw.js syntax')}catch(e){fail(e.message)}
 try{JSON.parse(manifestText);info('manifest JSON')}catch(e){fail('manifest.webmanifest: '+e.message)}
 const ids=[...index.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
@@ -17,7 +19,7 @@ if(!version)fail('APP_VERSION missing from version.js');else{
   const checks=[['index.html',index.includes('v'+version)],['app.js',app.includes("||'"+version+"'")||app.includes('||"'+version+'"')],['sw.js',sw.includes("||'"+version+"'")||sw.includes('||"'+version+'"')]];
   for(const [file,ok] of checks)ok?info(file+' version '+version):fail(file+' does not match version '+version);
 }
-if(/(^|[^$])\$\([^\n;]*\)\.forEach\s*\(/m.test(app))fail('Found $().forEach; use $() for querySelectorAll iteration');else info('querySelector iteration guard');
+if([app,behavior,officialForms].some(src=>(/(^|[^$])\$\([^\n;]*\)\.forEach\s*\(/m).test(src)))fail('Found $().forEach; use $() for querySelectorAll iteration');else info('querySelector iteration guard');
 const fnNames=[...app.matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]);
 const fnDup=[...new Set(fnNames.filter((n,i)=>fnNames.indexOf(n)!==i))];
 fnDup.length?fail('Duplicate function declarations: '+fnDup.join(', ')):info('No duplicate function declarations');
