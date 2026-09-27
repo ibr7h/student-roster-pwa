@@ -2170,7 +2170,7 @@ function dailyBehaviorReportSheet(date){
       <div><span>محال للإدارة</span><b>${arabicNum(stats.referred)}</b></div>
       <div><span>درجة رابعة فأعلى / عاجلة</span><b>${arabicNum(stats.high)}</b></div>
     </div>
-    ${rows.length?`<table class="daily-behavior-table">
+    ${rows.length?`<table class="daily-behavior-table" dir="rtl">
       <thead><tr><th>م</th><th>${a.studentName}</th><th>الصف / الفصل</th><th>المخالفة</th><th>الدرجة</th><th>الحصة</th><th>الإجراء / الاستجابة / الإحالة</th></tr></thead>
       <tbody>${tableRows}</tbody>
     </table>`:`<div class="daily-behavior-empty"><b>لا توجد مخالفات مسجلة في هذا اليوم.</b><br>يشمل التقرير جميع الفصول المسجلة في التطبيق.</div>`}
@@ -2210,17 +2210,19 @@ function dailyBehaviorPdfPage(rows,date,stats,pageIndex,pageCount){
     attendancePdfCell(ctx,M+i*metaW,metaY,metaW,metaH,`${it[0]}: ${arabicNum(it[1])}`,{size:14,weight:'700',fill:'#f7f8fa'})
   });
 
-  const y0=220,headH=45,rowH=56,widths=[48,240,180,300,90,80,650],heads=['م',a.studentName,'الصف / الفصل','المخالفة','الدرجة','الحصة','الإجراء / الاستجابة / الإحالة'];
-  let x=M;
-  heads.forEach((h,i)=>{attendancePdfCell(ctx,x,y0,widths[i],headH,h,{size:13,weight:'700',fill:'#eef1f4'});x+=widths[i]});
+  const y0=214,headH=36,rowH=44,widths=[48,240,180,300,90,80,650],heads=['م',a.studentName,'الصف / الفصل','المخالفة','الدرجة','الحصة','الإجراء / الاستجابة / الإحالة'];
+  let x=W-M;
+  heads.forEach((h,i)=>{x-=widths[i];attendancePdfCell(ctx,x,y0,widths[i],headH,h,{size:12.5,weight:'700',fill:'#eef1f4'})});
   if(!rows.length){
-    attendancePdfCell(ctx,M,y0+headH,W-2*M,70,'لا توجد مخالفات مسجلة في هذا اليوم',{size:18,weight:'700'})
+    attendancePdfCell(ctx,M,y0+headH,W-2*M,58,'لا توجد مخالفات مسجلة في هذا اليوم',{size:17,weight:'700'})
   }else rows.forEach((r,ri)=>{
-    const y=y0+headH+ri*rowH;x=M;
-    const vals=[arabicNum(pageIndex*14+ri+1),r.studentName,`${r.grade} · ${r.className}`,r.violation,'الدرجة '+r.degree,r.period?'ح '+arabicNum(r.period):'—',dailyBehaviorActionText(r)];
+    const y=y0+headH+ri*rowH;x=W-M;
+    const vals=[arabicNum(pageIndex*18+ri+1),r.studentName,`${r.grade} · ${r.className}`,r.violation,'الدرجة '+r.degree,r.period?'ح '+arabicNum(r.period):'—',dailyBehaviorActionText(r)];
     vals.forEach((v,i)=>{
-      const lim=i===6?78:i===3?34:i===1?28:24;
-      attendancePdfCell(ctx,x,y,widths[i],rowH,String(v||'—').slice(0,lim),{size:i===6?11.5:12.5,weight:i===1||i===3?'700':'400'});x+=widths[i]
+      x-=widths[i];
+      const lim=i===6?86:i===3?38:i===1?30:26;
+      const rightAligned=i===1||i===3||i===6;
+      attendancePdfCell(ctx,x,y,widths[i],rowH,String(v||'—').slice(0,lim),{align:rightAligned?'right':'center',size:i===6?11.5:12,weight:i===1||i===3?'700':'400'})
     })
   });
 
@@ -2232,7 +2234,7 @@ function dailyBehaviorPdfPage(rows,date,stats,pageIndex,pageCount){
 function buildDailyBehaviorReportPdf(date=state.ui?.dailyBehaviorReportDate||localDateISO()){
   const rows=dailyBehaviorReportRows(date),stats=dailyBehaviorReportStats(rows),chunks=[];
   if(!rows.length)chunks.push([]);
-  else for(let i=0;i<rows.length;i+=14)chunks.push(rows.slice(i,i+14));
+  else for(let i=0;i<rows.length;i+=18)chunks.push(rows.slice(i,i+18));
   const pages=chunks.map((chunk,i)=>dailyBehaviorPdfPage(chunk,date,stats,i,chunks.length));
   return buildJpegPdf(pages,'landscape')
 }
