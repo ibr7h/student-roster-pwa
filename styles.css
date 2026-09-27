@@ -318,6 +318,8 @@
 
 #view-reports:not(.report-detail-mode) .report-section-panel{display:none!important}
 #view-reports.report-detail-mode #reportsHub{display:none!important}
+#view-reports.all-classes-report .reports-class-switch,#view-reports.all-classes-report .reports-period-field{display:none!important}
+#view-reports.all-classes-report .reports-shell-head{grid-template-columns:1fr}
 .report-section-panel{display:none;margin-top:0;border-radius:18px;padding:0;overflow:hidden}
 #view-reports.report-detail-mode .report-section-panel.active{display:block}
 .report-detail-head{display:grid;grid-template-columns:42px 50px minmax(0,1fr);gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:#fff}
