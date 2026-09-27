@@ -426,18 +426,18 @@ function behaviorReferralPdfCanvas(c,r,{official=false}={}){
 
   if(official){
     ctx.strokeStyle='#111827';ctx.lineWidth=3;ctx.strokeRect(center-75,24,150,48);
-    attendancePdfText(ctx,'سري',center,49,23,'700','center')
+    attendancePdfText(ctx,'سري',center,49,27,'700','center')
   }
 
   const top=official?92:50;
-  attendancePdfText(ctx,'المملكة العربية السعودية',right,top,20,'700');
-  attendancePdfText(ctx,'وزارة التعليم',right,top+29,18,'400');
-  attendancePdfText(ctx,x.region||'إدارة التعليم',right,top+57,17,'400');
-  attendancePdfText(ctx,x.school||'اسم المدرسة',right,top+85,17,'400');
+  attendancePdfText(ctx,'المملكة العربية السعودية',right,top,23,'700');
+  attendancePdfText(ctx,'وزارة التعليم',right,top+30,21,'400');
+  attendancePdfText(ctx,x.region||'إدارة التعليم',right,top+59,20,'400');
+  attendancePdfText(ctx,x.school||'اسم المدرسة',right,top+88,20,'400');
   const logo=document.querySelector('.app-brand-logo');
   if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-48,top-6,96,78)}catch{}}
-  attendancePdfText(ctx,title,left,top+23,28,'700','left');
-  attendancePdfText(ctx,x.year||'',left,top+62,16,'400','left');
+  attendancePdfText(ctx,title,left,top+25,32,'700','left');
+  attendancePdfText(ctx,x.year||'',left,top+66,19,'400','left');
   attendancePdfLine(ctx,M,top+116,W-M,top+116,2,'#2f3740');
 
   let y=top+138;
@@ -445,26 +445,26 @@ function behaviorReferralPdfCanvas(c,r,{official=false}={}){
   const meta=official
     ?[[g.student,student],['الصف / الفصل',`${c.grade||'—'} — ${c.name||'—'}`],['التاريخ / الحصة',`${r.date||'—'} · ${r.period?'ح '+arabicNum(r.period):'—'}`]]
     :[[g.student,student],['الصف / الفصل',`${c.grade||'—'} — ${c.name||'—'}`],['جهة الإحالة',target||'إدارة المدرسة']];
-  meta.forEach((it,i)=>attendancePdfCell(ctx,M+i*metaW,y,metaW,metaH,`${it[0]}: ${it[1]}`,{size:14.5,weight:'700'}));
+  meta.forEach((it,i)=>attendancePdfCell(ctx,M+i*metaW,y,metaW,metaH,`${it[0]}: ${it[1]}`,{size:17,weight:'700'}));
   y+=82;
 
   const drawBox=(label,text,height=122)=>{
     ctx.fillStyle='#f8fafc';ctx.fillRect(M,y,W-2*M,height);ctx.strokeStyle='#5f6670';ctx.lineWidth=1.2;ctx.strokeRect(M,y,W-2*M,height);
-    attendancePdfText(ctx,label,right-14,y+24,16,'700');
-    studentPdfWrappedText(ctx,text||'—',right-14,y+48,W-2*M-28,27,15,'400',Math.max(2,Math.floor((height-54)/27)));
+    attendancePdfText(ctx,label,right-14,y+25,19,'700');
+    studentPdfWrappedText(ctx,text||'—',right-14,y+52,W-2*M-28,31,18,'400',Math.max(2,Math.floor((height-58)/31)));
     y+=height+20
   };
 
   if(official){
-    studentPdfWrappedText(ctx,`${g.recipient} ${g.counselor} ${g.honorific}`,right,y,W-2*M,31,18,'700',2);y+=55;
-    studentPdfWrappedText(ctx,`السلام عليكم ورحمة الله وبركاته، نحيل إليكم ${g.student} ${student} بالصف ${c.grade||'—'} — ${c.name||'—'}، ${g.owner} المشكلة السلوكية من الدرجة ${behaviorDegreeLabel(r.degree)}؛ لاستكمال المتابعة التربوية والإجراءات المعتمدة.`,right,y,W-2*M,31,17,'400',5);y+=150;
+    studentPdfWrappedText(ctx,`${g.recipient} ${g.counselor} ${g.honorific}`,right,y,W-2*M,35,21,'700',2);y+=60;
+    studentPdfWrappedText(ctx,`السلام عليكم ورحمة الله وبركاته، نحيل إليكم ${g.student} ${student} بالصف ${c.grade||'—'} — ${c.name||'—'}، ${g.owner} المشكلة السلوكية من الدرجة ${behaviorDegreeLabel(r.degree)}؛ لاستكمال المتابعة التربوية والإجراءات المعتمدة.`,right,y,W-2*M,35,20,'400',5);y+=165;
     drawBox('المشكلة السلوكية',r.violationLabel||'—',126);
     drawBox('بيانات الرصد المساندة',`التاريخ: ${r.date||'—'} · الحصة: ${r.period?arabicNum(r.period):'—'} · ترتيب التكرار: المرة ${behaviorOccurrenceLabel(behaviorRecordOccurrenceOrdinal(r,c))}`,108);
     drawBox('الإجراء الذي اتخذه المعلم / الاستجابة',`${r.actionTaken||'لم يدون إجراء'} · ${r.response||'غير مقيم'}`,120);
     drawBox('ملاحظات إضافية',r.notes||'لا توجد',110);
   }else{
-    studentPdfWrappedText(ctx,`سعادة/ ${target||'إدارة المدرسة'} ${g.honorific}`,right,y,W-2*M,31,18,'700',2);y+=55;
-    studentPdfWrappedText(ctx,`السلام عليكم ورحمة الله وبركاته، أحيل إليكم ${g.student} ${student} بعد رصد المشكلة السلوكية التالية؛ لاستكمال ما يلزم وفق قواعد السلوك والمواظبة والصلاحيات المعتمدة في المدرسة.`,right,y,W-2*M,31,17,'400',5);y+=150;
+    studentPdfWrappedText(ctx,`سعادة/ ${target||'إدارة المدرسة'} ${g.honorific}`,right,y,W-2*M,35,21,'700',2);y+=60;
+    studentPdfWrappedText(ctx,`السلام عليكم ورحمة الله وبركاته، أحيل إليكم ${g.student} ${student} بعد رصد المشكلة السلوكية التالية؛ لاستكمال ما يلزم وفق قواعد السلوك والمواظبة والصلاحيات المعتمدة في المدرسة.`,right,y,W-2*M,35,20,'400',5);y+=165;
     drawBox(`المشكلة السلوكية — الدرجة ${behaviorDegreeLabel(r.degree)}`,r.violationLabel||'—',126);
     drawBox(`إجراء ${g.teacher} ومدى الاستجابة`,`${r.actionTaken||'لم يدون إجراء'} · ${r.response||'غير مقيم'}`,126);
     drawBox('ملاحظات',r.notes||'لا توجد',116);
@@ -474,21 +474,21 @@ function behaviorReferralPdfCanvas(c,r,{official=false}={}){
   const signY=Math.max(y+20,H-235);
   attendancePdfLine(ctx,M,signY-28,W-M,signY-28,1,'#555');
   if(official){
-    attendancePdfText(ctx,g.deputyStudents,W*.72,signY,14,'400','center');
-    attendancePdfText(ctx,'الاسم: __________________',W*.72,signY+30,14,'700','center');
-    attendancePdfText(ctx,'التوقيع: ________________',W*.72,signY+59,13,'400','center');
-    attendancePdfText(ctx,'الختم الرسمي',W*.28,signY,14,'400','center');
+    attendancePdfText(ctx,g.deputyStudents,W*.72,signY,17,'400','center');
+    attendancePdfText(ctx,'الاسم: __________________',W*.72,signY+32,17,'700','center');
+    attendancePdfText(ctx,'التوقيع: ________________',W*.72,signY+64,16,'400','center');
+    attendancePdfText(ctx,'الختم الرسمي',W*.28,signY,17,'400','center');
     ctx.strokeStyle='#777';ctx.strokeRect(W*.28-72,signY+22,144,76)
   }else{
-    attendancePdfText(ctx,g.teacher,W*.72,signY,14,'400','center');
-    attendancePdfText(ctx,x.teacher||'—',W*.72,signY+30,16,'700','center');
-    attendancePdfText(ctx,'التوقيع: ________________',W*.72,signY+59,13,'400','center');
-    attendancePdfText(ctx,'المستلم',W*.28,signY,14,'400','center');
-    attendancePdfText(ctx,target||'إدارة المدرسة',W*.28,signY+30,16,'700','center');
-    attendancePdfText(ctx,'التوقيع والتاريخ: __________',W*.28,signY+59,13,'400','center')
+    attendancePdfText(ctx,g.teacher,W*.72,signY,17,'400','center');
+    attendancePdfText(ctx,x.teacher||'—',W*.72,signY+32,19,'700','center');
+    attendancePdfText(ctx,'التوقيع: ________________',W*.72,signY+64,16,'400','center');
+    attendancePdfText(ctx,'المستلم',W*.28,signY,17,'400','center');
+    attendancePdfText(ctx,target||'إدارة المدرسة',W*.28,signY+32,19,'700','center');
+    attendancePdfText(ctx,'التوقيع والتاريخ: __________',W*.28,signY+64,16,'400','center')
   }
 
-  attendancePdfText(ctx,`قواعد السلوك والمواظبة — ${BEHAVIOR_RULE_EDITION}`,center,H-35,11,'400','center');
+  attendancePdfText(ctx,`قواعد السلوك والمواظبة — ${BEHAVIOR_RULE_EDITION}`,center,H-35,13,'400','center');
   const data=canvas.toDataURL('image/jpeg',0.96);
   return buildJpegPdf([{bytes:base64Bytes(data.split(',')[1]),width:W,height:H}],'portrait')
 }
