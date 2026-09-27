@@ -93,10 +93,10 @@
 @media(max-width:680px){
   #studentModal.modal{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border-radius:0;padding:0;inset:0;background:#fff}
   #studentModal .modalbox{height:100dvh;max-height:none;overflow:auto;padding:max(58px,calc(env(safe-area-inset-top) + 52px)) max(12px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));-webkit-overflow-scrolling:touch}
-  #studentModal .modalhead{position:sticky;top:calc(-1 * max(58px,calc(env(safe-area-inset-top) + 52px)));padding:10px 0 10px;background:#fff;border-bottom:1px solid var(--line);z-index:4}
+  #studentModal .modalhead{position:sticky;top:-58px;padding:10px 0 10px;background:#fff;border-bottom:1px solid var(--line);z-index:4}
   #studentModal .modalhead .iconbtn{display:none}
   #studentModal .student-modal-exit{display:flex;position:fixed;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));z-index:10003;align-items:center;justify-content:center;min-width:82px;min-height:44px;border:1px solid #d7dee5;border-radius:999px;background:#fff;color:var(--ink);font:800 14px Arial,Tahoma,sans-serif;box-shadow:0 4px 16px rgba(15,23,42,.12)}
-  #studentModal .modalfooter{position:sticky;bottom:calc(-1 * max(18px,env(safe-area-inset-bottom)));z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1.2fr}
+  #studentModal .modalfooter{position:sticky;bottom:-18px;z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1.2fr}
   #studentModal .modalfooter .btn{min-height:46px}
 }
 @media(max-width:680px){
