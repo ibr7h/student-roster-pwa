@@ -1,6 +1,6 @@
-// release 4.18.5 single-page-student-a4
+// release 4.19.0 daily-behavior-report
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.18.5');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.19.0');
 const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
