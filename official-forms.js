@@ -94,7 +94,7 @@ function officialTeacherLogPages(recordId=''){
     officialText(ctx,'المادة:',right,350,22,'400');officialDottedLine(ctx,150,350,right-90);officialText(ctx,c.subject||'',right-100,350,22,'400');
     officialText(ctx,'الصف:',right,405,22,'400');officialDottedLine(ctx,150,405,right-75);officialText(ctx,officialStudentGradeLine(c),right-90,405,22,'400');
     const y0=485,headH=125,rowH=105;
-    const widths=[45,125,205,100,160,155,155,120,95];
+    const widths=[40,120,185,90,150,140,145,115,111];
     const heads=['م',g.studentName||'اسم الطالب','المشكلة السلوكية','درجة المشكلة','الإجراء المتخذ','مدى الاستجابة','عدد مرات تكرار المشكلة السلوكية','التاريخ','الحصة'];
     let x=W-M;
     heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:17,weight:'700',maxLines:4})});
@@ -173,7 +173,7 @@ function officialAbsenceProceduresPage(kind='excused'){
   officialText(ctx,'الصف:',650,535,23);officialDottedLine(ctx,M+50,535,590);officialText(ctx,c.name||'',575,535,22);
   const y0=625,headH=110,rowH=isExcused?165:135;
   const headers=isExcused?['عدد أيام الغياب','الإجراء المتخذ','تاريخ الإجراء',`توقيع ${g.student}`,'توقيع ولي الأمر']:['عدد أيام الغياب','الإجراء المتخذ','تاريخ الإجراء',`توقيع ${g.student}`,'توقيع ولي الأمر','عدد درجات المواظبة المحسومة'];
-  const widths=isExcused?[135,500,170,170,170]:[125,410,150,145,145,150];
+  const widths=isExcused?[125,470,165,165,171]:[120,390,145,140,140,161];
   let x=W-M;headers.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:18,weight:'700',maxLines:4})});
   const thresholds=isExcused?['٣ أيام','٥ أيام','١٠ أيام']:['٣ أيام','٣ أيام متصلة','٥ أيام','١٠ أيام'];
   thresholds.forEach((lab,ri)=>{let xx=W-M,y=y0+headH+ri*rowH;headers.forEach((h,i)=>{xx-=widths[i];officialCell(ctx,xx,y,widths[i],rowH,i===0?lab:'',{size:19,weight:i===0?'700':'400'})})});
@@ -243,7 +243,7 @@ function officialPositiveCompensationPage(){
   officialText(ctx,'اسم الطالب/ الطالبة:',right,450,22);officialDottedLine(ctx,M+40,450,right-220);officialText(ctx,st.name,right-235,450,20);
   officialText(ctx,'المرحلة:',right,510,22);officialDottedLine(ctx,730,510,right-105);officialText(ctx,c.grade||'',right-120,510,20);
   officialText(ctx,'الصف:',700,510,22);officialDottedLine(ctx,M+40,510,620);officialText(ctx,c.name||'',605,510,20);
-  const y0=585,headH=95,rowH=190,widths=[195,160,155,350,135,130],heads=['المشكلة السلوكية','نوعها ودرجتها','درجات السلوك المحسومة','فرص التعويض','الدرجات المكتسبة','توقيع الطالب'];
+  const y0=585,headH=95,rowH=190,widths=[180,150,145,350,135,136],heads=['المشكلة السلوكية','نوعها ودرجتها','درجات السلوك المحسومة','فرص التعويض','الدرجات المكتسبة','توقيع الطالب'];
   let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:17,weight:'700',maxLines:4})});
   for(let ri=0;ri<3;ri++){
     const r=records[ri]||null,vals=r?[r.violationLabel||'',behaviorDegreeLabel(r.degree),arabicNum(r.deduction||0),'','', '']:['','','','','',''];
@@ -260,7 +260,7 @@ function officialBehaviorProblemPage(){
   officialText(ctx,'اسم الطالب / الطالبة:',right,445,22);officialDottedLine(ctx,M+40,445,right-235);officialText(ctx,st.name,right-250,445,20);
   officialText(ctx,'الصف:',right,505,22);officialDottedLine(ctx,700,505,right-80);officialText(ctx,c.grade||'',right-95,505,20);
   officialText(ctx,'الفصل:',670,505,22);officialDottedLine(ctx,M+40,505,580);officialText(ctx,c.name||'',565,505,20);
-  const y0=585,headH=100,rowH=150,widths=[175,140,125,145,285,135,105,105],heads=['المشكلة السلوكية','نوعها ودرجتها','تاريخها','درجات السلوك المحسومة','الإجراءات المتخذة','تاريخ الإجراء','توقيع الطالب','توقيع ولي الأمر'];
+  const y0=585,headH=100,rowH=150,widths=[155,125,110,125,260,120,100,101],heads=['المشكلة السلوكية','نوعها ودرجتها','تاريخها','درجات السلوك المحسومة','الإجراءات المتخذة','تاريخ الإجراء','توقيع الطالب','توقيع ولي الأمر'];
   let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:16.5,weight:'700',maxLines:4})});
   for(let ri=0;ri<4;ri++){
     const r=records[ri]||null,vals=r?[r.violationLabel||'',behaviorDegreeLabel(r.degree),r.date?formatDate(r.date):'',arabicNum(r.deduction||0),r.actionTaken||'',r.updatedAt?formatDate(String(r.updatedAt).slice(0,10)):(r.date?formatDate(r.date):''),'','']:['','','','','','','',''];
@@ -276,7 +276,7 @@ function officialDistinguishedBehaviorPage(){
   officialText(ctx,'اسم الطالب/ الطالبة:',right,440,22);officialDottedLine(ctx,M+40,440,right-220);officialText(ctx,st.name,right-235,440,20);
   officialText(ctx,'المرحلة:',right,500,22);officialDottedLine(ctx,730,500,right-105);officialText(ctx,c.grade||'',right-120,500,20);
   officialText(ctx,'الصف:',700,500,22);officialDottedLine(ctx,M+40,500,620);officialText(ctx,c.name||'',605,500,20);
-  const y0=575,headH=100,rowH=92,widths=[190,170,125,285,125,155,125],heads=['موضوع ممارسة السلوك المتميز','نوع ممارسة السلوك المتميز','تاريخ التنفيذ','شواهد السلوك المتميز','الدرجة المكتسبة','اسم راصد السلوك','توقيع راصد السلوك'];
+  const y0=575,headH=100,rowH=92,widths=[170,150,115,270,120,145,126],heads=['موضوع ممارسة السلوك المتميز','نوع ممارسة السلوك المتميز','تاريخ التنفيذ','شواهد السلوك المتميز','الدرجة المكتسبة','اسم راصد السلوك','توقيع راصد السلوك'];
   let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:16.5,weight:'700',maxLines:4})});
   for(let ri=0;ri<7;ri++){let xx=W-M,yy=y0+headH+ri*rowH;heads.forEach((_,i)=>{xx-=widths[i];officialCell(ctx,xx,yy,widths[i],rowH,'',{size:16})})}
   officialSignatureBlock(ctx,300,1445,g.principal,state.appMeta?.principal||'');
