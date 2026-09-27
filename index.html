@@ -20,7 +20,7 @@
   <header class="topbar no-print">
     <button class="brand" data-nav="dashboard" aria-label="العودة إلى لوحة السجلات">
       <span class="brand-mark brand-logo-wrap"><img class="app-brand-logo" src="assets/moe-logo.png" alt="شعار وزارة التعليم"></span>
-      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.18.5</span></span><small>سجل زمني للمتابعة والحضور</small></span>
+      <span class="brand-text"><span class="brand-title-line"><b>سجلات الطلاب</b><span class="version-badge" id="versionBadge">v4.19.0</span></span><small>سجل زمني للمتابعة والحضور</small></span>
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
@@ -245,7 +245,7 @@
 
       <section class="panel admin-about-card no-print">
         <div><p class="eyebrow">عن التطبيق</p><h2>سجلات الطلاب</h2><p class="subtle">البيانات الأساسية محفوظة محليًا على هذا الجهاز.</p></div>
-        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.18.5</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
+        <div class="admin-about-meta"><span>الإصدار <b id="adminVersion">v4.19.0</b></span><span>قاعدة البيانات <b>studentRosterPWA</b></span><span>المخزن <b>kv → state</b></span></div>
       </section>
     </section>
 
@@ -490,6 +490,11 @@
             <span class="report-card-copy"><b>تقارير الطلاب</b><small>تقرير فردي مفصل للتقييمات والحضور لكل طالب.</small></span>
             <span class="report-card-meta"><em>A4 عمودي</em><span>‹</span></span>
           </button>
+          <button class="report-type-card" data-report-open="behaviorDaily">
+            <span class="report-type-icon report-icon-behavior">!</span>
+            <span class="report-card-copy"><b>مخالفات اليوم الدراسي</b><small>جميع الطلاب الذين سُجلت عليهم مخالفات اليوم عبر كل الفصول.</small></span>
+            <span class="report-card-meta"><em>A4 عرض</em><span>‹</span></span>
+          </button>
         </div>
       </section>
 
@@ -562,13 +567,36 @@
           <div class="student-report-list" id="studentReportList"></div>
         </div>
       </section>
+
+      <section class="panel report-section-panel behavior-daily-report-panel" data-report-panel="behaviorDaily">
+        <div class="report-detail-head no-print">
+          <button class="report-back-btn" data-report-back aria-label="العودة إلى مركز التقارير">→</button>
+          <div class="report-detail-icon report-icon-behavior">!</div>
+          <div class="report-detail-title"><small>تقرير نهاية اليوم</small><h2>مخالفات اليوم الدراسي</h2><p>A4 بالعرض · جميع الفصول</p></div>
+        </div>
+        <div class="report-detail-body no-print">
+          <div class="behavior-daily-toolbar">
+            <div class="field"><label>تاريخ التقرير</label><input id="dailyBehaviorReportDate" type="date"></div>
+            <div class="behavior-daily-scope"><b>نطاق التقرير</b><span>جميع الفصول المسجلة في التطبيق</span></div>
+          </div>
+          <div id="dailyBehaviorReportSummary" class="attendance-report-summary behavior-daily-summary"></div>
+          <div class="report-action-bar">
+            <button class="btn" data-preview-toggle="behaviorDaily">👁 معاينة التقرير</button>
+            <button class="btn primary" id="printDailyBehaviorReportBtn">🖨 A4 PDF بالعرض</button>
+          </div>
+        </div>
+        <div class="report-preview-box" data-preview-box="behaviorDaily">
+          <div class="report-preview-label no-print">معاينة تقرير نهاية اليوم</div>
+          <div id="dailyBehaviorReportPreview" class="daily-behavior-report-preview"></div>
+        </div>
+      </section>
     </section>
 </section>
   </main>
 
   <footer class="no-print" style="text-align:center;padding:16px 12px 18px;font-size:12px;opacity:.72;line-height:1.8">
     Copyright © 2026 Ibrahim Alneami — All Rights Reserved<br>
-    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.18.5</b></span>
+    البيع وإعادة البيع والاستخدام التجاري يتطلب ترخيصًا تجاريًا مدفوعًا ومكتوبًا من صاحب الحقوق.<br><span class="footer-version">الإصدار <b id="footerVersion">v4.19.0</b></span>
   </footer>
 
   <nav class="bottom-nav no-print" aria-label="التنقل الرئيسي">
