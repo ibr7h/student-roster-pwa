@@ -248,7 +248,7 @@ function officialAttendanceCommitmentPage(){
 function officialHighRiskPage(){
   const c=currentClass(),st=officialStudent(),r=officialRecordForStudent();if(!c||!st){toast('اختر طالبًا');return null}
   const {canvas,ctx,W,M}=officialPortraitCanvas('نموذج إبلاغ عن حالة عالية الخطورة',{confidential:'(سري للغاية)',titleY:320}),right=W-M;
-  const body=officialRefSize(22),small=officialRefSize(20);let y=470;
+  const body=officialRefSize(22),small=officialRefSize(20),sign=officialRefSize(20);let y=470;
   officialText(ctx,'اسم الطالب / الطالبة:',right,y,body);officialDottedLine(ctx,M+15,y,right-245);officialText(ctx,st.name,right-260,y,small);y+=58;
   officialText(ctx,'الصف الدراسي:',right,y,body);officialDottedLine(ctx,M+15,y,right-160);officialText(ctx,officialStudentGradeLine(c),right-175,y,small);y+=62;
   officialText(ctx,'وصف الحالة:',right,y,body);y+=38;officialDottedLine(ctx,M+15,y,right);if(r)officialWrappedText(ctx,(r.violationLabel||'')+(r.notes?' — '+r.notes:''),right-8,y,900,{size:small,lineHeight:32,maxLines:2});y+=52;officialDottedLine(ctx,M+15,y,right);y+=58;
@@ -258,7 +258,7 @@ function officialHighRiskPage(){
   officialText(ctx,'الإجراءات المتخذة مع الحالة :',right,y,body,'700');y+=46;
   ['تبليغ إدارة التعليم.','تبليغ الجهات الأمنية.','تبليغ الحماية من العنف الأسري وحماية الطفل.','تبليغ وزارة الصحة.','التواصل مع الأسرة لإخطارها بوضع الحالة.','عقد اجتماع طارئ للجنة التوجيه الطلابي لدراسة الحالة ووضع خطة لمعالجتها بالتكامل مع الجهات ذات العلاقة.','رفع بلاغ عن الحالة في الأنظمة التقنية الخاصة بالبلاغات.'].forEach(t=>{officialText(ctx,'□ '+t,right-10,y,officialRefSize(20));y+=48});
   officialText(ctx,'مدير/مديرة المدرسة',315,1430,officialRefSize(22),'700','center');
-  officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1485,sign=officialRefSize(20),'400','center');
+  officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1485,sign,'400','center');
   officialText(ctx,'التوقيع: ................................',315,1535,sign,'400','center');
   officialText(ctx,'التاريخ: ................................',315,1585,sign,'400','center');
   return officialPage(canvas)
