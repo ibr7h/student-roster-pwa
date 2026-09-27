@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=6;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.4';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.5';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -1798,6 +1798,81 @@ function studentPdfCanvas(c,st,periodText,{section='assessments',rows=[],first=f
   attendancePdfText(ctx,`صفحة ${arabicNum(pageNo)}`,left,H-34,12,'400','left');
   const data=canvas.toDataURL('image/jpeg',0.95);return {bytes:base64Bytes(data.split(',')[1]),width:W,height:H}
 }
+function buildStudentSinglePagePdf(c,st,periodText,assessments,attendance){
+  const W=1240,H=1754,M=58,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const gov=state.appMeta||{},audience=schoolAudience(gov),right=W-M,left=M,center=W/2,period=state.ui.reportPeriod||'all';
+
+  attendancePdfText(ctx,'المملكة العربية السعودية',right,40,19,'700');
+  attendancePdfText(ctx,'وزارة التعليم',right,66,17,'400');
+  attendancePdfText(ctx,gov.region||'إدارة التعليم',right,91,16,'400');
+  attendancePdfText(ctx,gov.school||c.school||'المدرسة',right,116,16,'400');
+  const logo=document.querySelector('.app-brand-logo');
+  if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-40,25,80,64)}catch{}}
+  attendancePdfText(ctx,`تقرير متابعة ${audience.studentBare}`,left,55,26,'700','left');
+  attendancePdfText(ctx,periodText||gov.semester||'',left,87,17,'700','left');
+  attendancePdfText(ctx,gov.year||'',left,112,15,'400','left');
+  attendancePdfLine(ctx,M,140,W-M,140,2,'#2f3740');
+
+  const metaY=153,metaH=42,metaWidths=[(W-2*M)*.46,(W-2*M)*.28,(W-2*M)*.26];let mx=M;
+  [[audience.student,st.name||'—'],['الصف / الفصل',`${c.grade||'—'} — ${c.name||'—'}`],['المادة',c.subject||'—']].forEach((it,i)=>{
+    attendancePdfCell(ctx,mx,metaY,metaWidths[i],metaH,`${it[0]}: ${it[1]}`,{align:'center',size:14,weight:'700'});mx+=metaWidths[i]
+  });
+
+  let y=210;
+  const sc=scoreSummary(st,c,period),at=attendanceCounts(st,period),cardW=(W-2*M)/4;
+  [['الأداء',pct(sc.performance)],['اكتمال الرصد',pct(sc.completion)],['الغياب',arabicNum(at.absent)],['التأخر',arabicNum(at.late)]].forEach((it,i)=>{
+    const x=M+i*cardW;ctx.fillStyle='#f5f7fa';ctx.fillRect(x,y,cardW,54);ctx.strokeStyle='#9aa3ad';ctx.strokeRect(x,y,cardW,54);
+    attendancePdfText(ctx,it[0],x+cardW/2,y+17,13,'400','center');attendancePdfText(ctx,it[1],x+cardW/2,y+39,18,'700','center')
+  });
+  y+=72;
+
+  const notes=String(st.notes||'').trim();
+  const fixedBottom=notes?305:185;
+  const sectionOverhead=(assessments.length?68:0)+(attendance.length?68:0);
+  const available=Math.max(430,H-y-fixedBottom-sectionOverhead);
+  const totalRows=Math.max(1,assessments.length+attendance.length);
+  const rowH=Math.max(25,Math.min(46,Math.floor(available/totalRows)));
+  const fontSize=rowH<=27?9.5:rowH<=32?10.5:rowH<=38?11.5:12.5;
+  const headH=Math.max(30,Math.min(38,rowH+5));
+
+  if(assessments.length){
+    attendancePdfText(ctx,'سجل التقييمات',right,y,18,'700');y+=25;
+    const widths=[170,140,410,215,W-2*M-935],heads=['التاريخ','النوع','التقييم','الدرجة','النسبة'];let x=M;
+    heads.forEach((h,i)=>{attendancePdfCell(ctx,x,y,widths[i],headH,h,{size:11.5,weight:'700',fill:'#eef1f4'});x+=widths[i]});y+=headH;
+    assessments.forEach(r=>{
+      x=M;[r.date,r.type,r.title,r.score,r.percent].forEach((v,i)=>{
+        attendancePdfCell(ctx,x,y,widths[i],rowH,String(v||'—').slice(0,i===2?40:22),{size:fontSize,weight:i===2?'700':'400'});x+=widths[i]
+      });y+=rowH
+    });
+    y+=14
+  }
+
+  if(attendance.length){
+    attendancePdfText(ctx,'سجل الحضور والغياب',right,y,18,'700');y+=25;
+    const widths=[(W-2*M)*.62,(W-2*M)*.38],heads=['التاريخ','الحالة'];let x=M;
+    heads.forEach((h,i)=>{attendancePdfCell(ctx,x,y,widths[i],headH,h,{size:11.5,weight:'700',fill:'#eef1f4'});x+=widths[i]});y+=headH;
+    attendance.forEach(r=>{
+      x=M;[r.date,r.status].forEach((v,i)=>{attendancePdfCell(ctx,x,y,widths[i],rowH,v,{size:fontSize,weight:i?'700':'400'});x+=widths[i]});y+=rowH
+    });
+    y+=12
+  }
+
+  if(notes){
+    const noteH=92,noteY=Math.min(y+8,H-280);
+    ctx.fillStyle='#f8fafc';ctx.fillRect(M,noteY,W-2*M,noteH);ctx.strokeStyle='#b5bdc6';ctx.strokeRect(M,noteY,W-2*M,noteH);
+    attendancePdfText(ctx,`ملاحظات ${audience.teacher}`,right-12,noteY+19,14,'700');
+    studentPdfWrappedText(ctx,notes,right-12,noteY+37,W-2*M-24,20,12.5,'400',2)
+  }
+
+  const signY=H-142;attendancePdfLine(ctx,M,signY-28,W-M,signY-28,1,'#555');
+  attendancePdfText(ctx,audience.subjectTeacher,W*.72,signY,13,'400','center');attendancePdfText(ctx,gov.teacher||'—',W*.72,signY+23,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.72,signY+48,12,'400','center');
+  attendancePdfText(ctx,audience.principal,W*.28,signY,13,'400','center');attendancePdfText(ctx,gov.principal||'—',W*.28,signY+23,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.28,signY+48,12,'400','center');
+
+  const data=canvas.toDataURL('image/jpeg',0.95);
+  return buildJpegPdf([{bytes:base64Bytes(data.split(',')[1]),width:W,height:H}],'portrait')
+}
+
 function buildStudentPortraitPdf(){
   const st=findStudent(openStudentId),c=findStudentClass(openStudentId);if(!st||!c)throw new Error('No student report');
   const period=state.ui.reportPeriod||'all',periodText=period==='all'?state.appMeta.semester:monthLabel(period);
@@ -1806,9 +1881,15 @@ function buildStudentPortraitPdf(){
     return {date:formatDate(a.date),type:typeLabel(a.type),title:a.title||'—',score:has?`${arabicNum(v)} / ${arabicNum(a.maxScore)}`:'—',percent:pct(pr)}
   });
   const attendance=Object.entries(st.attendance||{}).filter(([d])=>period==='all'||monthKey(d)===period).sort((a,b)=>b[0].localeCompare(a[0])).map(([d,v])=>({date:formatDate(d),status:statusLabel(v)}));
-  const specs=[];const firstChunk=assessments.splice(0,14);specs.push({section:'assessments',rows:firstChunk,first:true});
-  while(assessments.length)specs.push({section:'assessments',rows:assessments.splice(0,20),first:false});
-  if(attendance.length){while(attendance.length)specs.push({section:'attendance',rows:attendance.splice(0,25),first:false})}
+
+  // iOS + Android: keep the normal student report on one A4 portrait page whenever readable.
+  if(assessments.length+attendance.length<=30)return buildStudentSinglePagePdf(c,st,periodText,assessments,attendance);
+
+  // Very large histories fall back to paginated A4 rather than shrinking text below a readable size.
+  const a=assessments.slice(),att=attendance.slice(),specs=[];
+  const firstChunk=a.splice(0,14);specs.push({section:'assessments',rows:firstChunk,first:true});
+  while(a.length)specs.push({section:'assessments',rows:a.splice(0,20),first:false});
+  while(att.length)specs.push({section:'attendance',rows:att.splice(0,25),first:false});
   specs[specs.length-1].last=true;
   const pages=specs.map((spec,i)=>studentPdfCanvas(c,st,periodText,{...spec,pageNo:i+1}));
   return buildJpegPdf(pages,'portrait')
