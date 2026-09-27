@@ -239,7 +239,7 @@ function behaviorRecordMarkup(r,c){
     </div>
     <div class="behavior-record-actions no-print">
       <button class="btn tiny" data-behavior-edit="${behaviorEsc(r.id)}">تعديل</button>
-      <button class="btn tiny" data-behavior-teacher-form="${behaviorEsc(r.id)}">رصد المعلم</button>
+      <button class="btn tiny" data-behavior-teacher-form="${behaviorEsc(r.id)}">🖨 رصد المعلم</button>
       <button class="btn tiny" data-behavior-internal-referral="${behaviorEsc(r.id)}">🖨 إحالة داخلية</button>
       <button class="btn tiny primary" data-behavior-official-referral="${behaviorEsc(r.id)}">🖨 سري — إحالة</button>
     </div>
@@ -406,15 +406,90 @@ function printBehaviorSummaryReport(){
 function behaviorTeacherLogRows(records,c){
   return records.map((r,i)=>`<tr><td>${arabicNum(i+1)}</td><td>${behaviorEsc(behaviorStudentName(r.studentId,c))}</td><td>${behaviorEsc(r.violationLabel)}</td><td>${behaviorDegreeLabel(r.degree)}</td><td>${behaviorEsc(r.actionTaken||'—')}</td><td>${behaviorEsc(r.response||'—')}</td><td>${arabicNum(behaviorRecordOccurrenceOrdinal(r,c))}</td><td>${behaviorEsc(r.date||'—')}</td><td>${r.period?arabicNum(r.period):'—'}</td></tr>`).join('')
 }
+function behaviorTeacherPdfCell(ctx,x,y,w,h,text,{align='center',size=13,weight='400',fill=null}={}){
+  if(fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h)}
+  ctx.strokeStyle='#5f6670';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
+  const tx=align==='right'?x+w-3:align==='left'?x+3:x+w/2;
+  attendancePdfText(ctx,text,tx,y+h/2,size,weight,align)
+}
+function behaviorTeacherLogPdfPage(records,c,pageIndex,pageCount,startOrdinal=0){
+  const W=1684,H=1190,M=48,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const x=behaviorPrintBase(),g=x.audience,right=W-M,left=M,center=W/2;
+  attendancePdfText(ctx,'المملكة العربية السعودية',right,42,19,'700');
+  attendancePdfText(ctx,'وزارة التعليم',right,68,17,'400');
+  attendancePdfText(ctx,x.region||'إدارة التعليم',right,93,16,'400');
+  attendancePdfText(ctx,x.school||'اسم المدرسة',right,118,16,'400');
+  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-48,22,96,76)}catch{}}
+  attendancePdfText(ctx,`نموذج رصد ${g.teacher} لمشكلة سلوكية`,left,56,27,'700','left');
+  attendancePdfText(ctx,`${c.grade||'—'} · ${c.name||'—'} · ${c.subject||'—'}`,left,91,17,'700','left');
+  attendancePdfText(ctx,`صفحة ${arabicNum(pageIndex+1)} من ${arabicNum(pageCount)}`,left,118,13,'400','left');
+  attendancePdfLine(ctx,M,145,W-M,145,2,'#2f3740');
+
+  const metaY=158,metaH=42,metaW=(W-2*M)/3;
+  [[ 'المادة',c.subject||'—'],['الصف',c.grade||'—'],['الفصل',c.name||'—']].forEach((it,i)=>behaviorTeacherPdfCell(ctx,M+i*metaW,metaY,metaW,metaH,`${it[0]}: ${it[1]}`,{size:14,weight:'700',fill:'#f7f8fa'}));
+
+  const y0=210,headH=34,rowH=44;
+  const widths=[48,235,285,105,310,175,105,155,75];
+  const heads=['م',g.studentName||('اسم '+g.student),'المشكلة السلوكية','الدرجة','الإجراء المتخذ','مدى الاستجابة','التكرار','التاريخ','الحصة'];
+  let xx=W-M;
+  heads.forEach((h,i)=>{xx-=widths[i];behaviorTeacherPdfCell(ctx,xx,y0,widths[i],headH,h,{size:13,weight:'700',fill:'#eef1f4'})});
+  records.forEach((r,ri)=>{
+    const y=y0+headH+ri*rowH;xx=W-M;
+    const vals=[
+      arabicNum(startOrdinal+ri+1),
+      behaviorStudentName(r.studentId,c),
+      r.violationLabel||'—',
+      behaviorDegreeLabel(r.degree),
+      r.actionTaken||'—',
+      r.response||'—',
+      arabicNum(behaviorRecordOccurrenceOrdinal(r,c)),
+      r.date?formatDate(r.date):'—',
+      r.period?arabicNum(r.period):'—'
+    ];
+    vals.forEach((v,i)=>{
+      xx-=widths[i];
+      const rightAligned=[1,2,4,5].includes(i);
+      const lim=i===4?42:i===2?38:i===1?28:i===5?24:18;
+      behaviorTeacherPdfCell(ctx,xx,y,widths[i],rowH,String(v||'—').slice(0,lim),{align:rightAligned?'right':'center',size:i===4?11.5:12.5,weight:i===1||i===2?'700':'400'})
+    })
+  });
+
+  const signY=H-88;
+  attendancePdfLine(ctx,M,signY-22,W-M,signY-22,1,'#555');
+  attendancePdfText(ctx,g.teacher,W*.72,signY,14,'400','center');
+  attendancePdfText(ctx,x.teacher||'—',W*.72,signY+25,16,'700','center');
+  attendancePdfText(ctx,'التوقيع: __________________',W*.72,signY+49,13,'400','center');
+  attendancePdfText(ctx,'التاريخ',W*.28,signY,14,'400','center');
+  attendancePdfText(ctx,formatDate(localDateISO()),W*.28,signY+25,16,'700','center');
+  attendancePdfText(ctx,'__________________',W*.28,signY+49,13,'400','center');
+  attendancePdfText(ctx,`قواعد السلوك والمواظبة — ${BEHAVIOR_RULE_EDITION}`,center,H-24,11,'400','center');
+
+  const data=canvas.toDataURL('image/jpeg',0.96);
+  return {bytes:base64Bytes(data.split(',')[1]),width:W,height:H}
+}
+function buildBehaviorTeacherLogPdf(records,c){
+  const perPage=18,chunks=[];
+  for(let i=0;i<records.length;i+=perPage)chunks.push(records.slice(i,i+perPage));
+  const pages=chunks.map((chunk,i)=>behaviorTeacherLogPdfPage(chunk,c,i,chunks.length,i*perPage));
+  return buildJpegPdf(pages,'landscape')
+}
 function printBehaviorTeacherLog(recordId=''){
   const c=currentClass();if(!c)return;
   const records=(c.behaviorRecords||[]).filter(r=>!recordId||r.id===recordId).sort((x,y)=>String(x.date||'').localeCompare(String(y.date||'')));
   if(!records.length){toast('لا توجد مخالفات لطباعة النموذج');return}
-  const x=behaviorPrintBase(),g=x.audience;
-  const body=`<div class="meta"><div><span>المادة</span><b>${behaviorEsc(c.subject||'—')}</b></div><div><span>الصف</span><b>${behaviorEsc(c.grade||'—')}</b></div><div><span>الفصل</span><b>${behaviorEsc(c.name||'—')}</b></div></div>
-  <table><thead><tr><th style="width:4%">م</th><th style="width:15%">${g.studentName||('اسم '+g.student)}</th><th style="width:18%">المشكلة السلوكية</th><th style="width:7%">درجة المشكلة</th><th style="width:17%">الإجراء المتخذ</th><th style="width:10%">مدى الاستجابة</th><th style="width:8%">عدد مرات التكرار</th><th style="width:11%">التاريخ</th><th style="width:6%">الحصة</th></tr></thead><tbody>${behaviorTeacherLogRows(records,c)}</tbody></table>
-  <div class="signatures"><div><span>${g.teacher}</span><b>${behaviorEsc(x.teacher)}</b><span>التوقيع: __________________</span></div><div><span>التاريخ</span><b>${behaviorEsc(localDateISO())}</b><span>__________________</span></div></div>`;
-  behaviorPrintDocument(`نموذج رصد ${g.teacher} لمشكلة سلوكية`,body,{landscape:true})
+  try{
+    const blob=buildBehaviorTeacherLogPdf(records,c);
+    let filename='رصد-المعلم';
+    if(recordId){
+      const student=behaviorStudentName(records[0].studentId,c);
+      filename+='-'+String(student||'طالب').replace(/[\\/:*?"<>|]/g,'-')
+    }else filename+='-'+String(c.name||'الفصل').replace(/[\\/:*?"<>|]/g,'-');
+    openPdfForPrint(blob,filename+'.pdf',`نموذج رصد ${behaviorAudience().teacher}`)
+  }catch(err){
+    console.error(err);
+    toast('تعذر إنشاء ملف رصد المعلم A4')
+  }
 }
 function behaviorRecordById(id,c=currentClass()){return c?.behaviorRecords?.find(r=>r.id===id)||null}
 function behaviorReferralPdfCanvas(c,r,{official=false}={}){
