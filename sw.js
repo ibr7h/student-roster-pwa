@@ -1,6 +1,6 @@
-// release 4.18.4 android-a4-ios-student-exit
+// release 4.18.5 single-page-student-a4
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.18.4');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.18.5');
 const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
