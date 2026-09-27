@@ -463,16 +463,20 @@ function showView(name,saveUi=true){
 }
 function showReportsHub(saveUi=false){
   const view=$('#view-reports');if(!view)return;
-  view.classList.remove('report-detail-mode');
-  $$('[data-report-panel]').forEach(p=>p.classList.remove('active'));
+  view.classList.remove('report-detail-mode','all-classes-report');
+  $('[data-report-panel]').forEach(p=>p.classList.remove('active'));
   $$('[data-preview-box]').forEach(p=>p.classList.remove('open'));
   if(saveUi)queueSave()
 }
 function setReportTab(tab='class',saveUi=true,openDetail=true){
   if(!['class','attendance','students','behaviorDaily'].includes(tab))tab='class';
   state.ui.reportTab=tab;
-  const view=$('#view-reports');if(view)view.classList.toggle('report-detail-mode',openDetail);
-  $$('[data-report-panel]').forEach(p=>p.classList.toggle('active',openDetail&&p.dataset.reportPanel===tab));
+  const view=$('#view-reports');if(view){view.classList.toggle('report-detail-mode',openDetail);view.classList.toggle('all-classes-report',openDetail&&tab==='behaviorDaily')}
+  $('[data-report-panel]').forEach(p=>p.classList.toggle('active',openDetail&&p.dataset.reportPanel===tab));
+  if(openDetail&&tab==='behaviorDaily'){
+    if($('#reportsContextTitle'))$('#reportsContextTitle').textContent='جميع الفصول';
+    if($('#reportsContextMeta'))$('#reportsContextMeta').textContent='تقرير المخالفات السلوكية لليوم الدراسي'
+  }
   if(openDetail)requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}));
   if(saveUi)queueSave()
 }
