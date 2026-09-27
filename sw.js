@@ -1,7 +1,7 @@
 // release 4.21.1 teacher-behavior-pdf
 importScripts('./version.js');
 const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.21.1');
-const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
+const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./official-forms.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
   try{
