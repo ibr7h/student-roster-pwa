@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=6;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.2';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.3';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -1465,7 +1465,7 @@ function renderSupervisions(){const list=$('#supervisionList'),t=currentTeacherS
 function openSupervision(id=null){const t=currentTeacherSchedule();if(!t)return;editingSupervisionId=id;const x=id?(t.supervision||[]).find(v=>v.id===id):null;$('#supervisionModalTitle').textContent=x?'تعديل المناوبة':'إضافة مناوبة';$('#supervisionDay').value=x?.day||'الأحد';$('#supervisionDate').value=x?.date||'';$('#supervisionStart').value=x?.start||'';$('#supervisionEnd').value=x?.end||'';$('#supervisionType').value=x?.type||'إشراف';$('#supervisionTitle').value=x?.title||'';$('#supervisionLocation').value=x?.location||'';$('#deleteSupervisionBtn').hidden=!x;$('#supervisionModal').showModal()}
 function saveSupervision(){const t=currentTeacherSchedule();if(!t)return;const obj={day:$('#supervisionDay').value,date:$('#supervisionDate').value.trim(),start:$('#supervisionStart').value,end:$('#supervisionEnd').value,type:$('#supervisionType').value.trim(),title:$('#supervisionTitle').value.trim()||'إشراف',location:$('#supervisionLocation').value.trim()};if(editingSupervisionId){const x=t.supervision.find(v=>v.id===editingSupervisionId);if(x)Object.assign(x,obj)}else t.supervision.push({id:uid(),...obj});$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حفظ المناوبة')}
 function deleteSupervision(){const t=currentTeacherSchedule();if(!editingSupervisionId||!t)return;if(!confirm('حذف هذه المناوبة؟'))return;t.supervision=t.supervision.filter(v=>v.id!==editingSupervisionId);$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حذف المناوبة')}
-function printTeacherSchedule(){runPrintSession('print-teacher-schedule','landscape')}
+function printTeacherSchedule(){if(isIOSLike())openManualPrintPreview('print-teacher-schedule','landscape','جدول المعلم — معاينة A4');else runPrintSession('print-teacher-schedule','landscape')}
 
 function renderAttendance(){
   const c=currentClass();if(!c)return;
@@ -1744,6 +1744,100 @@ function runPrintSession(printClass,orientation='portrait'){
   try{window.print()}catch(e){cleanupPrintSession();toast('تعذر فتح الطباعة. حاول من Safari أو أعد فتح التطبيق.')}
 }
 
+function manualPrintPreviewSource(printClass){
+  if(printClass==='print-student'){
+    const report=$('#studentReportPrint');
+    if(!report)return '';
+    return `<dialog id="studentModal" class="modal student-modal" open><div class="modalbox"><div id="studentReportPrint" class="student-report-print">${report.innerHTML}</div></div></dialog>`;
+  }
+  if(printClass==='print-teacher-schedule'){
+    const area=$('#schedulePrintArea');
+    if(!area)return '';
+    return `<section id="view-schedule" class="view active"><div id="schedulePrintArea">${area.innerHTML}</div></section>`;
+  }
+  return '';
+}
+async function openManualPrintPreview(printClass,orientation='portrait',title='معاينة الطباعة'){
+  const source=manualPrintPreviewSource(printClass);
+  if(!source){toast('تعذر تجهيز معاينة الطباعة.');return}
+  const preview=window.open('','_blank');
+  if(!preview){toast('تعذر فتح معاينة الطباعة. سيتم استخدام الطباعة المباشرة.');runPrintSession(printClass,orientation);return}
+  const safeTitle=escapeHtml(title),baseHref=escapeHtml(new URL('./',location.href).href);
+  preview.document.open();
+  preview.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>${safeTitle}</title></head><body style="font-family:Arial,Tahoma,sans-serif;padding:24px;text-align:center">جارٍ تجهيز معاينة A4…</body></html>`);
+  preview.document.close();
+  try{
+    const [screenCss,printCss]=await Promise.all([
+      fetch(new URL('./styles.css',location.href),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('styles.css');return r.text()}),
+      fetch(new URL('./print.css',location.href),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('print.css');return r.text()})
+    ]);
+    const previewPrintCss=printCss.replace(/@media\s+print/g,'@media screen');
+    const sheetWidth=orientation==='landscape'?'297mm':'210mm';
+    const sheetMinHeight=orientation==='landscape'?'210mm':'297mm';
+    preview.document.open();
+    preview.document.write(`<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<base href="${baseHref}">
+<title>${safeTitle}</title>
+<style>${screenCss}</style>
+<style>${printCss}</style>
+<style>${previewPrintCss}</style>
+<style>@page{size:A4 ${orientation};margin:10mm}</style>
+<style>
+@media screen{
+  html,body{margin:0!important;padding:0!important;background:#e9edf3!important;min-height:100%!important}
+  .ios-print-toolbar{position:sticky;top:0;z-index:10000;display:flex;gap:8px;justify-content:center;align-items:center;padding:10px 12px;background:rgba(255,255,255,.96);border-bottom:1px solid #d7dce3;box-shadow:0 2px 12px rgba(15,23,42,.08)}
+  .ios-print-toolbar button{appearance:none;border:1px solid #cbd5e1;border-radius:12px;background:#fff;color:#0f172a;font:700 15px Arial,Tahoma,sans-serif;padding:10px 14px;min-height:44px}
+  .ios-print-toolbar .primary{background:#0f172a;color:#fff;border-color:#0f172a}
+  .ios-print-hint{font:600 12px Arial,Tahoma,sans-serif;color:#475569;margin-inline-start:4px}
+  .ios-print-stage{padding:14px 12px 24px;overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
+  .ios-print-sheet{width:${sheetWidth};min-height:${sheetMinHeight};background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.18);transform-origin:top center}
+  .no-print{display:none!important}
+}
+@media print{
+  .ios-print-toolbar{display:none!important}
+  .ios-print-stage{padding:0!important;display:block!important;overflow:visible!important}
+  .ios-print-sheet{width:auto!important;min-height:0!important;box-shadow:none!important;transform:none!important}
+}
+</style>
+</head>
+<body class="${printClass}">
+  <div class="ios-print-toolbar no-print">
+    <button class="primary" id="manualPrintNow">🖨 طباعة / حفظ PDF</button>
+    <button id="manualPrintClose">إغلاق</button>
+    <span class="ios-print-hint">A4 · ${orientation==='landscape'?'عرضي':'عمودي'}</span>
+  </div>
+  <div class="ios-print-stage" id="previewStage"><div class="ios-print-sheet" id="previewSheet">${source}</div></div>
+<script>
+(function(){
+  const sheet=document.getElementById('previewSheet'),stage=document.getElementById('previewStage');
+  function fit(){
+    if(!sheet||!stage)return;
+    sheet.style.transform='none';
+    const scale=Math.min(1,Math.max(.2,(window.innerWidth-24)/sheet.scrollWidth));
+    sheet.style.transform='scale('+scale+')';
+    stage.style.height=Math.ceil(sheet.scrollHeight*scale+28)+'px';
+  }
+  document.getElementById('manualPrintNow').addEventListener('click',function(){window.print()});
+  document.getElementById('manualPrintClose').addEventListener('click',function(){window.close()});
+  window.addEventListener('resize',fit);
+  window.addEventListener('load',function(){setTimeout(fit,60)});
+  setTimeout(fit,120);
+})();
+<\/script>
+</body></html>`);
+    preview.document.close();
+  }catch(err){
+    console.error(err);
+    preview.close();
+    toast('تعذر تجهيز معاينة A4. سيتم استخدام الطباعة المباشرة.');
+    runPrintSession(printClass,orientation);
+  }
+}
+
 function assessmentTypeScore(s,c,period,type){
   const events=eventsForPeriod(c,period).filter(a=>a.type===type);let earned=0,max=0,count=0;
   for(const a of events){const raw=s.grades?.[a.id];if(raw!==undefined&&raw!==null&&raw!==''&&!Number.isNaN(Number(raw))){earned+=Number(raw);max+=Number(a.maxScore)||0;count++}}
@@ -1815,7 +1909,7 @@ function openStudentReport(id){
   $('#studentNotes').value=st.notes||'';if(!$('#studentModal').open)$('#studentModal').showModal();
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
-function printStudent(){runPrintSession('print-student','portrait')}
+function printStudent(){if(isIOSLike())openManualPrintPreview('print-student','portrait','تقرير الطالب — معاينة A4');else runPrintSession('print-student','portrait')}
 function printClassReport(){showView('reports',false);setReportTab('class',false,true);if(isIOSLike())openClassLandscapePdf();else runPrintSession('print-class-summary','landscape')}
 
 function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const ch=text[i],n=text[i+1];if(ch==='"'&&q&&n==='"'){cell+='"';i++}else if(ch==='"'){q=!q}else if(ch===','&&!q){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=ch}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
