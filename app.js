@@ -1172,8 +1172,8 @@ function renderScheduleSubjectsManager(){
   }).join(''):'<div class="schedule-subject-empty">لا توجد مواد. أضف أول مادة وحدد الفصول المرتبطة بها.</div>';
   if(saveBtn)saveBtn.textContent=editing?'حفظ التعديل':'＋ إضافة المادة';
   if(cancelBtn)cancelBtn.hidden=!editing;
-  $('[data-schedule-subject-edit]').forEach(btn=>btn.onclick=()=>{editingScheduleSubjectId=btn.dataset.scheduleSubjectEdit;renderScheduleSubjectsManager();nameInput.focus()});
-  $('[data-schedule-subject-delete]').forEach(btn=>btn.onclick=()=>{
+  $$('[data-schedule-subject-edit]').forEach(btn=>btn.onclick=()=>{editingScheduleSubjectId=btn.dataset.scheduleSubjectEdit;renderScheduleSubjectsManager();nameInput.focus()});
+  $$('[data-schedule-subject-delete]').forEach(btn=>btn.onclick=()=>{
     const item=state.scheduleSubjects.find(x=>x.id===btn.dataset.scheduleSubjectDelete);if(!item)return;
     if(!confirm(`حذف مادة "${item.name}" من قائمة التعيين؟ الحصص الموجودة مسبقًا ستبقى في الجدول.`))return;
     state.scheduleSubjects=state.scheduleSubjects.filter(x=>x.id!==item.id);
@@ -1194,12 +1194,12 @@ function clearScheduleSubjectEditor(){
   renderScheduleSubjectsManager()
 }
 function setAllScheduleSubjectClasses(checked=true){
-  $('#scheduleSubjectClassList [data-schedule-subject-class]').forEach(x=>x.checked=checked)
+  $$('#scheduleSubjectClassList [data-schedule-subject-class]').forEach(x=>x.checked=checked)
 }
 function saveScheduleSubject(){
   state.scheduleSubjects ||= [];
   const name=String($('#scheduleSubjectName')?.value||'').trim();
-  const classIds=$('#scheduleSubjectClassList [data-schedule-subject-class]:checked').map(x=>x.value);
+  const classIds=$$('#scheduleSubjectClassList [data-schedule-subject-class]:checked').map(x=>x.value);
   if(!name){toast('اكتب اسم المادة');$('#scheduleSubjectName')?.focus();return}
   if(!classIds.length){toast('حدد فصلًا واحدًا على الأقل أو اختر جميع الفصول');return}
   const key=scheduleSubjectKey(name),duplicate=state.scheduleSubjects.find(x=>scheduleSubjectKey(x.name)===key&&x.id!==editingScheduleSubjectId);
