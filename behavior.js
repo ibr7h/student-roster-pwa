@@ -240,6 +240,7 @@ function behaviorRecordMarkup(r,c){
     <div class="behavior-record-actions no-print">
       <button class="btn tiny" data-behavior-edit="${behaviorEsc(r.id)}">تعديل</button>
       <button class="btn tiny" data-behavior-teacher-form="${behaviorEsc(r.id)}">🖨 رصد المعلم</button>
+      <button class="btn tiny official-record-forms" data-behavior-official-forms="${behaviorEsc(r.id)}">📄 النماذج الرسمية</button>
       <button class="btn tiny" data-behavior-internal-referral="${behaviorEsc(r.id)}">🖨 إحالة داخلية</button>
       <button class="btn tiny primary" data-behavior-official-referral="${behaviorEsc(r.id)}">🖨 سري — إحالة</button>
     </div>
@@ -608,7 +609,8 @@ function initBehaviorModule(){
   $('#behaviorSearch')?.addEventListener('input',e=>{behaviorSearchTerm=e.target.value;renderBehavior()});
   $('#behaviorList')?.addEventListener('click',e=>{
     const edit=e.target.closest('[data-behavior-edit]');if(edit){openBehaviorModal(edit.dataset.behaviorEdit);return}
-    const teacher=e.target.closest('[data-behavior-teacher-form]');if(teacher){printBehaviorTeacherLog(teacher.dataset.behaviorTeacherForm);return}
+    const teacher=e.target.closest('[data-behavior-teacher-form]');if(teacher){printOfficialTeacherLog(teacher.dataset.behaviorTeacherForm);return}
+    const forms=e.target.closest('[data-behavior-official-forms]');if(forms){const r=behaviorRecordById(forms.dataset.behaviorOfficialForms,currentClass());openOfficialFormsCenter({studentId:r?.studentId||'',recordId:r?.id||''});return}
     const internal=e.target.closest('[data-behavior-internal-referral]');if(internal){printBehaviorInternalReferral(internal.dataset.behaviorInternalReferral);return}
     const official=e.target.closest('[data-behavior-official-referral]');if(official){printBehaviorOfficialReferral(official.dataset.behaviorOfficialReferral);return}
   });
