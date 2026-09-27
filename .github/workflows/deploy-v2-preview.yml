@@ -1,0 +1,61 @@
+name: Deploy Stable + V2 Preview
+
+on:
+  push:
+    branches: [behavior-forms-v2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: student-roster-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout stable main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: stable
+
+      - name: Checkout V2 preview
+        uses: actions/checkout@v6
+        with:
+          ref: behavior-forms-v2
+          path: v2
+
+      - name: Validate stable source
+        working-directory: stable
+        run: node scripts/validate.cjs
+
+      - name: Validate V2 source
+        working-directory: v2
+        run: node scripts/validate.cjs
+
+      - name: Build combined Pages artifact
+        run: |
+          mkdir -p _site/v2-preview
+          rsync -a --delete --exclude='.git' --exclude='.github' stable/ _site/
+          rsync -a --delete --exclude='.git' --exclude='.github' v2/ _site/v2-preview/
+          touch _site/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
