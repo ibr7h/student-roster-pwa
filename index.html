@@ -343,7 +343,7 @@
       <section class="panel teacher-schedule-panel">
         <div class="section-head schedule-head">
           <div><p class="eyebrow">جدول المعلم</p><h2>الجداول الأسبوعية والمناوبة</h2><p class="subtle">أنشئ أكثر من جدول وحدد فترة سريانه. الحضور والتقارير يحتفظان بالجدول المناسب لكل تاريخ.</p></div>
-          <div class="view-actions no-print"><button class="btn primary" id="addScheduleBtn">＋ إضافة جدول</button><button class="btn" id="addSupervisionBtn">＋ مناوبة / إشراف</button><button class="btn" id="printScheduleBtn">⬇ حفظ PDF</button></div>
+          <div class="view-actions no-print"><button class="btn primary" id="addScheduleBtn">＋ إضافة جدول</button><button class="btn" id="manageScheduleSubjectsBtn">📚 إدارة المواد</button><button class="btn" id="addSupervisionBtn">＋ مناوبة / إشراف</button><button class="btn" id="printScheduleBtn">⬇ حفظ PDF</button></div>
         </div>
 
         <details class="schedule-library schedule-fold no-print" id="scheduleLibraryFold" data-schedule-fold="library" open>
@@ -631,6 +631,36 @@
 <dialog class="modal assessment-modal" id="assessmentModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">التقييمات</p><h3 id="assessmentModalTitle">تقييم جديد</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم التقييم</label><input id="assessmentTitleInput" placeholder="مثال: واجب الوحدة الأولى"></div><div class="field"><label>النوع</label><select id="assessmentTypeInput"><option value="homework">واجب</option><option value="participation">مشاركة</option><option value="quiz">اختبار قصير</option><option value="project">مشروع</option><option value="practical">تطبيق عملي</option><option value="exam">اختبار</option><option value="other">أخرى</option></select></div><div class="field"><label>التاريخ</label><input id="assessmentDateInput" type="date"></div><div class="field"><label>الدرجة العظمى</label><input id="assessmentMaxInput" type="number" min="0.5" max="1000" step="0.5" value="10"></div><div class="field span2"><label>ملاحظة / وصف اختياري</label><input id="assessmentNoteInput" placeholder="مثال: الدرس 1–3"></div><div class="assessment-repeat-card span2" id="assessmentRepeatCard"><label class="assessment-repeat-toggle"><span><b id="assessmentRepeatTitle">تكرار التقييم على الفصول المناظرة</b><small id="assessmentRepeatDesc">نفس الصف ونفس المادة. يمكنك إيقافه لإنشاء التقييم في الفصل الحالي فقط.</small></span><input id="assessmentRepeatToggle" type="checkbox" checked><i aria-hidden="true"></i></label><div id="assessmentRepeatInfo" class="assessment-repeat-info"></div></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveAssessmentBtn">حفظ التقييم</button></div></div></dialog>
 
 <dialog class="modal schedule-create-modal" id="scheduleCreateModal"><div class="modalbox"><div class="modalhead"><div><p class="eyebrow">جداول المعلم</p><h3 id="scheduleCreateTitle">إضافة جدول</h3></div><button class="iconbtn" data-close>×</button></div><div class="modalbody form-grid"><div class="field span2"><label>اسم الجدول</label><input id="newScheduleTitle" placeholder="مثال: الجدول الأساسي 2"></div><div class="field"><label>الفصل الدراسي</label><select id="newScheduleSemester"><option>الفصل الدراسي الأول</option><option>الفصل الدراسي الثاني</option></select></div><div class="field"><label>طريقة الإنشاء</label><select id="newScheduleMode"><option value="blank">جدول فارغ</option><option value="copy">نسخ من جدول موجود</option></select></div><div class="field"><label>بداية السريان</label><input id="newScheduleStart" type="date"></div><div class="field"><label>نهاية السريان</label><input id="newScheduleEnd" type="date"></div><div class="field span2" id="newScheduleSourceField"><label>الجدول المصدر</label><select id="newScheduleSource"></select></div><div class="schedule-create-note span2" id="scheduleCreateNote"></div></div><div class="modalfooter"><button class="btn" data-close>إلغاء</button><button class="btn primary" id="saveNewScheduleBtn">إنشاء الجدول</button></div></div></dialog>
+
+<dialog class="modal schedule-subjects-modal" id="scheduleSubjectsModal">
+  <div class="modalbox">
+    <div class="modalhead">
+      <div><p class="eyebrow">جدول المعلم</p><h3>إدارة المواد</h3><small>أضف المادة وحدد الفصول التي تُدرّس لها.</small></div>
+      <button class="iconbtn" data-close>×</button>
+    </div>
+    <div class="modalbody schedule-subjects-manager">
+      <section class="schedule-subject-form">
+        <div class="field"><label>اسم المادة</label><input id="scheduleSubjectName" placeholder="مثال: المهارات الرقمية"></div>
+        <div class="schedule-subject-class-head">
+          <div><b>الفصول المرتبطة</b><small>يمكن تحديد فصل واحد أو عدة فصول.</small></div>
+          <div class="schedule-subject-select-actions">
+            <button type="button" class="btn tiny" id="scheduleSubjectSelectAll">تحديد جميع الفصول</button>
+            <button type="button" class="btn tiny" id="scheduleSubjectClearAll">إلغاء التحديد</button>
+          </div>
+        </div>
+        <div id="scheduleSubjectClassList" class="schedule-subject-class-list"></div>
+        <div class="schedule-subject-form-actions">
+          <button type="button" class="btn" id="scheduleSubjectCancelEdit" hidden>إلغاء التعديل</button>
+          <button type="button" class="btn primary" id="saveScheduleSubjectBtn">＋ إضافة المادة</button>
+        </div>
+      </section>
+      <section class="schedule-subject-library">
+        <div class="schedule-subject-library-head"><b>المواد الحالية</b><span id="scheduleSubjectCount">٠</span></div>
+        <div id="scheduleSubjectList" class="schedule-subject-list"></div>
+      </section>
+    </div>
+  </div>
+</dialog>
 
 <div class="schedule-cell-picker no-print" id="scheduleCellPicker" hidden role="dialog" aria-modal="true" aria-labelledby="scheduleCellPickerTitle">
   <div class="schedule-cell-picker-sheet">
