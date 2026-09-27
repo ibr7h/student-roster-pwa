@@ -2105,17 +2105,29 @@ function classOfficialSheet(c,period='all'){
   return `<div class="official-class-print landscape-class-report">${compactClassOfficialHeader('كشف متابعة الفصل',c,periodText)}<table class="official-class-sheet"><thead><tr><th>م</th><th>${audience.studentName}</th><th>الواجبات</th><th>المشاركة والتفاعل</th><th>المشاريع والبحوث</th><th>التطبيقات العملية</th><th>الاختبارات القصيرة</th><th>الاختبارات</th><th>المجموع المرصود</th><th>النسبة</th><th>الغياب</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</div>`;
 }
 
-function dailyBehaviorReportRows(date=state.ui?.dailyBehaviorReportDate||localDateISO()){
-  const rows=[];
+function dailyBehaviorNormalizeRange(start,end){
+  const fallback=state.ui?.dailyBehaviorReportDate||localDateISO();
+  let from=String(start||state.ui?.dailyBehaviorReportStartDate||fallback);
+  let to=String(end||state.ui?.dailyBehaviorReportEndDate||from);
+  if(to<from)[from,to]=[to,from];
+  return {from,to}
+}
+function dailyBehaviorRangeLabel(from,to){
+  return from===to?formatDate(from):`من ${formatDate(from)} إلى ${formatDate(to)}`
+}
+function dailyBehaviorReportRows(start,end=start){
+  const {from,to}=dailyBehaviorNormalizeRange(start,end),rows=[];
   (state.classes||[]).forEach((c,classIndex)=>{
     (c.behaviorRecords||[]).forEach(r=>{
-      if(String(r.date||'')!==String(date||''))return;
+      const d=String(r.date||'');
+      if(!d||d<from||d>to)return;
       const st=(c.students||[]).find(x=>x.id===r.studentId);
       const rule=typeof behaviorRecordRule==='function'?behaviorRecordRule(r,c):null;
       rows.push({
         id:r.id||'',classIndex,classId:c.id||'',studentId:r.studentId||'',
         studentName:st?.name||'طالب غير موجود',
         grade:c.grade||'—',className:c.name||'—',subject:c.subject||'',
+        date:d,
         violation:r.violationLabel||rule?.label||'مخالفة سلوكية',
         degree:Number(r.degree)||Number(rule?.degree)||1,
         period:Number(r.period)||0,
@@ -2128,7 +2140,7 @@ function dailyBehaviorReportRows(date=state.ui?.dailyBehaviorReportDate||localDa
       })
     })
   });
-  return rows.sort((a,b)=>a.classIndex-b.classIndex||a.period-b.period||a.studentName.localeCompare(b.studentName,'ar')||String(a.createdAt).localeCompare(String(b.createdAt)))
+  return rows.sort((a,b)=>a.date.localeCompare(b.date)||a.classIndex-b.classIndex||a.period-b.period||a.studentName.localeCompare(b.studentName,'ar')||String(a.createdAt).localeCompare(String(b.createdAt)))
 }
 function dailyBehaviorReportStats(rows){
   const students=new Set(rows.map(r=>r.classId+'|'+r.studentId));
@@ -2146,13 +2158,15 @@ function dailyBehaviorActionText(r){
   if(r.referred)parts.push('إحالة: '+(r.referralTarget||'إدارة المدرسة'));
   return parts.join(' · ')||'—'
 }
-function dailyBehaviorReportSheet(date){
-  const rows=dailyBehaviorReportRows(date),stats=dailyBehaviorReportStats(rows),a=schoolAudience(),m=state.appMeta||{};
-  const dateLabel=date?formatDate(date):'—';
+function dailyBehaviorReportSheet(start,end=start){
+  const {from,to}=dailyBehaviorNormalizeRange(start,end),isRange=from!==to;
+  const rows=dailyBehaviorReportRows(from,to),stats=dailyBehaviorReportStats(rows),a=schoolAudience(),m=state.appMeta||{};
+  const rangeLabel=dailyBehaviorRangeLabel(from,to);
   const tableRows=rows.map((r,i)=>`<tr>
     <td>${arabicNum(i+1)}</td>
     <td class="name">${escapeHtml(r.studentName)}</td>
     <td>${escapeHtml(r.grade)} · ${escapeHtml(r.className)}</td>
+    ${isRange?`<td>${escapeHtml(formatDate(r.date))}</td>`:''}
     <td>${escapeHtml(r.violation)}</td>
     <td>الدرجة ${escapeHtml(String(r.degree))}</td>
     <td>${r.period?'الحصة '+arabicNum(r.period):'—'}</td>
@@ -2162,7 +2176,7 @@ function dailyBehaviorReportSheet(date){
     <header class="daily-behavior-head">
       <div class="gov"><b>المملكة العربية السعودية</b><span>وزارة التعليم</span><span>${escapeHtml(m.region||'إدارة التعليم')}</span><span>${escapeHtml(m.school||'اسم المدرسة')}</span></div>
       <img src="./assets/moe-logo.png" alt="شعار وزارة التعليم">
-      <div class="title"><h2>تقرير مخالفات اليوم الدراسي</h2><span>${escapeHtml(dateLabel)} · جميع الفصول</span></div>
+      <div class="title"><h2>تقرير المخالفات السلوكية</h2><span>${escapeHtml(rangeLabel)} · جميع الفصول</span></div>
     </header>
     <div class="daily-behavior-meta">
       <div><span>${a.students} الذين عليهم مخالفات</span><b>${arabicNum(stats.students)}</b></div>
@@ -2171,9 +2185,9 @@ function dailyBehaviorReportSheet(date){
       <div><span>درجة رابعة فأعلى / عاجلة</span><b>${arabicNum(stats.high)}</b></div>
     </div>
     ${rows.length?`<table class="daily-behavior-table" dir="rtl">
-      <thead><tr><th>م</th><th>${a.studentName}</th><th>الصف / الفصل</th><th>المخالفة</th><th>الدرجة</th><th>الحصة</th><th>الإجراء / الاستجابة / الإحالة</th></tr></thead>
+      <thead><tr><th>م</th><th>${a.studentName}</th><th>الصف / الفصل</th>${isRange?'<th>التاريخ</th>':''}<th>المخالفة</th><th>الدرجة</th><th>الحصة</th><th>الإجراء / الاستجابة / الإحالة</th></tr></thead>
       <tbody>${tableRows}</tbody>
-    </table>`:`<div class="daily-behavior-empty"><b>لا توجد مخالفات مسجلة في هذا اليوم.</b><br>يشمل التقرير جميع الفصول المسجلة في التطبيق.</div>`}
+    </table>`:`<div class="daily-behavior-empty"><b>لا توجد مخالفات مسجلة في الفترة المحددة.</b><br>يشمل التقرير جميع الفصول المسجلة في التطبيق.</div>`}
     <footer class="daily-behavior-signatures">
       <div><span>${a.subjectTeacher}</span><b>${escapeHtml(m.teacher||'—')}</b><span>التوقيع: __________________</span></div>
       <div><span>${a.principal}</span><b>${escapeHtml(m.principal||'—')}</b><span>التوقيع: __________________</span></div>
@@ -2181,14 +2195,17 @@ function dailyBehaviorReportSheet(date){
   </div>`
 }
 function renderDailyBehaviorReport(){
-  const dateInput=$('#dailyBehaviorReportDate'),summary=$('#dailyBehaviorReportSummary'),preview=$('#dailyBehaviorReportPreview');
-  if(!dateInput||!summary||!preview)return;
+  const startInput=$('#dailyBehaviorReportStartDate'),endInput=$('#dailyBehaviorReportEndDate'),summary=$('#dailyBehaviorReportSummary'),preview=$('#dailyBehaviorReportPreview');
+  if(!startInput||!endInput||!summary||!preview)return;
   state.ui ||= {};
-  const date=state.ui.dailyBehaviorReportDate||localDateISO();
-  if(document.activeElement!==dateInput)dateInput.value=date;
-  const rows=dailyBehaviorReportRows(date),stats=dailyBehaviorReportStats(rows),a=schoolAudience();
+  const range=dailyBehaviorNormalizeRange();
+  state.ui.dailyBehaviorReportStartDate=range.from;
+  state.ui.dailyBehaviorReportEndDate=range.to;
+  if(document.activeElement!==startInput)startInput.value=range.from;
+  if(document.activeElement!==endInput)endInput.value=range.to;
+  const rows=dailyBehaviorReportRows(range.from,range.to),stats=dailyBehaviorReportStats(rows),a=schoolAudience();
   summary.innerHTML=`<div><span>${a.students} المخالفون</span><b>${arabicNum(stats.students)}</b></div><div><span>إجمالي المخالفات</span><b>${arabicNum(stats.incidents)}</b></div><div><span>محال للإدارة</span><b>${arabicNum(stats.referred)}</b></div><div><span>عالية الخطورة</span><b>${arabicNum(stats.high)}</b></div>`;
-  preview.innerHTML=dailyBehaviorReportSheet(date);
+  preview.innerHTML=dailyBehaviorReportSheet(range.from,range.to);
   const btn=$('#printDailyBehaviorReportBtn');if(btn)btn.disabled=!rows.length
 }
 function dailyBehaviorPdfCell(ctx,x,y,w,h,text,{align='center',size=14,weight='400',fill=null}={}){
@@ -2197,7 +2214,8 @@ function dailyBehaviorPdfCell(ctx,x,y,w,h,text,{align='center',size=14,weight='4
   const tx=align==='right'?x+w-2:align==='left'?x+2:x+w/2;
   attendancePdfText(ctx,text,tx,y+h/2,size,weight,align)
 }
-function dailyBehaviorPdfPage(rows,date,stats,pageIndex,pageCount){
+function dailyBehaviorPdfPage(rows,start,end,stats,pageIndex,pageCount){
+  const {from,to}=dailyBehaviorNormalizeRange(start,end),isRange=from!==to;
   const W=1684,H=1190,M=48,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   const m=state.appMeta||{},a=schoolAudience(),right=W-M,left=M,center=W/2;
@@ -2206,8 +2224,8 @@ function dailyBehaviorPdfPage(rows,date,stats,pageIndex,pageCount){
   attendancePdfText(ctx,m.region||'إدارة التعليم',right,93,16,'400');
   attendancePdfText(ctx,m.school||'اسم المدرسة',right,118,16,'400');
   const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-48,22,96,76)}catch{}}
-  attendancePdfText(ctx,'تقرير مخالفات اليوم الدراسي',left,56,27,'700','left');
-  attendancePdfText(ctx,`${formatDate(date)} · جميع الفصول`,left,91,17,'700','left');
+  attendancePdfText(ctx,'تقرير المخالفات السلوكية',left,56,27,'700','left');
+  attendancePdfText(ctx,`${dailyBehaviorRangeLabel(from,to)} · جميع الفصول`,left,91,17,'700','left');
   attendancePdfText(ctx,`صفحة ${arabicNum(pageIndex+1)} من ${arabicNum(pageCount)}`,left,118,13,'400','left');
   attendancePdfLine(ctx,M,145,W-M,145,2,'#2f3740');
 
@@ -2216,19 +2234,24 @@ function dailyBehaviorPdfPage(rows,date,stats,pageIndex,pageCount){
     attendancePdfCell(ctx,M+i*metaW,metaY,metaW,metaH,`${it[0]}: ${arabicNum(it[1])}`,{size:14,weight:'700',fill:'#f7f8fa'})
   });
 
-  const y0=212,headH=30,rowH=32,widths=[48,240,180,300,90,80,650],heads=['م',a.studentName,'الصف / الفصل','المخالفة','الدرجة','الحصة','الإجراء / الاستجابة / الإحالة'];
+  const y0=212,headH=30,rowH=32;
+  const widths=isRange?[48,220,160,125,280,85,75,595]:[48,240,180,300,90,80,650];
+  const heads=isRange?['م',a.studentName,'الصف / الفصل','التاريخ','المخالفة','الدرجة','الحصة','الإجراء / الاستجابة / الإحالة']:['م',a.studentName,'الصف / الفصل','المخالفة','الدرجة','الحصة','الإجراء / الاستجابة / الإحالة'];
   let x=W-M;
   heads.forEach((h,i)=>{x-=widths[i];dailyBehaviorPdfCell(ctx,x,y0,widths[i],headH,h,{size:13.5,weight:'700',fill:'#eef1f4'})});
   if(!rows.length){
-    dailyBehaviorPdfCell(ctx,M,y0+headH,W-2*M,44,'لا توجد مخالفات مسجلة في هذا اليوم',{size:16,weight:'700'})
+    dailyBehaviorPdfCell(ctx,M,y0+headH,W-2*M,44,'لا توجد مخالفات مسجلة في الفترة المحددة',{size:16,weight:'700'})
   }else rows.forEach((r,ri)=>{
     const y=y0+headH+ri*rowH;x=W-M;
-    const vals=[arabicNum(pageIndex*24+ri+1),r.studentName,`${r.grade} · ${r.className}`,r.violation,'الدرجة '+r.degree,r.period?'ح '+arabicNum(r.period):'—',dailyBehaviorActionText(r)];
+    const vals=isRange
+      ?[arabicNum(pageIndex*24+ri+1),r.studentName,`${r.grade} · ${r.className}`,formatDate(r.date),r.violation,'الدرجة '+r.degree,r.period?'ح '+arabicNum(r.period):'—',dailyBehaviorActionText(r)]
+      :[arabicNum(pageIndex*24+ri+1),r.studentName,`${r.grade} · ${r.className}`,r.violation,'الدرجة '+r.degree,r.period?'ح '+arabicNum(r.period):'—',dailyBehaviorActionText(r)];
     vals.forEach((v,i)=>{
       x-=widths[i];
-      const lim=i===6?86:i===3?38:i===1?30:26;
-      const rightAligned=i===1||i===3||i===6;
-      dailyBehaviorPdfCell(ctx,x,y,widths[i],rowH,String(v||'—').slice(0,lim),{align:rightAligned?'right':'center',size:i===6?12.5:13,weight:i===1||i===3?'700':'400'})
+      const actionIndex=isRange?7:6,violationIndex=isRange?4:3,nameIndex=1;
+      const lim=i===actionIndex?76:i===violationIndex?34:i===nameIndex?28:26;
+      const rightAligned=i===nameIndex||i===violationIndex||i===actionIndex;
+      dailyBehaviorPdfCell(ctx,x,y,widths[i],rowH,String(v||'—').slice(0,lim),{align:rightAligned?'right':'center',size:i===actionIndex?12:12.5,weight:i===nameIndex||i===violationIndex?'700':'400'})
     })
   });
 
@@ -2237,20 +2260,21 @@ function dailyBehaviorPdfPage(rows,date,stats,pageIndex,pageCount){
   attendancePdfText(ctx,a.principal,W*.28,signY,13,'400','center');attendancePdfText(ctx,m.principal||'—',W*.28,signY+23,15,'700','center');
   const data=canvas.toDataURL('image/jpeg',0.95);return {bytes:base64Bytes(data.split(',')[1]),width:W,height:H}
 }
-function buildDailyBehaviorReportPdf(date=state.ui?.dailyBehaviorReportDate||localDateISO()){
-  const rows=dailyBehaviorReportRows(date),stats=dailyBehaviorReportStats(rows),chunks=[];
+function buildDailyBehaviorReportPdf(start,end=start){
+  const {from,to}=dailyBehaviorNormalizeRange(start,end),rows=dailyBehaviorReportRows(from,to),stats=dailyBehaviorReportStats(rows),chunks=[];
   if(!rows.length)chunks.push([]);
   else for(let i=0;i<rows.length;i+=24)chunks.push(rows.slice(i,i+24));
-  const pages=chunks.map((chunk,i)=>dailyBehaviorPdfPage(chunk,date,stats,i,chunks.length));
+  const pages=chunks.map((chunk,i)=>dailyBehaviorPdfPage(chunk,from,to,stats,i,chunks.length));
   return buildJpegPdf(pages,'landscape')
 }
 function printDailyBehaviorReport(){
-  const date=state.ui?.dailyBehaviorReportDate||localDateISO(),rows=dailyBehaviorReportRows(date);
-  if(!rows.length){toast('لا توجد مخالفات مسجلة في التاريخ المحدد');return}
+  const {from,to}=dailyBehaviorNormalizeRange(),rows=dailyBehaviorReportRows(from,to);
+  if(!rows.length){toast('لا توجد مخالفات مسجلة في الفترة المحددة');return}
   try{
-    const safe=date.replace(/[^0-9-]/g,'');
-    openPdfForPrint(buildDailyBehaviorReportPdf(date),`مخالفات-اليوم-${safe}.pdf`,'تقرير مخالفات اليوم الدراسي')
-  }catch(err){console.error(err);toast('تعذر إنشاء تقرير المخالفات اليومي')}
+    const safeFrom=from.replace(/[^0-9-]/g,''),safeTo=to.replace(/[^0-9-]/g,'');
+    const filename=from===to?`مخالفات-${safeFrom}.pdf`:`مخالفات-${safeFrom}-إلى-${safeTo}.pdf`;
+    openPdfForPrint(buildDailyBehaviorReportPdf(from,to),filename,'تقرير المخالفات السلوكية')
+  }catch(err){console.error(err);toast('تعذر إنشاء تقرير المخالفات')}
 }
 
 function renderReports(){
@@ -2458,7 +2482,8 @@ $$('[data-report-open]').forEach(b=>b.onclick=()=>setReportTab(b.dataset.reportO
 $$('[data-report-back]').forEach(b=>b.onclick=()=>showReportsHub());
 $$('[data-preview-toggle]').forEach(b=>b.onclick=()=>toggleReportPreview(b.dataset.previewToggle));
 $('#reportStudentSearch').oninput=e=>{reportStudentSearchTerm=e.target.value;renderReports()};
-$('#dailyBehaviorReportDate')?.addEventListener('change',e=>{state.ui.dailyBehaviorReportDate=e.target.value||localDateISO();renderDailyBehaviorReport();queueSave()});
+$('#dailyBehaviorReportStartDate')?.addEventListener('change',e=>{state.ui.dailyBehaviorReportStartDate=e.target.value||localDateISO();if(!state.ui.dailyBehaviorReportEndDate)state.ui.dailyBehaviorReportEndDate=state.ui.dailyBehaviorReportStartDate;renderDailyBehaviorReport();queueSave()});
+$('#dailyBehaviorReportEndDate')?.addEventListener('change',e=>{state.ui.dailyBehaviorReportEndDate=e.target.value||state.ui.dailyBehaviorReportStartDate||localDateISO();renderDailyBehaviorReport();queueSave()});
 $('#printDailyBehaviorReportBtn')?.addEventListener('click',printDailyBehaviorReport);
 $('#gradeAlertThreshold').onchange=e=>{state.settings.gradeAlertThreshold=Math.max(0,Math.min(100,Number(e.target.value)||60));renderReports();queueSave()};
 $('#absenceAlertThreshold').onchange=e=>{state.settings.absenceAlertThreshold=Math.max(1,Number(e.target.value)||3);renderReports();queueSave()};
