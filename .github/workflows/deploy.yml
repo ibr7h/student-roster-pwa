@@ -21,11 +21,37 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
+      - name: Checkout stable main
         uses: actions/checkout@v6
 
-      - name: Validate source
+      - name: Validate stable source
         run: node scripts/validate.cjs
+
+      - name: Checkout V2 preview
+        uses: actions/checkout@v6
+        with:
+          ref: behavior-forms-v2
+          path: v2-source
+
+      - name: Validate V2 source
+        working-directory: v2-source
+        run: node scripts/validate.cjs
+
+      - name: Build Pages artifact
+        run: |
+          rm -rf _site
+          mkdir -p _site/v2-preview
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='_site' \
+            --exclude='v2-source' \
+            ./ _site/
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            v2-source/ _site/v2-preview/
+          touch _site/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -33,7 +59,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
