@@ -371,7 +371,7 @@
 .student-report-quick b{font-size:11px}
 .student-report-quick small{font-size:8px;color:var(--muted)}
 .student-report-open{white-space:nowrap}
-.behavior-daily-toolbar{display:grid;grid-template-columns:minmax(190px,260px) minmax(0,1fr);gap:10px;align-items:end;margin-bottom:10px}
+.behavior-daily-toolbar{display:grid;grid-template-columns:minmax(160px,220px) minmax(160px,220px) minmax(0,1fr);gap:10px;align-items:end;margin-bottom:10px}
 .behavior-daily-scope{min-height:64px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;display:grid;gap:3px;align-content:center}
 .behavior-daily-scope b{font-size:10px}.behavior-daily-scope span{font-size:9px;color:var(--muted)}
 .daily-behavior-report-preview{min-width:980px;background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-inline:auto;padding:12px}
