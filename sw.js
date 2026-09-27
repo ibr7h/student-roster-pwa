@@ -1,6 +1,6 @@
-// release 4.20.1 class-report-preview-fix
+// release 4.20.2 larger-schedule-picker-fonts
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.20.1');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'4.20.2');
 const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
