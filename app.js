@@ -220,7 +220,7 @@ function mergeAttendanceFromSource(target,source){
       const ts=(tc.students||[]).find(st=>sameStudentForRecovery(st,ss));if(!ts)continue;
       matchedStudents++;ensureStudent(ts);
       for(const [date,status] of Object.entries(ss.attendance||{})){
-        if(!['present','absent','late','excused'].includes(status))continue;
+        if(!['present','absent','absent_excused','late','excused'].includes(status))continue;
         if(ts.attendance[date]===undefined){ts.attendance[date]=status;added++}
         else if(ts.attendance[date]!==status)conflicts++
       }
@@ -277,11 +277,11 @@ function diagnosticClass(){
 }
 function attendanceRawEntries(st,cutoff=''){
   return Object.entries(st?.attendance||{})
-    .filter(([date,status])=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&['present','absent','late','excused'].includes(status)&&(!cutoff||date<=cutoff))
+    .filter(([date,status])=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&['present','absent','absent_excused','late','excused'].includes(status)&&(!cutoff||date<=cutoff))
     .sort((a,b)=>a[0].localeCompare(b[0]))
 }
 function attendanceRawCounts(st,cutoff=''){
-  const out={present:0,absent:0,late:0,excused:0,total:0};
+  const out={present:0,absent:0,absent_excused:0,late:0,excused:0,total:0};
   attendanceRawEntries(st,cutoff).forEach(([,status])=>{out[status]++;out.total++});
   return out
 }
@@ -449,7 +449,7 @@ function schoolAudience(meta=state?.appMeta||{}){
   }
 }
 function typeLabel(t){return TYPE_LABELS[t]||'أخرى'}
-function statusLabel(s){return ({present:'حاضر',absent:'غائب',late:'متأخر',excused:'مستأذن'})[s]||'غير مسجل'}
+function statusLabel(s){return ({present:'حاضر',absent:'غائب بدون عذر',absent_excused:'غائب بعذر',late:'متأخر',excused:'مستأذن'})[s]||'غير مسجل'}
 function formatDate(d){if(!d)return'بدون تاريخ';try{return new Intl.DateTimeFormat('ar-SA',{year:'numeric',month:'short',day:'numeric'}).format(new Date(d+'T12:00:00'))}catch{return d}}
 function monthLabel(m){if(!m)return'بدون تاريخ';try{return new Intl.DateTimeFormat('ar-SA',{year:'numeric',month:'long'}).format(new Date(m+'-15T12:00:00'))}catch{return m}}
 function allStudents(){return state.classes.flatMap(c=>c.students)}
@@ -460,8 +460,8 @@ function scoreSummary(s,c,period='all'){
   for(const a of events){totalMax+=Number(a.maxScore)||0;const raw=s.grades?.[a.id];if(raw!==undefined&&raw!==null&&raw!==''&&!Number.isNaN(Number(raw))){earned+=Number(raw);gradedMax+=Number(a.maxScore)||0;gradedCount++}}
   return {earned,gradedMax,totalMax,gradedCount,eventCount:events.length,performance:gradedMax?earned/gradedMax*100:null,completion:events.length?gradedCount/events.length*100:0};
 }
-function attendanceCounts(s,period='all'){const out={present:0,absent:0,late:0,excused:0,total:0};Object.entries(s.attendance||{}).forEach(([d,v])=>{if(period!=='all'&&monthKey(d)!==period)return;if(out[v]!==undefined){out[v]++;out.total++}});return out}
-function classAttendanceForDate(c,date){const out={present:0,absent:0,late:0,excused:0,unmarked:0};c.students.forEach(s=>{const v=s.attendance?.[date];if(out[v]!==undefined)out[v]++;else out.unmarked++});return out}
+function attendanceCounts(s,period='all'){const out={present:0,absent:0,absent_excused:0,late:0,excused:0,total:0};Object.entries(s.attendance||{}).forEach(([d,v])=>{if(period!=='all'&&monthKey(d)!==period)return;if(out[v]!==undefined){out[v]++;out.total++}});return out}
+function classAttendanceForDate(c,date){const out={present:0,absent:0,absent_excused:0,late:0,excused:0,unmarked:0};c.students.forEach(s=>{const v=s.attendance?.[date];if(out[v]!==undefined)out[v]++;else out.unmarked++});return out}
 function riskForStudent(s,c,period='all'){const sc=scoreSummary(s,c,period),at=attendanceCounts(s,period),reasons=[];if(sc.performance!==null&&sc.performance<state.settings.gradeAlertThreshold)reasons.push(`المستوى ${pct(sc.performance)}`);if(at.absent>=state.settings.absenceAlertThreshold)reasons.push(`${arabicNum(at.absent)} غياب`);return {isRisk:reasons.length>0,reasons,score:sc,attendance:at}}
 function monthsForClass(c){const set=new Set();(c.assessmentEvents||[]).forEach(a=>{const m=monthKey(a.date);if(m)set.add(m)});c.students.forEach(s=>Object.keys(s.attendance||{}).forEach(d=>{const m=monthKey(d);if(m)set.add(m)}));return [...set].sort().reverse()}
 
@@ -1570,8 +1570,8 @@ function renderAttendance(){
   const date=$('#attendanceDate').value||localDateISO();
   $('#attendanceHeading').textContent=`تسجيل الحضور — ${c.name}`;
   const a=classAttendanceForDate(c,date);
-  $('#attendanceStats').innerHTML=`<div class="stat ok"><b>${arabicNum(a.present)}</b><span>حاضر</span></div><div class="stat bad"><b>${arabicNum(a.absent)}</b><span>غائب</span></div><div class="stat late"><b>${arabicNum(a.late)}</b><span>متأخر</span></div><div class="stat excused"><b>${arabicNum(a.excused)}</b><span>مستأذن</span></div>`;
-  $('#attendanceList').innerHTML=c.students.length?c.students.map((st,i)=>{const cur=st.attendance?.[date]||'';return `<div class="attendance-row"><div class="index">${arabicNum(i+1)}</div><div class="student-name"><span class="attendance-student-label">${escapeHtml(st.name)}</span><button type="button" class="attendance-behavior-btn" data-attendance-behavior="${st.id}" aria-label="رصد مخالفة سلوكية للطالب ${escapeHtml(st.name)}">⚠ مخالفة</button></div><div class="status-options">${[['present','حاضر'],['absent','غائب'],['late','متأخر'],['excused','مستأذن']].map(([v,l])=>`<button class="status-btn ${cur===v?'active':''}" data-attendance="${st.id}" data-status="${v}">${l}</button>`).join('')}</div></div>`}).join(''):`<div class="empty-state"><b>لا يوجد طلاب</b>أضف طلابًا من شاشة التقييمات أولًا.</div>`;
+  $('#attendanceStats').innerHTML=`<div class="stat ok"><b>${arabicNum(a.present)}</b><span>حاضر</span></div><div class="stat bad"><b>${arabicNum(a.absent)}</b><span>بدون عذر</span></div><div class="stat excused-absence"><b>${arabicNum(a.absent_excused)}</b><span>بعذر</span></div><div class="stat late"><b>${arabicNum(a.late)}</b><span>متأخر</span></div><div class="stat excused"><b>${arabicNum(a.excused)}</b><span>مستأذن</span></div>`;
+  $('#attendanceList').innerHTML=c.students.length?c.students.map((st,i)=>{const cur=st.attendance?.[date]||'';return `<div class="attendance-row"><div class="index">${arabicNum(i+1)}</div><div class="student-name"><span class="attendance-student-label">${escapeHtml(st.name)}</span><button type="button" class="attendance-behavior-btn" data-attendance-behavior="${st.id}" aria-label="رصد مخالفة سلوكية للطالب ${escapeHtml(st.name)}">⚠ مخالفة</button></div><div class="status-options">${[['present','حاضر'],['absent','غياب بدون عذر'],['absent_excused','غياب بعذر'],['late','متأخر'],['excused','مستأذن']].map(([v,l])=>`<button class="status-btn ${cur===v?'active':''}" data-attendance="${st.id}" data-status="${v}">${l}</button>`).join('')}</div></div>`}).join(''):`<div class="empty-state"><b>لا يوجد طلاب</b>أضف طلابًا من شاشة التقييمات أولًا.</div>`;
   $$('[data-attendance]').forEach(b=>b.onclick=()=>{const st=findStudent(b.dataset.attendance),d=$('#attendanceDate').value||localDateISO();ensureStudent(st);if(st.attendance[d]===b.dataset.status)delete st.attendance[d];else st.attendance[d]=b.dataset.status;renderAttendance();renderDashboard();renderReports();queueSave()});
   $$('[data-attendance-behavior]').forEach(btn=>btn.onclick=()=>openBehaviorFromAttendance(btn.dataset.attendanceBehavior,$('#attendanceDate').value||localDateISO()));
 }
@@ -1585,7 +1585,7 @@ function attendanceMonthsForClass(c){
   return [...set].filter(Boolean).sort().reverse();
 }
 function attendanceDatesForPeriod(c,period='all'){const set=new Set();(c?.students||[]).forEach(st=>Object.keys(st.attendance||{}).forEach(d=>{if(period==='all'||monthKey(d)===period)set.add(d)}));return [...set].sort()}
-function attendanceMark(v){return ({present:'ح',absent:'غ',late:'ت',excused:'إ'})[v]||'—'}
+function attendanceMark(v){return ({present:'ح',absent:'غ',absent_excused:'ع',late:'ت',excused:'إ'})[v]||'—'}
 function rosterTermKey(){return /الثاني/.test(state.appMeta?.semester||'')?'2':'1'}
 function parseISODateNoon(iso){const [y,m,d]=String(iso).split('-').map(Number);return new Date(y,m-1,d,12,0,0)}
 function isoFromDateLocal(d){return localDateISO(d)}
@@ -1647,7 +1647,7 @@ function plannedAttendanceMeta(c,sessions,period='all'){
   return {term,cfg,weekly,teachingWeeks:Math.max(0,(cfg?.plannedWeeks||0)-(exclude?1:0)),sessions:sessions.length,plannedSessions,historicalSessions,period};
 }
 function attendanceCountsForSessions(st,sessions){
-  const out={present:0,absent:0,late:0,excused:0,total:0};
+  const out={present:0,absent:0,absent_excused:0,late:0,excused:0,total:0};
   sessions.forEach(x=>{const v=st.attendance?.[x.date];if(out[v]!==undefined){out[v]++;out.total++}});
   return out;
 }
@@ -1659,9 +1659,9 @@ function attendanceRegisterSheet(c,period='all'){
   const audience=schoolAudience(),sessions=plannedAttendanceSessions(c,period),meta=plannedAttendanceMeta(c,sessions,period),periodText=period==='all'?state.appMeta.semester:monthLabel(period);
   if(!sessions.length)return `<div class="attendance-official-print"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-empty-print">لا توجد حصص مخططة أو بيانات حضور في هذه الفترة.</div>${officialReportSignatures()}</section></div>`;
   const heads=sessions.map((x,j)=>`<th class="att-session ${x.historical?'att-session-history':''}" title="${x.historical?'سجل سابق محفوظ':''}"><b>ح${arabicNum(j+1)}${x.historical?'*':''}</b><small>${arabicNum(Number(x.date.slice(8)))}/${arabicNum(Number(x.date.slice(5,7)))}</small></th>`).join('');
-  const rows=(c.students||[]).map((st,i)=>{const all=attendanceCountsForSessions(st,sessions),cells=sessions.map(x=>`<td class="att-session att-${escapeHtml(st.attendance?.[x.date]||'none')}">${attendanceMark(st.attendance?.[x.date])}</td>`).join('');return `<tr><td class="att-num">${arabicNum(i+1)}</td><td class="att-name">${escapeHtml(st.name)}</td>${cells}<td class="att-total">${arabicNum(all.present)}</td><td class="att-total">${arabicNum(all.absent)}</td><td class="att-total">${arabicNum(all.late)}</td><td class="att-total">${arabicNum(all.excused)}</td></tr>`}).join('')||`<tr><td colspan="${sessions.length+6}">لا توجد ${audience.students} في الفصل</td></tr>`;
+  const rows=(c.students||[]).map((st,i)=>{const all=attendanceCountsForSessions(st,sessions),cells=sessions.map(x=>`<td class="att-session att-${escapeHtml(st.attendance?.[x.date]||'none')}">${attendanceMark(st.attendance?.[x.date])}</td>`).join('');return `<tr><td class="att-num">${arabicNum(i+1)}</td><td class="att-name">${escapeHtml(st.name)}</td>${cells}<td class="att-total">${arabicNum(all.present)}</td><td class="att-total">${arabicNum(all.absent)}</td><td class="att-total">${arabicNum(all.absent_excused)}</td><td class="att-total">${arabicNum(all.late)}</td><td class="att-total">${arabicNum(all.excused)}</td></tr>`}).join('')||`<tr><td colspan="${sessions.length+7}">لا توجد ${audience.students} في الفصل</td></tr>`;
   const historyText=meta.historicalSessions?` · سجلات سابقة محفوظة: ${arabicNum(meta.historicalSessions)}`:'';const planText=period==='all'&&meta.cfg?`أسابيع الخطة: ${arabicNum(meta.cfg.plannedWeeks)} · أسابيع التدريس بعد استبعاد الاختبارات: ${arabicNum(meta.teachingWeeks)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)} · الخانات المخططة: ${arabicNum(meta.plannedSessions)}${historyText}`:`الخانات المخططة: ${arabicNum(meta.plannedSessions)} · حصص المادة أسبوعيًا: ${arabicNum(meta.weekly)}${historyText}`;
-  return `<div class="attendance-official-print one-page-attendance"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-plan-summary">${planText}</div><div class="attendance-page-note"><span>الحصص ١–${arabicNum(sessions.length)}</span><span>صفحة واحدة</span></div><div class="attendance-legend"><span><b>ح</b> حاضر</span><span><b>غ</b> غائب</span><span><b>ت</b> متأخر</span><span><b>إ</b> مستأذن</span><span><b>—</b> غير مسجل</span></div><table class="attendance-register-table"><thead><tr><th class="att-num">م</th><th class="att-name">${audience.studentName}</th>${heads}<th class="att-total">ح</th><th class="att-total">غ</th><th class="att-total">ت</th><th class="att-total">إ</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</section></div>`;
+  return `<div class="attendance-official-print one-page-attendance"><section class="attendance-print-page">${compactClassOfficialHeader('سجل متابعة الحضور والغياب',c,periodText)}<div class="attendance-plan-summary">${planText}</div><div class="attendance-page-note"><span>الحصص ١–${arabicNum(sessions.length)}</span><span>صفحة واحدة</span></div><div class="attendance-legend"><span><b>ح</b> حاضر</span><span><b>غ</b> بدون عذر</span><span><b>ع</b> بعذر</span><span><b>ت</b> متأخر</span><span><b>إ</b> مستأذن</span><span><b>—</b> غير مسجل</span></div><table class="attendance-register-table"><thead><tr><th class="att-num">م</th><th class="att-name">${audience.studentName}</th>${heads}<th class="att-total">ح</th><th class="att-total">غ</th><th class="att-total">ع</th><th class="att-total">ت</th><th class="att-total">إ</th></tr></thead><tbody>${rows}</tbody></table>${officialReportSignatures()}</section></div>`;
 }
 function renderAttendanceRegister(){
   const c=currentClass(),sel=$('#attendanceReportPeriod'),preview=$('#attendanceReportPreview');if(!c||!sel||!preview)return;
@@ -1765,9 +1765,9 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
 
   attendancePdfText(ctx,`الحصص ١–${arabicNum(allSessions.length)}`,right,252,14,'700');
   attendancePdfText(ctx,'صفحة واحدة',left,252,14,'700','left');
-  attendancePdfText(ctx,'ح حاضر   غ غائب   ت متأخر   إ مستأذن   — غير مسجل',center,252,12,'400','center');
+  attendancePdfText(ctx,'ح حاضر   غ بدون عذر   ع بعذر   ت متأخر   إ مستأذن   — غير مسجل',center,252,12,'400','center');
 
-  const count=part.items.length,tableY=273,tableW=W-2*M,numW=38,nameW=278,totalW=48,sessionW=(tableW-numW-nameW-totalW*4)/Math.max(1,count),headH=54;
+  const count=part.items.length,tableY=273,tableW=W-2*M,numW=38,nameW=278,totalW=48,sessionW=(tableW-numW-nameW-totalW*5)/Math.max(1,count),headH=54;
   const sessionTitleSize=count>24?11:14,dateSize=count>24?9:12,sessionCellSize=count>24?11:14;
   let x=W-M;
   attendancePdfCell(ctx,x-numW,tableY,numW,headH,'م',{size:14,weight:'700',fill:'#eef0f2'});x-=numW;
@@ -1777,7 +1777,7 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
     attendancePdfText(ctx,`ح${arabicNum(part.start+j+1)}${sess.historical?'*':''}`,sx+sessionW/2,tableY+17,sessionTitleSize,'700','center');
     attendancePdfText(ctx,`${arabicNum(Number(sess.date.slice(8)))}/${arabicNum(Number(sess.date.slice(5,7))) }`,sx+sessionW/2,tableY+38,dateSize,'400','center');x-=sessionW
   });
-  [['ح',totalW],['غ',totalW],['ت',totalW],['إ',totalW]].forEach(([lab,w])=>{attendancePdfCell(ctx,x-w,tableY,w,headH,lab,{size:14,weight:'700',fill:'#eef0f2'});x-=w});
+  [['ح',totalW],['غ',totalW],['ع',totalW],['ت',totalW],['إ',totalW]].forEach(([lab,w])=>{attendancePdfCell(ctx,x-w,tableY,w,headH,lab,{size:14,weight:'700',fill:'#eef0f2'});x-=w});
 
   const students=c.students||[],available=H-tableY-headH-92,rowH=Math.max(20,Math.min(25,Math.floor(available/Math.max(1,students.length)))),allCounts=students.map(st=>attendanceCountsForSessions(st,allSessions));
   students.forEach((st,row)=>{
@@ -2403,7 +2403,7 @@ function openStudentReport(id){
   const trendReady=eventsForPeriod(c,period).filter(x=>x.date&&st.grades?.[x.id]!==undefined&&st.grades?.[x.id]!==null&&x.maxScore>0).length>=2;
   const trendSection=trendReady?`<section class='report-section'><h3>تطور المستوى</h3>${trendChart(st,c,period)}</section>`:'';
   $('#studentModalTitle').textContent=`تقرير ${st.name}`;
-  $('#studentReportPrint').innerHTML=`${studentOfficialHeader(c,periodText,st.name)}${r.isRisk?`<div class='risk-box report-risk'><b>يحتاج متابعة</b><span>${escapeHtml(r.reasons.join(' · '))}</span></div>`:''}<div class='student-summary-strip'><div><span>الأداء المرصود</span><b>${pct(sc.performance)}</b></div><div><span>اكتمال الرصد</span><b>${pct(sc.completion)}</b></div><div><span>الغياب</span><b>${arabicNum(a.absent)}</b></div><div><span>التأخر</span><b>${arabicNum(a.late)}</b></div></div>${trendSection}<section class='report-section'><h3>سجل التقييمات</h3><table class='detail-table'><thead><tr><th>التاريخ</th><th>النوع</th><th>التقييم</th><th>الدرجة</th><th>النسبة</th></tr></thead><tbody>${studentAssessmentRows(st,c,period)}</tbody></table></section><section class='report-section'><h3>سجل الحضور والغياب</h3><div class='student-attendance-summary'><span>حاضر <b>${arabicNum(a.present)}</b></span><span>غائب <b>${arabicNum(a.absent)}</b></span><span>متأخر <b>${arabicNum(a.late)}</b></span><span>مستأذن <b>${arabicNum(a.excused)}</b></span></div><table class='detail-table attendance-history'><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${recentAttendanceRows(st,period)}</tbody></table></section>${st.notes?`<div class='student-report-header note-box'><b>ملاحظات ${schoolAudience().teacher}</b><p>${escapeHtml(st.notes)}</p></div>`:''}${officialReportSignatures()}`;
+  $('#studentReportPrint').innerHTML=`${studentOfficialHeader(c,periodText,st.name)}${r.isRisk?`<div class='risk-box report-risk'><b>يحتاج متابعة</b><span>${escapeHtml(r.reasons.join(' · '))}</span></div>`:''}<div class='student-summary-strip'><div><span>الأداء المرصود</span><b>${pct(sc.performance)}</b></div><div><span>اكتمال الرصد</span><b>${pct(sc.completion)}</b></div><div><span>الغياب</span><b>${arabicNum(a.absent)}</b></div><div><span>التأخر</span><b>${arabicNum(a.late)}</b></div></div>${trendSection}<section class='report-section'><h3>سجل التقييمات</h3><table class='detail-table'><thead><tr><th>التاريخ</th><th>النوع</th><th>التقييم</th><th>الدرجة</th><th>النسبة</th></tr></thead><tbody>${studentAssessmentRows(st,c,period)}</tbody></table></section><section class='report-section'><h3>سجل الحضور والغياب</h3><div class='student-attendance-summary'><span>حاضر <b>${arabicNum(a.present)}</b></span><span>بدون عذر <b>${arabicNum(a.absent)}</b></span><span>بعذر <b>${arabicNum(a.absent_excused)}</b></span><span>متأخر <b>${arabicNum(a.late)}</b></span><span>مستأذن <b>${arabicNum(a.excused)}</b></span></div><table class='detail-table attendance-history'><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${recentAttendanceRows(st,period)}</tbody></table></section>${st.notes?`<div class='student-report-header note-box'><b>ملاحظات ${schoolAudience().teacher}</b><p>${escapeHtml(st.notes)}</p></div>`:''}${officialReportSignatures()}`;
   $('#studentNotes').value=st.notes||'';if($('#printStudentBtn'))$('#printStudentBtn').textContent=usesFixedA4Pdf()?'🖨 A4 PDF للطباعة':'🖨 طباعة التقرير';if(!$('#studentModal').open)$('#studentModal').showModal();
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
@@ -2601,5 +2601,5 @@ try{
   if(printMq?.addEventListener)printMq.addEventListener('change',onPrintMediaChange);else if(printMq?.addListener)printMq.addListener(onPrintMediaChange)
 }catch{}
 $('#checkUpdateBtn')?.addEventListener('click',()=>checkForAppUpdate({manual:true}));
-load().then(()=>{startSchoolDayTicker();initBehaviorModule()});
+load().then(()=>{startSchoolDayTicker();initBehaviorModule();initOfficialForms()});
 initAppUpdater();
