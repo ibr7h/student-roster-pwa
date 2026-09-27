@@ -1,5 +1,5 @@
 const SCHEMA_VERSION=6;
-const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.3';
+const APP_VERSION=globalThis.APP_VERSION||document.querySelector('#versionBadge')?.textContent?.replace(/^v/,'')||'4.18.4';
 let swRegistration=null,updateReloading=false,updateBannerTimer=null,updateSplashActive=false,updateTargetVersion='',updateProgressEligible=false;
 let printSessionActive=false,printSessionClass='',printSessionStartedAt=0,printSessionSawHidden=false,printMediaEntered=false;
 let attendanceReferenceCsv=null,attendanceDiagnosticLastScan=null,attendanceDiagnosticDbState=null;
@@ -1465,7 +1465,7 @@ function renderSupervisions(){const list=$('#supervisionList'),t=currentTeacherS
 function openSupervision(id=null){const t=currentTeacherSchedule();if(!t)return;editingSupervisionId=id;const x=id?(t.supervision||[]).find(v=>v.id===id):null;$('#supervisionModalTitle').textContent=x?'تعديل المناوبة':'إضافة مناوبة';$('#supervisionDay').value=x?.day||'الأحد';$('#supervisionDate').value=x?.date||'';$('#supervisionStart').value=x?.start||'';$('#supervisionEnd').value=x?.end||'';$('#supervisionType').value=x?.type||'إشراف';$('#supervisionTitle').value=x?.title||'';$('#supervisionLocation').value=x?.location||'';$('#deleteSupervisionBtn').hidden=!x;$('#supervisionModal').showModal()}
 function saveSupervision(){const t=currentTeacherSchedule();if(!t)return;const obj={day:$('#supervisionDay').value,date:$('#supervisionDate').value.trim(),start:$('#supervisionStart').value,end:$('#supervisionEnd').value,type:$('#supervisionType').value.trim(),title:$('#supervisionTitle').value.trim()||'إشراف',location:$('#supervisionLocation').value.trim()};if(editingSupervisionId){const x=t.supervision.find(v=>v.id===editingSupervisionId);if(x)Object.assign(x,obj)}else t.supervision.push({id:uid(),...obj});$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حفظ المناوبة')}
 function deleteSupervision(){const t=currentTeacherSchedule();if(!editingSupervisionId||!t)return;if(!confirm('حذف هذه المناوبة؟'))return;t.supervision=t.supervision.filter(v=>v.id!==editingSupervisionId);$('#supervisionModal').close();renderSchedule();queueSave();toast('تم حذف المناوبة')}
-function printTeacherSchedule(){if(isIOSLike())openManualPrintPreview('print-teacher-schedule','landscape','جدول المعلم — معاينة A4');else runPrintSession('print-teacher-schedule','landscape')}
+function printTeacherSchedule(){if(usesFixedA4Pdf())openTeacherScheduleLandscapePdf();else runPrintSession('print-teacher-schedule','landscape')}
 
 function renderAttendance(){
   const c=currentClass();if(!c)return;
@@ -1575,11 +1575,24 @@ function renderAttendanceRegister(){
   if(summary)summary.innerHTML=`<div><span>حصص أسبوعية</span><b>${arabicNum(meta.weekly)}</b></div><div><span>أسابيع التدريس</span><b>${arabicNum(meta.teachingWeeks)}</b></div><div><span>خانات السجل</span><b>${arabicNum(meta.sessions)}</b>${meta.historicalSessions?`<small>منها ${arabicNum(meta.historicalSessions)} سجل سابق</small>`:''}</div><div><span>أسبوع الاختبارات</span><b>${state.settings.excludeExamWeek!==false?'مستبعد':'محسوب'}</b></div>`;
   preview.innerHTML=attendanceRegisterSheet(c,sel.value);
   sel.onchange=e=>{state.ui.attendanceReportPeriod=e.target.value;renderAttendanceRegister();queueSave()};
-  const printBtn=$('#printAttendanceReportBtn');if(printBtn){printBtn.textContent=isIOSLike()?'🖨 PDF بالعرض للطباعة':'🖨 طباعة سجل الحضور';printBtn.onclick=printAttendanceReport;}
+  const printBtn=$('#printAttendanceReportBtn');if(printBtn){printBtn.textContent=usesFixedA4Pdf()?'🖨 A4 PDF بالعرض':'🖨 طباعة سجل الحضور';printBtn.onclick=printAttendanceReport;}
 }
 
 function isIOSLike(){
   return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)
+}
+function isAndroidLike(){return /Android/i.test(navigator.userAgent)}
+function usesFixedA4Pdf(){return isIOSLike()||isAndroidLike()}
+function openPdfForPrint(blob,filename,title='مستند A4'){
+  const file=new File([blob],filename,{type:'application/pdf'});
+  const fallback=()=>{
+    const url=URL.createObjectURL(blob),w=window.open(url,'_blank');
+    if(!w)window.location.href=url;
+    setTimeout(()=>URL.revokeObjectURL(url),120000)
+  };
+  if(navigator.share&&navigator.canShare?.({files:[file]})){
+    navigator.share({files:[file],title}).catch(err=>{if(err?.name!=='AbortError')fallback()})
+  }else fallback()
 }
 function pdfAscii(str){return new TextEncoder().encode(str)}
 function pdfConcat(parts){
@@ -1589,8 +1602,8 @@ function pdfConcat(parts){
 function base64Bytes(b64){
   const bin=atob(b64),out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out
 }
-function buildJpegPdf(pages){
-  const PAGE_W=841.89,PAGE_H=595.28,n=pages.length,totalObjects=2+n*3,objects=new Array(totalObjects+1);
+function buildJpegPdf(pages,orientation='landscape'){
+  const portrait=orientation==='portrait',PAGE_W=portrait?595.28:841.89,PAGE_H=portrait?841.89:595.28,n=pages.length,totalObjects=2+n*3,objects=new Array(totalObjects+1);
   const kids=[];
   for(let i=0;i<n;i++){
     const pageId=3+i*3,imgId=4+i*3,contentId=5+i*3;
@@ -1712,7 +1725,139 @@ function openAttendanceLandscapePdf(){
   }
 }
 
-function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);if(isIOSLike())openAttendanceLandscapePdf();else runPrintSession('print-attendance-report','landscape')}
+function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);if(usesFixedA4Pdf())openAttendanceLandscapePdf();else runPrintSession('print-attendance-report','landscape')}
+
+
+function studentPdfWrappedText(ctx,text,x,y,maxWidth,lineHeight=30,size=18,weight='400',maxLines=4){
+  const words=String(text||'').trim().split(/\s+/).filter(Boolean);if(!words.length)return y;
+  ctx.save();ctx.direction='rtl';ctx.textAlign='right';ctx.textBaseline='top';ctx.fillStyle='#111827';ctx.font=`${weight} ${size}px Arial, Tahoma, sans-serif`;
+  const lines=[];let line='';
+  for(const word of words){
+    const test=line?line+' '+word:word;
+    if(ctx.measureText(test).width<=maxWidth||!line)line=test;
+    else{lines.push(line);line=word;if(lines.length>=maxLines-1)break}
+  }
+  if(line&&lines.length<maxLines)lines.push(line);
+  lines.slice(0,maxLines).forEach((ln,i)=>ctx.fillText(ln,x,y+i*lineHeight));
+  ctx.restore();return y+Math.min(lines.length,maxLines)*lineHeight
+}
+function studentPdfCanvas(c,st,periodText,{section='assessments',rows=[],first=false,last=false,pageNo=1}={}){
+  const W=1240,H=1754,M=58,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const gov=state.appMeta||{},audience=schoolAudience(gov),right=W-M,left=M,center=W/2;
+  attendancePdfText(ctx,'المملكة العربية السعودية',right,44,20,'700');
+  attendancePdfText(ctx,'وزارة التعليم',right,72,18,'400');
+  attendancePdfText(ctx,gov.region||'إدارة التعليم',right,99,17,'400');
+  attendancePdfText(ctx,gov.school||c.school||'المدرسة',right,126,17,'400');
+  const logo=document.querySelector('.app-brand-logo');
+  if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-45,28,90,72)}catch{}}
+  attendancePdfText(ctx,`تقرير متابعة ${audience.studentBare}`,left,60,28,'700','left');
+  attendancePdfText(ctx,periodText||gov.semester||'',left,94,18,'700','left');
+  attendancePdfText(ctx,gov.year||'',left,122,17,'400','left');
+  attendancePdfLine(ctx,M,151,W-M,151,2,'#2f3740');
+
+  const metaY=166,metaH=48,metaWidths=[(W-2*M)*.46,(W-2*M)*.28,(W-2*M)*.26];
+  let mx=M;
+  [[audience.student,st.name||'—'],['الصف / الفصل',`${c.grade||'—'} — ${c.name||'—'}`],['المادة',c.subject||'—']].forEach((it,i)=>{
+    attendancePdfCell(ctx,mx,metaY,metaWidths[i],metaH,`${it[0]}: ${it[1]}`,{align:'center',size:16,weight:'700'});mx+=metaWidths[i]
+  });
+  let y=235;
+  if(first){
+    const sc=scoreSummary(st,c,state.ui.reportPeriod||'all'),at=attendanceCounts(st,state.ui.reportPeriod||'all'),cardW=(W-2*M)/4;
+    [['الأداء',pct(sc.performance)],['اكتمال الرصد',pct(sc.completion)],['الغياب',arabicNum(at.absent)],['التأخر',arabicNum(at.late)]].forEach((it,i)=>{
+      const x=M+i*cardW;ctx.fillStyle='#f5f7fa';ctx.fillRect(x,y,cardW,62);ctx.strokeStyle='#9aa3ad';ctx.strokeRect(x,y,cardW,62);
+      attendancePdfText(ctx,it[0],x+cardW/2,y+20,14,'400','center');attendancePdfText(ctx,it[1],x+cardW/2,y+44,20,'700','center')
+    });y+=88
+  }
+  attendancePdfText(ctx,section==='attendance'?'سجل الحضور والغياب':'سجل التقييمات',right,y,22,'700');y+=34;
+
+  if(section==='assessments'){
+    const widths=[180,150,390,220,W-2*M-940],heads=['التاريخ','النوع','التقييم','الدرجة','النسبة'];let x=M;
+    heads.forEach((h,i)=>{attendancePdfCell(ctx,x,y,widths[i],44,h,{size:15,weight:'700',fill:'#eef1f4'});x+=widths[i]});y+=44;
+    if(!rows.length){attendancePdfCell(ctx,M,y,W-2*M,52,'لا توجد تقييمات في هذه الفترة',{size:16});y+=52}
+    else rows.forEach(r=>{x=M;[r.date,r.type,r.title,r.score,r.percent].forEach((v,i)=>{attendancePdfCell(ctx,x,y,widths[i],50,String(v||'—').slice(0,i===2?42:24),{size:14,weight:i===2?'700':'400'});x+=widths[i]});y+=50})
+  }else{
+    const widths=[(W-2*M)*.62,(W-2*M)*.38],heads=['التاريخ','الحالة'];let x=M;
+    heads.forEach((h,i)=>{attendancePdfCell(ctx,x,y,widths[i],44,h,{size:15,weight:'700',fill:'#eef1f4'});x+=widths[i]});y+=44;
+    if(!rows.length){attendancePdfCell(ctx,M,y,W-2*M,52,'لا توجد بيانات حضور في هذه الفترة',{size:16});y+=52}
+    else rows.forEach(r=>{x=M;[r.date,r.status].forEach((v,i)=>{attendancePdfCell(ctx,x,y,widths[i],48,v,{size:15,weight:i?'700':'400'});x+=widths[i]});y+=48})
+  }
+
+  if(last){
+    const notes=String(st.notes||'').trim();
+    if(notes){
+      const noteY=Math.min(Math.max(y+28,H-330),H-330);
+      ctx.fillStyle='#f8fafc';ctx.fillRect(M,noteY,W-2*M,112);ctx.strokeStyle='#b5bdc6';ctx.strokeRect(M,noteY,W-2*M,112);
+      attendancePdfText(ctx,`ملاحظات ${audience.teacher}`,right-12,noteY+22,15,'700');
+      studentPdfWrappedText(ctx,notes,right-12,noteY+43,W-2*M-24,24,14,'400',3)
+    }
+    const signY=H-150;attendancePdfLine(ctx,M,signY-30,W-M,signY-30,1,'#555');
+    attendancePdfText(ctx,audience.subjectTeacher,W*.72,signY,14,'400','center');attendancePdfText(ctx,gov.teacher||'—',W*.72,signY+25,17,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.72,signY+52,13,'400','center');
+    attendancePdfText(ctx,audience.principal,W*.28,signY,14,'400','center');attendancePdfText(ctx,gov.principal||'—',W*.28,signY+25,17,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.28,signY+52,13,'400','center')
+  }
+  attendancePdfText(ctx,`صفحة ${arabicNum(pageNo)}`,left,H-34,12,'400','left');
+  const data=canvas.toDataURL('image/jpeg',0.95);return {bytes:base64Bytes(data.split(',')[1]),width:W,height:H}
+}
+function buildStudentPortraitPdf(){
+  const st=findStudent(openStudentId),c=findStudentClass(openStudentId);if(!st||!c)throw new Error('No student report');
+  const period=state.ui.reportPeriod||'all',periodText=period==='all'?state.appMeta.semester:monthLabel(period);
+  const assessments=eventsForPeriod(c,period).slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(a=>{
+    const v=st.grades?.[a.id],has=v!==undefined&&v!==null&&v!=='',pr=has&&a.maxScore?Number(v)/Number(a.maxScore)*100:null;
+    return {date:formatDate(a.date),type:typeLabel(a.type),title:a.title||'—',score:has?`${arabicNum(v)} / ${arabicNum(a.maxScore)}`:'—',percent:pct(pr)}
+  });
+  const attendance=Object.entries(st.attendance||{}).filter(([d])=>period==='all'||monthKey(d)===period).sort((a,b)=>b[0].localeCompare(a[0])).map(([d,v])=>({date:formatDate(d),status:statusLabel(v)}));
+  const specs=[];const firstChunk=assessments.splice(0,14);specs.push({section:'assessments',rows:firstChunk,first:true});
+  while(assessments.length)specs.push({section:'assessments',rows:assessments.splice(0,20),first:false});
+  if(attendance.length){while(attendance.length)specs.push({section:'attendance',rows:attendance.splice(0,25),first:false})}
+  specs[specs.length-1].last=true;
+  const pages=specs.map((spec,i)=>studentPdfCanvas(c,st,periodText,{...spec,pageNo:i+1}));
+  return buildJpegPdf(pages,'portrait')
+}
+function openStudentPortraitPdf(){
+  try{
+    const st=findStudent(openStudentId),safe=(st?.name||'الطالب').replace(/[\\/:*?"<>|]/g,'-');
+    openPdfForPrint(buildStudentPortraitPdf(),`تقرير-${safe}.pdf`,'تقرير الطالب A4')
+  }catch(err){console.error(err);toast('تعذر إنشاء تقرير A4. سيتم فتح الطباعة العادية.');runPrintSession('print-student','portrait')}
+}
+function buildTeacherScheduleLandscapePdf(){
+  const t=currentTeacherSchedule();if(!t)throw new Error('No schedule');
+  const W=1684,H=1190,M=48,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const gov=state.appMeta||{},right=W-M,left=M,center=W/2;
+  attendancePdfText(ctx,'المملكة العربية السعودية',right,44,19,'700');attendancePdfText(ctx,'وزارة التعليم',right,70,17,'400');attendancePdfText(ctx,gov.region||'إدارة التعليم',right,95,16,'400');attendancePdfText(ctx,t.school||gov.school||'المدرسة',right,120,16,'400');
+  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-50,22,100,80)}catch{}}
+  attendancePdfText(ctx,'جدول المعلم الأسبوعي',left,56,28,'700','left');attendancePdfText(ctx,t.semester||gov.semester||'',left,88,17,'700','left');attendancePdfText(ctx,gov.year||'',left,114,16,'400','left');
+  attendancePdfLine(ctx,M,145,W-M,145,2,'#2f3740');
+  attendancePdfText(ctx,`المعلم: ${t.teacherName||gov.teacher||'—'}`,right,172,18,'700');attendancePdfText(ctx,`الجدول: ${t.title||'الجدول'}`,left,172,18,'700','left');
+
+  const y0=205,headerH=58,rowH=112,dayW=135,tableW=W-2*M,periodW=(tableW-dayW)/7;
+  attendancePdfCell(ctx,M,y0,dayW,headerH,'اليوم',{size:16,weight:'700',fill:'#eef1f4'});
+  for(let p=1;p<=7;p++){const x=M+dayW+(p-1)*periodW,time=PERIOD_TIMES[p]||['',''];attendancePdfCell(ctx,x,y0,periodW,headerH,`ح ${arabicNum(p)}\n${time[0]}-${time[1]}`,{size:13,weight:'700',fill:'#eef1f4'})}
+  SCHEDULE_DAYS.forEach((day,ri)=>{
+    const y=y0+headerH+ri*rowH;attendancePdfCell(ctx,M,y,dayW,rowH,day,{size:17,weight:'700',fill:'#f8fafc'});
+    for(let p=1;p<=7;p++){
+      const x=M+dayW+(p-1)*periodW,slot=t.slots?.[`${day}-${p}`]||null;
+      ctx.strokeStyle='#66707a';ctx.strokeRect(x,y,periodW,rowH);
+      if(slot){
+        if(slot.kind==='standby'){
+          attendancePdfText(ctx,slot.note||'انتظار',x+periodW/2,y+44,16,'700','center');attendancePdfText(ctx,'انتظار / احتياط',x+periodW/2,y+72,12,'400','center')
+        }else{
+          attendancePdfText(ctx,slot.className||'فصل',x+periodW/2,y+34,18,'700','center');attendancePdfText(ctx,slot.subject||'',x+periodW/2,y+63,13,'400','center');attendancePdfText(ctx,`${slot.start||PERIOD_TIMES[p]?.[0]||''} - ${slot.end||PERIOD_TIMES[p]?.[1]||''}`,x+periodW/2,y+89,11,'400','center')
+        }
+      }
+    }
+  });
+  let sy=y0+headerH+SCHEDULE_DAYS.length*rowH+35;
+  attendancePdfText(ctx,'المناوبات والإشراف',right,sy,19,'700');sy+=30;
+  const sup=(t.supervision||[]).slice(0,5);
+  if(!sup.length)attendancePdfText(ctx,'لا توجد مناوبات مسجلة',right,sy,14,'400');
+  else sup.forEach((v,i)=>{attendancePdfText(ctx,`${arabicNum(i+1)}. ${v.day||''} · ${v.title||v.type||'إشراف'} · ${v.start||''}-${v.end||''} · ${v.location||''}`,right,sy+i*27,14,'400')});
+  const data=canvas.toDataURL('image/jpeg',0.95);return buildJpegPdf([{bytes:base64Bytes(data.split(',')[1]),width:W,height:H}],'landscape')
+}
+function openTeacherScheduleLandscapePdf(){
+  try{const t=currentTeacherSchedule(),safe=(t?.title||'جدول-المعلم').replace(/[\\/:*?"<>|]/g,'-');openPdfForPrint(buildTeacherScheduleLandscapePdf(),`${safe}.pdf`,'جدول المعلم A4')}
+  catch(err){console.error(err);toast('تعذر إنشاء جدول A4. سيتم فتح الطباعة العادية.');runPrintSession('print-teacher-schedule','landscape')}
+}
 
 function studentOfficialHeader(c,periodText,studentName=''){
   const m=state.appMeta||{},audience=schoolAudience(m),school=m.school||'اسم المدرسة',region=m.region||'إدارة التعليم';
@@ -1885,7 +2030,7 @@ function renderReports(){
   const risks=allStudents.map(st=>({s:st,...riskForStudent(st,c,period)})),riskList=risks.filter(x=>x.isRisk);
   const perf=risks.map(x=>x.score.performance).filter(x=>x!==null),avg=perf.length?perf.reduce((a,b)=>a+b,0)/perf.length:null,absence=risks.reduce((n,x)=>n+x.attendance.absent,0);
 
-  $('#reportPrintHeader').innerHTML=classOfficialSheet(c,period);if($('#printClassReportBtn'))$('#printClassReportBtn').textContent=isIOSLike()?'🖨 PDF بالعرض للطباعة':'🖨 طباعة كشف الفصل';
+  $('#reportPrintHeader').innerHTML=classOfficialSheet(c,period);if($('#printClassReportBtn'))$('#printClassReportBtn').textContent=usesFixedA4Pdf()?'🖨 A4 PDF بالعرض':'🖨 طباعة كشف الفصل';
   $('#reportKpis').innerHTML=`<div class="stat"><b>${arabicNum(events.length)}</b><span>تقييم</span></div><div class="stat ok"><b>${pct(avg)}</b><span>متوسط الأداء</span></div><div class="stat bad"><b>${arabicNum(absence)}</b><span>غياب</span></div><div class="stat warn"><b>${arabicNum(riskList.length)}</b><span>يحتاج متابعة</span></div>`;
   $('#riskBanner').innerHTML=riskList.length?`<div class="risk-box"><b>${arabicNum(riskList.length)} من ${audience.students} بحاجة إلى متابعة</b><span>وفق حدود الدرجة والغياب الحالية.</span></div>`:`<div class="risk-box clear"><b>لا توجد تنبيهات حالية</b><span>وفق الحدود المحددة.</span></div>`;
 
@@ -1906,11 +2051,11 @@ function openStudentReport(id){
   const trendSection=trendReady?`<section class='report-section'><h3>تطور المستوى</h3>${trendChart(st,c,period)}</section>`:'';
   $('#studentModalTitle').textContent=`تقرير ${st.name}`;
   $('#studentReportPrint').innerHTML=`${studentOfficialHeader(c,periodText,st.name)}${r.isRisk?`<div class='risk-box report-risk'><b>يحتاج متابعة</b><span>${escapeHtml(r.reasons.join(' · '))}</span></div>`:''}<div class='student-summary-strip'><div><span>الأداء المرصود</span><b>${pct(sc.performance)}</b></div><div><span>اكتمال الرصد</span><b>${pct(sc.completion)}</b></div><div><span>الغياب</span><b>${arabicNum(a.absent)}</b></div><div><span>التأخر</span><b>${arabicNum(a.late)}</b></div></div>${trendSection}<section class='report-section'><h3>سجل التقييمات</h3><table class='detail-table'><thead><tr><th>التاريخ</th><th>النوع</th><th>التقييم</th><th>الدرجة</th><th>النسبة</th></tr></thead><tbody>${studentAssessmentRows(st,c,period)}</tbody></table></section><section class='report-section'><h3>سجل الحضور والغياب</h3><div class='student-attendance-summary'><span>حاضر <b>${arabicNum(a.present)}</b></span><span>غائب <b>${arabicNum(a.absent)}</b></span><span>متأخر <b>${arabicNum(a.late)}</b></span><span>مستأذن <b>${arabicNum(a.excused)}</b></span></div><table class='detail-table attendance-history'><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${recentAttendanceRows(st,period)}</tbody></table></section>${st.notes?`<div class='student-report-header note-box'><b>ملاحظات ${schoolAudience().teacher}</b><p>${escapeHtml(st.notes)}</p></div>`:''}${officialReportSignatures()}`;
-  $('#studentNotes').value=st.notes||'';if(!$('#studentModal').open)$('#studentModal').showModal();
+  $('#studentNotes').value=st.notes||'';if($('#printStudentBtn'))$('#printStudentBtn').textContent=usesFixedA4Pdf()?'🖨 A4 PDF للطباعة':'🖨 طباعة التقرير';if(!$('#studentModal').open)$('#studentModal').showModal();
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
-function printStudent(){if(isIOSLike())openManualPrintPreview('print-student','portrait','تقرير الطالب — معاينة A4');else runPrintSession('print-student','portrait')}
-function printClassReport(){showView('reports',false);setReportTab('class',false,true);if(isIOSLike())openClassLandscapePdf();else runPrintSession('print-class-summary','landscape')}
+function printStudent(){if(usesFixedA4Pdf())openStudentPortraitPdf();else runPrintSession('print-student','portrait')}
+function printClassReport(){showView('reports',false);setReportTab('class',false,true);if(usesFixedA4Pdf())openClassLandscapePdf();else runPrintSession('print-class-summary','landscape')}
 
 function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const ch=text[i],n=text[i+1];if(ch==='"'&&q&&n==='"'){cell+='"';i++}else if(ch==='"'){q=!q}else if(ch===','&&!q){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=ch}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function csvHeaderIndex(headers,names){return headers.findIndex(h=>names.some(n=>h.toLowerCase()===n.toLowerCase()))}
@@ -2055,7 +2200,7 @@ async function initAppUpdater(){
 
 function renderInstallNote(){const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;$('#installNote').style.display=isIOS&&!standalone&&!state.ui.dismissedInstall?'block':'none'}
 
-document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');if(nav)showView(nav.dataset.nav);if(e.target.matches('[data-close]'))e.target.closest('dialog').close();if(e.target.matches('[data-mark-all]'))markAllAttendance(e.target.dataset.markAll);if(e.target.matches('[data-clear-attendance]'))clearAttendanceDay()});
+document.addEventListener('click',e=>{const nav=e.target.closest('[data-nav]');if(nav)showView(nav.dataset.nav);const closeBtn=e.target.closest('[data-close]');if(closeBtn)closeBtn.closest('dialog')?.close();if(e.target.matches('[data-mark-all]'))markAllAttendance(e.target.dataset.markAll);if(e.target.matches('[data-clear-attendance]'))clearAttendanceDay()});
 $('#dashAddAssessment').onclick=()=>{showView('assessments');openAssessmentModal()};$('#dashAddStudent').onclick=()=>{showView('assessments');addStudent()};$('#addAssessmentBtn').onclick=()=>openAssessmentModal();$('#editAssessmentBtn').onclick=()=>openAssessmentModal(currentClass().selectedAssessmentId);$('#deleteAssessmentBtn').onclick=deleteAssessment;$('#saveAssessmentBtn').onclick=saveAssessment;$('#assessmentRepeatToggle').onchange=renderAssessmentRepeatInfo;
 $('#assessmentMonthFilter').onchange=e=>{state.ui.assessmentMonth=e.target.value;renderAssessments();queueSave()};
 $('#assessmentArchiveSearch')?.addEventListener('input',e=>{assessmentArchiveSearchTerm=e.target.value;renderAssessments()});
