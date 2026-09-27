@@ -1,2 +1,2 @@
-self.APP_VERSION='5.0.0-dev.5';
+self.APP_VERSION='5.0.0-dev.6';
 self.APP_RELEASE_DATE='2026-09-27';
