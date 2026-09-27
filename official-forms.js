@@ -4,6 +4,24 @@
 const OFFICIAL_FORM_FONT='"Sakkal Majalla","Traditional Arabic","Noto Naskh Arabic",Arial,Tahoma,sans-serif';
 let officialFormsStudentId='',officialFormsRecordId='';
 
+async function officialEnsurePrintReady(){
+  try{
+    if(document.fonts?.ready)await document.fonts.ready;
+    if(document.fonts?.load)await Promise.allSettled([
+      document.fonts.load('24px "Sakkal Majalla"'),
+      document.fonts.load('700 24px "Sakkal Majalla"')
+    ])
+  }catch{}
+  const logo=document.querySelector('.app-brand-logo')||document.querySelector('img[src*="moe-logo"]');
+  if(logo&&!logo.complete){
+    await new Promise(resolve=>{
+      const done=()=>resolve();
+      logo.addEventListener('load',done,{once:true});
+      logo.addEventListener('error',done,{once:true});
+      setTimeout(resolve,1200)
+    })
+  }
+}
 function officialFont(ctx,size=24,weight='400'){
   ctx.font=`${weight} ${size}px ${OFFICIAL_FORM_FONT}`;
 }
@@ -362,8 +380,9 @@ function openOfficialFormsCenter({studentId='',recordId=''}={}){
   const dlg=$('#officialFormsModal');if(!dlg)return;
   if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','')
 }
-function printOfficialForm(type){
+async function printOfficialForm(type){
   try{
+    await officialEnsurePrintReady();
     let page=null,title='',filename='';
     if(type==='teacher-log'){printOfficialTeacherLog(officialFormsRecordId);return}
     if(type==='behavior-undertaking'){page=officialBehaviorUndertakingPage();title='تعهد سلوكي';filename='تعهد-سلوكي.pdf'}
@@ -388,5 +407,5 @@ function initOfficialForms(){
   $('#attendanceOfficialFormsBtn')?.addEventListener('click',()=>openOfficialFormsCenter());
   $('#officialFormsStudent')?.addEventListener('change',e=>{officialFormsStudentId=e.target.value;officialFormsRecordId='';renderOfficialFormsSelectors()});
   $('#officialFormsRecord')?.addEventListener('change',e=>{officialFormsRecordId=e.target.value});
-  $('#officialFormsGrid')?.addEventListener('click',e=>{const b=e.target.closest('[data-official-form]');if(b)printOfficialForm(b.dataset.officialForm)});
+  $('#officialFormsGrid')?.addEventListener('click',async e=>{const b=e.target.closest('[data-official-form]');if(b)await printOfficialForm(b.dataset.officialForm)});
 }
