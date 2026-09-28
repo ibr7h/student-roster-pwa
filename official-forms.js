@@ -323,19 +323,20 @@ function officialTeacherLogPages(recordId=''){
   if(!records.length)return [];
   const chunks=[];for(let i=0;i<records.length;i+=6)chunks.push(records.slice(i,i+6));
   return chunks.map((chunk,pageIndex)=>{
-    const {canvas,ctx,W,M}=officialPortraitCanvas('نموذج رصد المعلم لمشكلة سلوكية',{titleY:300}),right=W-M;
+    const audience=schoolAudience();
+    const {canvas,ctx,W,M}=officialPortraitCanvas(`نموذج رصد ${audience.teacher} لمشكلة سلوكية`,{titleY:300}),right=W-M;
     const body=officialRefSize(22),table=officialRefSize(17),sign=officialRefSize(20);
     officialText(ctx,'المادة:',right,400,body);officialDottedLine(ctx,M+15,400,right-90);officialText(ctx,c.subject||'',right-105,400,officialRefSize(19));
     officialText(ctx,'الصف:',right,458,body);officialDottedLine(ctx,M+15,458,right-75);officialText(ctx,officialStudentGradeLine(c),right-90,458,officialRefSize(19));
     const y0=540,headH=120,rowH=92,widths=officialFitWidths([40,120,185,90,150,140,145,115,111],W,M);
-    const heads=['م','اسم الطالب / الطالبة','المشكلة السلوكية','درجة المشكلة','الإجراء المتخذ','مدى الاستجابة','عدد مرات تكرار المشكلة السلوكية','التاريخ','الحصة'];
+    const heads=['م',audience.studentName,'المشكلة السلوكية','درجة المشكلة','الإجراء المتخذ','مدى الاستجابة','عدد مرات تكرار المشكلة السلوكية','التاريخ','الحصة'];
     let x=W-M;heads.forEach((h,i)=>{x-=widths[i];officialCell(ctx,x,y0,widths[i],headH,h,{size:table,weight:'700',maxLines:4})});
     for(let ri=0;ri<6;ri++){
       const r=chunk[ri]||null,y=y0+headH+ri*rowH;let xx=W-M;
       const vals=r?[arabicNum(pageIndex*6+ri+1),behaviorStudentName(r.studentId,c),r.violationLabel||'',behaviorDegreeLabel(r.degree),r.actionTaken||'',r.response||'',arabicNum(behaviorRecordOccurrenceOrdinal(r,c)),r.date?formatDate(r.date):'',r.period?arabicNum(r.period):'']:['','','','','','','','',''];
       vals.forEach((v,i)=>{xx-=widths[i];officialCell(ctx,xx,y,widths[i],rowH,v,{size:i===2||i===4?officialRefSize(15):table,weight:'400',maxLines:5})})
     }
-    officialText(ctx,'المعلم/ المعلمة',300,1420,officialRefSize(22),'700','center');
+    officialText(ctx,audience.teacher,300,1420,officialRefSize(22),'700','center');
     officialText(ctx,'الاسم: '+(officialIdentity().teacher||'........................................'),300,1470,sign,'400','center');
     officialText(ctx,'التوقيع: ........................................',300,1520,sign,'400','center');
     officialDrawStoredSignature(ctx,'teacher',300,1490,230,62);
@@ -345,7 +346,7 @@ function officialTeacherLogPages(recordId=''){
 }
 function printOfficialTeacherLog(recordId=''){
   const pages=officialTeacherLogPages(recordId);if(!pages.length){toast('لا توجد مخالفات لطباعة النموذج');return}
-  officialOpenPdf(pages,'نموذج-رصد-المعلم.pdf','نموذج رصد المعلم لمشكلة سلوكية')
+  officialOpenPdf(pages,'نموذج-رصد-المعلم.pdf',`نموذج رصد ${schoolAudience().teacher} لمشكلة سلوكية`)
 }
 
 function officialBehaviorUndertakingPage(){
