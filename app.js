@@ -1673,7 +1673,7 @@ function renderAttendanceRegister(){
   if(summary)summary.innerHTML=`<div><span>حصص أسبوعية</span><b>${arabicNum(meta.weekly)}</b></div><div><span>أسابيع التدريس</span><b>${arabicNum(meta.teachingWeeks)}</b></div><div><span>خانات السجل</span><b>${arabicNum(meta.sessions)}</b>${meta.historicalSessions?`<small>منها ${arabicNum(meta.historicalSessions)} سجل سابق</small>`:''}</div><div><span>أسبوع الاختبارات</span><b>${state.settings.excludeExamWeek!==false?'مستبعد':'محسوب'}</b></div>`;
   preview.innerHTML=attendanceRegisterSheet(c,sel.value);
   sel.onchange=e=>{state.ui.attendanceReportPeriod=e.target.value;renderAttendanceRegister();queueSave()};
-  const printBtn=$('#printAttendanceReportBtn');if(printBtn){printBtn.textContent=usesFixedA4Pdf()?'🖨 A4 PDF بالعرض':'🖨 طباعة سجل الحضور';printBtn.onclick=printAttendanceReport;}
+  const printBtn=$('#printAttendanceReportBtn');if(printBtn){printBtn.textContent='🖨 A4 PDF بالعرض';printBtn.onclick=printAttendanceReport;}
 }
 
 function isIOSLike(){
@@ -1822,11 +1822,11 @@ async function openAttendanceLandscapePdf(){
     if(navigator.share&&navigator.canShare?.({files:[file]})){navigator.share({files:[file],title:'سجل متابعة الحضور والغياب'}).catch(fallback)}
     else fallback()
   }catch(err){
-    console.error(err);toast('تعذر إنشاء PDF بالعرض، سيتم فتح الطباعة العادية.');runPrintSession('print-attendance-report','landscape')
+    console.error(err);toast('تعذر إنشاء ملف A4 PDF لسجل الحضور')
   }
 }
 
-function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);if(usesFixedA4Pdf())openAttendanceLandscapePdf();else runPrintSession('print-attendance-report','landscape')}
+function printAttendanceReport(){showView('reports',false);setReportTab('attendance',false,true);openAttendanceLandscapePdf()}
 
 
 function studentPdfWrappedText(ctx,text,x,y,maxWidth,lineHeight=30,size=18,weight='400',maxLines=4){
@@ -2004,7 +2004,7 @@ async function openStudentPortraitPdf(){
     await prepareReportPdfAssets();
     const st=findStudent(openStudentId),safe=(st?.name||'الطالب').replace(/[\\/:*?"<>|]/g,'-');
     openPdfForPrint(buildStudentPortraitPdf(),`تقرير-${safe}.pdf`,'تقرير الطالب A4')
-  }catch(err){console.error(err);toast('تعذر إنشاء تقرير A4. سيتم فتح الطباعة العادية.');runPrintSession('print-student','portrait')}
+  }catch(err){console.error(err);toast('تعذر إنشاء تقرير الطالب A4 PDF')}
 }
 function buildTeacherScheduleLandscapePdf(){
   const t=currentTeacherSchedule();if(!t)throw new Error('No schedule');
@@ -2208,7 +2208,7 @@ async function openClassLandscapePdf(){
     const blob=buildClassLandscapePdf(),c=currentClass(),safe=(c?.name||'الفصل').replace(/[\\/:*?"<>|]/g,'-'),filename=`كشف-متابعة-${safe}.pdf`,file=new File([blob],filename,{type:'application/pdf'});
     const fallback=()=>{const url=URL.createObjectURL(blob),w=window.open(url,'_blank');if(!w)window.location.href=url;setTimeout(()=>URL.revokeObjectURL(url),120000)};
     if(navigator.share&&navigator.canShare?.({files:[file]})){navigator.share({files:[file],title:'كشف متابعة الفصل'}).catch(fallback)}else fallback()
-  }catch(err){console.error(err);toast('تعذر إنشاء PDF بالعرض، سيتم فتح الطباعة العادية.');runPrintSession('print-class-summary','landscape')}
+  }catch(err){console.error(err);toast('تعذر إنشاء ملف A4 PDF لكشف الفصل')}
 }
 
 function classOfficialSheet(c,period='all'){
@@ -2401,7 +2401,7 @@ function renderReports(){
   const risks=allStudents.map(st=>({s:st,...riskForStudent(st,c,period)})),riskList=risks.filter(x=>x.isRisk);
   const perf=risks.map(x=>x.score.performance).filter(x=>x!==null),avg=perf.length?perf.reduce((a,b)=>a+b,0)/perf.length:null,absence=risks.reduce((n,x)=>n+x.attendance.absent,0);
 
-  $('#reportPrintHeader').innerHTML=classOfficialSheet(c,period);if($('#printClassReportBtn'))$('#printClassReportBtn').textContent=usesFixedA4Pdf()?'🖨 A4 PDF بالعرض':'🖨 طباعة كشف الفصل';
+  $('#reportPrintHeader').innerHTML=classOfficialSheet(c,period);if($('#printClassReportBtn'))$('#printClassReportBtn').textContent='🖨 A4 PDF بالعرض';
   $('#reportKpis').innerHTML=`<div class="stat"><b>${arabicNum(events.length)}</b><span>تقييم</span></div><div class="stat ok"><b>${pct(avg)}</b><span>متوسط الأداء</span></div><div class="stat bad"><b>${arabicNum(absence)}</b><span>غياب</span></div><div class="stat warn"><b>${arabicNum(riskList.length)}</b><span>يحتاج متابعة</span></div>`;
   $('#riskBanner').innerHTML=riskList.length?`<div class="risk-box"><b>${arabicNum(riskList.length)} من ${audience.students} بحاجة إلى متابعة</b><span>وفق حدود الدرجة والغياب الحالية.</span></div>`:`<div class="risk-box clear"><b>لا توجد تنبيهات حالية</b><span>وفق الحدود المحددة.</span></div>`;
 
@@ -2423,11 +2423,11 @@ function openStudentReport(id){
   const trendSection=trendReady?`<section class='report-section'><h3>تطور المستوى</h3>${trendChart(st,c,period)}</section>`:'';
   $('#studentModalTitle').textContent=`تقرير ${st.name}`;
   $('#studentReportPrint').innerHTML=`${studentOfficialHeader(c,periodText,st.name)}${r.isRisk?`<div class='risk-box report-risk'><b>يحتاج متابعة</b><span>${escapeHtml(r.reasons.join(' · '))}</span></div>`:''}<div class='student-summary-strip'><div><span>الأداء المرصود</span><b>${pct(sc.performance)}</b></div><div><span>اكتمال الرصد</span><b>${pct(sc.completion)}</b></div><div><span>الغياب</span><b>${arabicNum(a.absent)}</b></div><div><span>التأخر</span><b>${arabicNum(a.late)}</b></div></div>${trendSection}<section class='report-section'><h3>سجل التقييمات</h3><table class='detail-table'><thead><tr><th>التاريخ</th><th>النوع</th><th>التقييم</th><th>الدرجة</th><th>النسبة</th></tr></thead><tbody>${studentAssessmentRows(st,c,period)}</tbody></table></section><section class='report-section'><h3>سجل الحضور والغياب</h3><div class='student-attendance-summary'><span>حاضر <b>${arabicNum(a.present)}</b></span><span>بدون عذر <b>${arabicNum(a.absent)}</b></span><span>بعذر <b>${arabicNum(a.absent_excused)}</b></span><span>متأخر <b>${arabicNum(a.late)}</b></span><span>مستأذن <b>${arabicNum(a.excused)}</b></span></div><table class='detail-table attendance-history'><thead><tr><th>التاريخ</th><th>الحالة</th></tr></thead><tbody>${recentAttendanceRows(st,period)}</tbody></table></section>${st.notes?`<div class='student-report-header note-box'><b>ملاحظات ${schoolAudience().teacher}</b><p>${escapeHtml(st.notes)}</p></div>`:''}${officialReportSignatures()}`;
-  $('#studentNotes').value=st.notes||'';if($('#printStudentBtn'))$('#printStudentBtn').textContent=usesFixedA4Pdf()?'🖨 A4 PDF للطباعة':'🖨 طباعة التقرير';if(!$('#studentModal').open)$('#studentModal').showModal();
+  $('#studentNotes').value=st.notes||'';if($('#printStudentBtn'))$('#printStudentBtn').textContent='🖨 A4 PDF للطباعة';if(!$('#studentModal').open)$('#studentModal').showModal();
 }
 function saveStudentNotes(){const s=findStudent(openStudentId);if(!s)return;s.notes=$('#studentNotes').value.trim();queueSave();openStudentReport(openStudentId);toast('تم حفظ الملاحظات')}
-function printStudent(){if(usesFixedA4Pdf())openStudentPortraitPdf();else runPrintSession('print-student','portrait')}
-function printClassReport(){showView('reports',false);setReportTab('class',false,true);if(usesFixedA4Pdf())openClassLandscapePdf();else runPrintSession('print-class-summary','landscape')}
+function printStudent(){openStudentPortraitPdf()}
+function printClassReport(){showView('reports',false);setReportTab('class',false,true);openClassLandscapePdf()}
 
 function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const ch=text[i],n=text[i+1];if(ch==='"'&&q&&n==='"'){cell+='"';i++}else if(ch==='"'){q=!q}else if(ch===','&&!q){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell=''}else cell+=ch}row.push(cell);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function csvHeaderIndex(headers,names){return headers.findIndex(h=>names.some(n=>h.toLowerCase()===n.toLowerCase()))}
