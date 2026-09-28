@@ -8,6 +8,13 @@ const info=message=>console.log('✓',message);
 const index=read('index.html'),app=read('app.js'),behavior=read('behavior.js'),officialForms=read('official-forms.js'),styles=read('styles.css'),printCss=read('print.css'),sw=read('sw.js'),versionFile=read('version.js'),manifestText=read('manifest.webmanifest');
 try{new vm.Script(app,{filename:'app.js'});info('app.js syntax')}catch(e){fail(e.message)}
 try{new vm.Script(officialForms,{filename:'official-forms.js'});info('official-forms.js syntax')}catch(e){fail(e.message)}
+for(const required of ['const OFFICIAL_A4_WIDTH=','function officialFitWidths','function officialDrawStoredSignature','function officialInitSignaturePad']){
+  if(!officialForms.includes(required))fail('Missing official forms runtime helper: '+required);
+}
+for(const id of ['officialSignatureModal','officialSignaturePad','officialSignatureButtons']){
+  if(!index.includes('id="'+id+'"'))fail('Missing official signature UI: '+id);
+}
+info('official forms runtime helpers');
 try{new vm.Script(behavior,{filename:'behavior.js'});info('behavior.js syntax')}catch(e){fail(e.message)}
 try{new vm.Script(officialForms,{filename:'official-forms.js'});info('official-forms.js syntax')}catch(e){fail(e.message)}
 try{new vm.Script(sw,{filename:'sw.js'});info('sw.js syntax')}catch(e){fail(e.message)}
