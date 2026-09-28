@@ -1793,9 +1793,11 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
   attendancePdfText(ctx,audience.subjectTeacher,W*0.72,signY,14,'400','center');
   attendancePdfText(ctx,state.appMeta.teacher||'—',W*0.72,signY+22,16,'700','center');
   attendancePdfText(ctx,'التوقيع: __________________',W*0.72,signY+44,12,'400','center');
+  drawReportSignature(ctx,'teacher',W*0.72,signY+20,185,44);
   attendancePdfText(ctx,audience.principal,W*0.28,signY,14,'400','center');
   attendancePdfText(ctx,state.appMeta.principal||'—',W*0.28,signY+22,16,'700','center');
   attendancePdfText(ctx,'التوقيع: __________________',W*0.28,signY+44,12,'400','center');
+  drawReportSignature(ctx,'principal',W*0.28,signY+20,185,44);
   const data=canvas.toDataURL('image/jpeg',0.95),bytes=base64Bytes(data.split(',')[1]);
   return {bytes,width:W,height:H}
 }
@@ -1807,8 +1809,9 @@ function buildAttendanceLandscapePdf(){
   const page=attendancePdfPage(c,{start:0,items:sessions},sessions,meta,periodText,0,1);
   return buildJpegPdf([page])
 }
-function openAttendanceLandscapePdf(){
+async function openAttendanceLandscapePdf(){
   try{
+    await prepareReportPdfAssets();
     const blob=buildAttendanceLandscapePdf(),c=currentClass(),safe=(c?.name||'الفصل').replace(/[\\/:*?"<>|]/g,'-'),filename=`سجل-الحضور-${safe}.pdf`;
     const file=new File([blob],filename,{type:'application/pdf'});
     const fallback=()=>{
@@ -1891,7 +1894,9 @@ function studentPdfCanvas(c,st,periodText,{section='assessments',rows=[],first=f
     }
     const signY=H-150;attendancePdfLine(ctx,M,signY-30,W-M,signY-30,1,'#555');
     attendancePdfText(ctx,audience.subjectTeacher,W*.72,signY,14,'400','center');attendancePdfText(ctx,gov.teacher||'—',W*.72,signY+25,17,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.72,signY+52,13,'400','center');
-    attendancePdfText(ctx,audience.principal,W*.28,signY,14,'400','center');attendancePdfText(ctx,gov.principal||'—',W*.28,signY+25,17,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.28,signY+52,13,'400','center')
+    drawReportSignature(ctx,'teacher',W*.72,signY+26,190,48);
+    attendancePdfText(ctx,audience.principal,W*.28,signY,14,'400','center');attendancePdfText(ctx,gov.principal||'—',W*.28,signY+25,17,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.28,signY+52,13,'400','center');
+    drawReportSignature(ctx,'principal',W*.28,signY+26,190,48)
   }
   attendancePdfText(ctx,`صفحة ${arabicNum(pageNo)}`,left,H-34,12,'400','left');
   const data=canvas.toDataURL('image/jpeg',0.95);return {bytes:base64Bytes(data.split(',')[1]),width:W,height:H}
@@ -1965,7 +1970,9 @@ function buildStudentSinglePagePdf(c,st,periodText,assessments,attendance){
 
   const signY=H-142;attendancePdfLine(ctx,M,signY-28,W-M,signY-28,1,'#555');
   attendancePdfText(ctx,audience.subjectTeacher,W*.72,signY,13,'400','center');attendancePdfText(ctx,gov.teacher||'—',W*.72,signY+23,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.72,signY+48,12,'400','center');
+  drawReportSignature(ctx,'teacher',W*.72,signY+23,190,46);
   attendancePdfText(ctx,audience.principal,W*.28,signY,13,'400','center');attendancePdfText(ctx,gov.principal||'—',W*.28,signY+23,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.28,signY+48,12,'400','center');
+  drawReportSignature(ctx,'principal',W*.28,signY+23,190,46);
 
   const data=canvas.toDataURL('image/jpeg',0.95);
   return buildJpegPdf([{bytes:base64Bytes(data.split(',')[1]),width:W,height:H}],'portrait')
@@ -1992,8 +1999,9 @@ function buildStudentPortraitPdf(){
   const pages=specs.map((spec,i)=>studentPdfCanvas(c,st,periodText,{...spec,pageNo:i+1}));
   return buildJpegPdf(pages,'portrait')
 }
-function openStudentPortraitPdf(){
+async function openStudentPortraitPdf(){
   try{
+    await prepareReportPdfAssets();
     const st=findStudent(openStudentId),safe=(st?.name||'الطالب').replace(/[\\/:*?"<>|]/g,'-');
     openPdfForPrint(buildStudentPortraitPdf(),`تقرير-${safe}.pdf`,'تقرير الطالب A4')
   }catch(err){console.error(err);toast('تعذر إنشاء تقرير A4. سيتم فتح الطباعة العادية.');runPrintSession('print-student','portrait')}
@@ -2051,7 +2059,16 @@ function studentOfficialHeader(c,periodText,studentName=''){
     <div><span>المادة</span><b>${escapeHtml(c.subject||'—')}</b></div>
   </div>`;
 }
-function officialReportSignatures(){const audience=schoolAudience();return `<footer class="official-signatures"><div><span>${audience.subjectTeacher}</span><b>${escapeHtml(state.appMeta.teacher||'—')}</b><em>التوقيع: __________________</em></div><div><span>${audience.principal}</span><b>${escapeHtml(state.appMeta.principal||'—')}</b><em>التوقيع: __________________</em></div></footer>`}
+function reportSignatureHtml(role){
+  try{
+    const sig=typeof officialGetSignature==='function'?officialGetSignature(role):null;
+    if(!sig?.svg)return '';
+    return `<img class="report-saved-signature" alt="توقيع محفوظ" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(sig.svg)}">`
+  }catch{return ''}
+}
+function drawReportSignature(ctx,role,cx,y,w=190,h=48){if(typeof officialDrawStoredSignature==='function')return officialDrawStoredSignature(ctx,role,cx,y,w,h);return false}
+async function prepareReportPdfAssets(){try{if(typeof officialEnsurePrintReady==='function')await officialEnsurePrintReady()}catch{}}
+function officialReportSignatures(){const audience=schoolAudience();return `<footer class="official-signatures"><div><span>${audience.subjectTeacher}</span><b>${escapeHtml(state.appMeta.teacher||'—')}</b>${reportSignatureHtml('teacher')}<em>التوقيع: __________________</em></div><div><span>${audience.principal}</span><b>${escapeHtml(state.appMeta.principal||'—')}</b>${reportSignatureHtml('principal')}<em>التوقيع: __________________</em></div></footer>`}
 function setPrintPage(orientation='portrait'){let el=document.getElementById('dynamicPrintPage');if(!el){el=document.createElement('style');el.id='dynamicPrintPage';document.head.appendChild(el)}el.textContent=`@page{size:A4 ${orientation};margin:10mm}`}
 function clearPrintPage(){document.getElementById('dynamicPrintPage')?.remove()}
 const PRINT_BODY_CLASSES=['print-student','print-class-summary','print-teacher-schedule','print-attendance-report'];
@@ -2182,11 +2199,12 @@ function buildClassLandscapePdf(){
   headers.forEach(lines=>{const sx=x-metricW;ctx.fillStyle='#eef0f2';ctx.fillRect(sx,tableY,metricW,headH);ctx.strokeStyle='#5f6670';ctx.strokeRect(sx,tableY,metricW,headH);lines.forEach((line,j)=>attendancePdfText(ctx,line,sx+metricW/2,tableY+headH/2+(j-(lines.length-1)/2)*17,12,'700','center'));x-=metricW});
   const students=c.students||[],available=H-tableY-headH-92,rowH=Math.max(20,Math.min(26,Math.floor(available/Math.max(1,students.length))));
   students.forEach((st,row)=>{const sc=scoreSummary(st,c,period),at=attendanceCounts(st,period),vals=[assessmentTypeScore(st,c,period,'homework'),assessmentTypeScore(st,c,period,'participation'),assessmentTypeScore(st,c,period,'project'),assessmentTypeScore(st,c,period,'practical'),assessmentTypeScore(st,c,period,'quiz'),assessmentTypeScore(st,c,period,'exam'),sc.gradedMax?`${arabicNum(sc.earned)}/${arabicNum(sc.gradedMax)}`:'—',pct(sc.performance),arabicNum(at.absent)];let cx=W-M,y=tableY+headH+row*rowH;attendancePdfCell(ctx,cx-numW,y,numW,rowH,arabicNum(row+1),{size:12});cx-=numW;attendancePdfCell(ctx,cx-nameW,y,nameW,rowH,st.name,{align:'right',size:13,weight:'600'});cx-=nameW;vals.forEach(v=>{attendancePdfCell(ctx,cx-metricW,y,metricW,rowH,v,{size:11,weight:'500'});cx-=metricW})});
-  const signY=Math.min(H-50,tableY+headH+students.length*rowH+40);attendancePdfLine(ctx,M,signY-20,W-M,signY-20,1,'#444');attendancePdfText(ctx,audience.subjectTeacher,W*0.72,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.teacher||'—',W*0.72,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.72,signY+44,12,'400','center');attendancePdfText(ctx,audience.principal,W*0.28,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.principal||'—',W*0.28,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.28,signY+44,12,'400','center');
+  const signY=Math.min(H-50,tableY+headH+students.length*rowH+40);attendancePdfLine(ctx,M,signY-20,W-M,signY-20,1,'#444');attendancePdfText(ctx,audience.subjectTeacher,W*0.72,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.teacher||'—',W*0.72,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.72,signY+44,12,'400','center');drawReportSignature(ctx,'teacher',W*0.72,signY+20,185,44);attendancePdfText(ctx,audience.principal,W*0.28,signY,14,'400','center');attendancePdfText(ctx,state.appMeta.principal||'—',W*0.28,signY+22,16,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*0.28,signY+44,12,'400','center');drawReportSignature(ctx,'principal',W*0.28,signY+20,185,44);
   const data=canvas.toDataURL('image/jpeg',0.95),bytes=base64Bytes(data.split(',')[1]);return buildJpegPdf([{bytes,width:W,height:H}])
 }
-function openClassLandscapePdf(){
+async function openClassLandscapePdf(){
   try{
+    await prepareReportPdfAssets();
     const blob=buildClassLandscapePdf(),c=currentClass(),safe=(c?.name||'الفصل').replace(/[\\/:*?"<>|]/g,'-'),filename=`كشف-متابعة-${safe}.pdf`,file=new File([blob],filename,{type:'application/pdf'});
     const fallback=()=>{const url=URL.createObjectURL(blob),w=window.open(url,'_blank');if(!w)window.location.href=url;setTimeout(()=>URL.revokeObjectURL(url),120000)};
     if(navigator.share&&navigator.canShare?.({files:[file]})){navigator.share({files:[file],title:'كشف متابعة الفصل'}).catch(fallback)}else fallback()
@@ -2283,8 +2301,8 @@ function dailyBehaviorReportSheet(start,end=start){
       <tbody>${tableRows}</tbody>
     </table>`:`<div class="daily-behavior-empty"><b>لا توجد مخالفات مسجلة في الفترة المحددة.</b><br>يشمل التقرير جميع الفصول المسجلة في التطبيق.</div>`}
     <footer class="daily-behavior-signatures">
-      <div><span>${a.subjectTeacher}</span><b>${escapeHtml(m.teacher||'—')}</b><span>التوقيع: __________________</span></div>
-      <div><span>${a.principal}</span><b>${escapeHtml(m.principal||'—')}</b><span>التوقيع: __________________</span></div>
+      <div><span>${a.subjectTeacher}</span><b>${escapeHtml(m.teacher||'—')}</b>${reportSignatureHtml('teacher')}<span>التوقيع: __________________</span></div>
+      <div><span>${a.principal}</span><b>${escapeHtml(m.principal||'—')}</b>${reportSignatureHtml('principal')}<span>التوقيع: __________________</span></div>
     </footer>
   </div>`
 }
@@ -2361,10 +2379,11 @@ function buildDailyBehaviorReportPdf(start,end=start){
   const pages=chunks.map((chunk,i)=>dailyBehaviorPdfPage(chunk,from,to,stats,i,chunks.length));
   return buildJpegPdf(pages,'landscape')
 }
-function printDailyBehaviorReport(){
+async function printDailyBehaviorReport(){
   const {from,to}=dailyBehaviorNormalizeRange(),rows=dailyBehaviorReportRows(from,to);
   if(!rows.length){toast('لا توجد مخالفات مسجلة في الفترة المحددة');return}
   try{
+    await prepareReportPdfAssets();
     const safeFrom=from.replace(/[^0-9-]/g,''),safeTo=to.replace(/[^0-9-]/g,'');
     const filename=from===to?`مخالفات-${safeFrom}.pdf`:`مخالفات-${safeFrom}-إلى-${safeTo}.pdf`;
     openPdfForPrint(buildDailyBehaviorReportPdf(from,to),filename,'تقرير المخالفات السلوكية')
