@@ -26,6 +26,7 @@ async function officialEnsurePrintReady(){
       setTimeout(resolve,1200)
     })
   }
+  await officialPrimeSignatureImages();
 }
 function officialRefSize(cssPx){return Math.round(cssPx*1.42)}
 function officialFont(ctx,size=24,weight='400'){
@@ -113,8 +114,9 @@ function officialSignatureBlock(ctx,x,y,title,name=''){
 function officialPageNumber(ctx,n){officialText(ctx,String(n),OFFICIAL_A4_SIDE,OFFICIAL_A4_HEIGHT-48,18,'400','left','#94a3b8')}
 
 
-const OFFICIAL_SIGNATURES_KEY='student-roster-official-signatures-v1';
+const OFFICIAL_SIGNATURES_KEY='student-roster-official-signatures-v2';
 let officialSignatureRole='',officialSignaturePad=null,officialSignaturePadCtx=null,officialSignatureDrawing=false,officialSignatureStrokes=[],officialSignatureStroke=null;
+const officialSignatureImageCache=new Map();
 
 function officialSignatureRoleLabel(role){
   return {student:'الطالب/الطالبة',guardian:'ولي الأمر',teacher:'المعلم/المعلمة',principal:'مدير/مديرة المدرسة',vice_principal:'وكيل/وكيلة شؤون الطلبة',specialist:'القائم بتعديل السلوك'}[role]||role
@@ -134,74 +136,143 @@ function officialSetSignature(role,value){
   const store=officialSignatureStore(),key=officialSignatureRoleKey(role);
   if(value)store[key]=value;else delete store[key];
   try{localStorage.setItem(OFFICIAL_SIGNATURES_KEY,JSON.stringify(store))}catch{}
-  officialRefreshSignatureButtons()
+  officialSignatureImageCache.clear();officialRefreshSignatureButtons()
 }
 function officialRefreshSignatureButtons(){
   document.querySelectorAll('#officialSignatureButtons [data-sign-role]').forEach(btn=>{
-    const saved=!!officialGetSignature(btn.dataset.signRole);btn.classList.toggle('saved',saved);
+    const saved=!!officialGetSignature(btn.dataset.signRole)?.svg;btn.classList.toggle('saved',saved);
     const small=btn.querySelector('small');if(small)small.textContent=saved?'محفوظ — اضغط للتعديل':'غير محفوظ — اضغط للتوقيع'
   })
 }
-function officialSignatureBounds(strokes){
-  let minX=1,minY=1,maxX=0,maxY=0,has=false;
-  (strokes||[]).forEach(st=>(st.points||[]).forEach(p=>{has=true;minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x);maxY=Math.max(maxY,p.y)}));
-  return has?{minX,minY,maxX,maxY,w:Math.max(.02,maxX-minX),h:Math.max(.02,maxY-minY)}:null
+function officialSignaturePadPoint(e){
+  const rect=officialSignaturePad.getBoundingClientRect();
+  return {x:e.clientX-rect.left,y:e.clientY-rect.top,time:Date.now()}
 }
-function officialRenderSignatureStroke(ctx,stroke,map,widthScale=1){
-  const pts=stroke.points||[];if(!pts.length)return;
-  const mp=pts.map(map);ctx.save();ctx.strokeStyle=stroke.color||'#0b3c8c';ctx.fillStyle=stroke.color||'#0b3c8c';ctx.lineCap='round';ctx.lineJoin='round';
-  const base=Math.max(.8,(stroke.width||2.5)*widthScale);
-  if(mp.length===1){ctx.beginPath();ctx.arc(mp[0].x,mp[0].y,base/2,0,Math.PI*2);ctx.fill();ctx.restore();return}
-  if(stroke.nib==='calligraphy'){
-    const angle=Math.PI/4,w=base*1.8,dx=Math.cos(angle)*w/2,dy=Math.sin(angle)*w/2;
-    for(let i=0;i<mp.length-1;i++){const a=mp[i],b=mp[i+1];ctx.beginPath();ctx.moveTo(a.x-dx,a.y-dy);ctx.lineTo(a.x+dx,a.y+dy);ctx.lineTo(b.x+dx,b.y+dy);ctx.lineTo(b.x-dx,b.y-dy);ctx.closePath();ctx.fill()}
-  }else{
-    ctx.lineWidth=base;ctx.beginPath();ctx.moveTo(mp[0].x,mp[0].y);
-    if(stroke.nib==='fountain'){
-      for(let i=1;i<mp.length;i++){ctx.lineTo(mp[i].x,mp[i].y)}
-    }else{
-      for(let i=1;i<mp.length-1;i++){const mid={x:(mp[i].x+mp[i+1].x)/2,y:(mp[i].y+mp[i+1].y)/2};ctx.quadraticCurveTo(mp[i].x,mp[i].y,mid.x,mid.y)}
-      ctx.lineTo(mp[mp.length-1].x,mp[mp.length-1].y)
+function officialSignatureNormalizedStrokes(){
+  const w=Math.max(1,officialSignaturePad?.width||1),h=Math.max(1,officialSignaturePad?.height||1);
+  return officialSignatureStrokes.map(st=>({...st,points:(st.points||[]).map(p=>({x:p.x/w,y:p.y/h,time:p.time}))}))
+}
+function officialSignatureAbsoluteStrokes(saved){
+  const w=Math.max(1,officialSignaturePad?.width||1),h=Math.max(1,officialSignaturePad?.height||1);
+  return (saved?.strokes||[]).map(st=>({...st,points:(st.points||[]).map(p=>({x:p.x*w,y:p.y*h,time:p.time}))}))
+}
+function officialSignatureRedraw(){
+  if(!officialSignaturePadCtx||!officialSignaturePad)return;
+  const ctx=officialSignaturePadCtx;ctx.clearRect(0,0,officialSignaturePad.width,officialSignaturePad.height);
+  officialSignatureStrokes.forEach(stroke=>{
+    const pts=stroke.points||[];if(!pts.length)return;
+    ctx.strokeStyle=stroke.color||'#0b3c8c';ctx.fillStyle=stroke.color||'#0b3c8c';ctx.lineCap='round';ctx.lineJoin='round';
+    if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x,pts[0].y,(stroke.width||2.5)/2,0,Math.PI*2);ctx.fill();return}
+    if(stroke.nib==='ballpoint'){
+      ctx.lineWidth=stroke.width||2.5;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+      for(let i=1;i<pts.length-1;i++){
+        const xc=(pts[i].x+pts[i+1].x)/2,yc=(pts[i].y+pts[i+1].y)/2;
+        ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc)
+      }
+      ctx.lineTo(pts[pts.length-1].x,pts[pts.length-1].y);ctx.stroke()
+    }else if(stroke.nib==='calligraphy'){
+      const angle=Math.PI/4,w=(stroke.width||2.5)*1.8,dx=Math.cos(angle)*(w/2),dy=Math.sin(angle)*(w/2);
+      for(let i=0;i<pts.length-1;i++){
+        const p1=pts[i],p2=pts[i+1];ctx.beginPath();ctx.moveTo(p1.x-dx,p1.y-dy);ctx.lineTo(p1.x+dx,p1.y+dy);ctx.lineTo(p2.x+dx,p2.y+dy);ctx.lineTo(p2.x-dx,p2.y-dy);ctx.closePath();ctx.fill()
+      }
+    }else if(stroke.nib==='fountain'){
+      for(let i=0;i<pts.length-1;i++){
+        const p1=pts[i],p2=pts[i+1],dist=Math.hypot(p2.x-p1.x,p2.y-p1.y),time=Math.max(1,(p2.time||0)-(p1.time||0)),speed=dist/time;
+        ctx.lineWidth=Math.max(1.2,(stroke.width||2.5)*(1.3-Math.min(speed,1.5)*0.4));
+        ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke()
+      }
     }
-    ctx.stroke()
-  }
-  ctx.restore()
+  })
+}
+function officialGenerateSignatureSvg(strokes,canvasWidth,canvasHeight){
+  if(!strokes?.length)return null;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  strokes.forEach(s=>(s.points||[]).forEach(p=>{minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x);maxY=Math.max(maxY,p.y)}));
+  if(!Number.isFinite(minX))return null;
+  const pad=8;minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);maxX=Math.min(canvasWidth,maxX+pad);maxY=Math.min(canvasHeight,maxY+pad);
+  const width=Math.max(20,maxX-minX),height=Math.max(20,maxY-minY);let pathsSvg='';
+  strokes.forEach(st=>{
+    const pts=st.points||[];if(pts.length<2)return;
+    if(st.nib==='ballpoint'||st.nib==='fountain'){
+      let d='M '+(pts[0].x-minX).toFixed(1)+' '+(pts[0].y-minY).toFixed(1)+' ';
+      for(let i=1;i<pts.length-1;i++){
+        const xc=((pts[i].x+pts[i+1].x)/2-minX).toFixed(1),yc=((pts[i].y+pts[i+1].y)/2-minY).toFixed(1);
+        const px=(pts[i].x-minX).toFixed(1),py=(pts[i].y-minY).toFixed(1);d+='Q '+px+' '+py+', '+xc+' '+yc+' '
+      }
+      pathsSvg+='<path d="'+d+'" fill="none" stroke="'+(st.color||'#0b3c8c')+'" stroke-width="'+(st.width||2.5)+'" stroke-linecap="round" stroke-linejoin="round"/>'
+    }else if(st.nib==='calligraphy'){
+      const angle=Math.PI/4,w=(st.width||2.5)*1.8,dx=Math.cos(angle)*(w/2),dy=Math.sin(angle)*(w/2);let polyD='';
+      for(let i=0;i<pts.length-1;i++){
+        const p1=pts[i],p2=pts[i+1];
+        polyD+='M '+(p1.x-dx-minX).toFixed(1)+' '+(p1.y-dy-minY).toFixed(1)+' '+
+               'L '+(p1.x+dx-minX).toFixed(1)+' '+(p1.y+dy-minY).toFixed(1)+' '+
+               'L '+(p2.x+dx-minX).toFixed(1)+' '+(p2.y+dy-minY).toFixed(1)+' '+
+               'L '+(p2.x-dx-minX).toFixed(1)+' '+(p2.y-dy-minY).toFixed(1)+' Z '
+      }
+      pathsSvg+='<path d="'+polyD+'" fill="'+(st.color||'#0b3c8c')+'"/>'
+    }
+  });
+  return {svg:'<svg viewBox="0 0 '+width.toFixed(1)+' '+height.toFixed(1)+'" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">'+pathsSvg+'</svg>',width,height}
+}
+function officialSignatureImageKey(role,sig){return officialSignatureRoleKey(role)+'|'+(sig?.updatedAt||'')}
+function officialSignatureDataUrl(svg){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
+async function officialLoadSignatureImage(role){
+  const sig=officialGetSignature(role);if(!sig?.svg)return null;
+  const key=officialSignatureImageKey(role,sig);if(officialSignatureImageCache.has(key))return officialSignatureImageCache.get(key);
+  const img=new Image(),promise=new Promise(resolve=>{img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=officialSignatureDataUrl(sig.svg)});
+  officialSignatureImageCache.set(key,promise);return promise
+}
+async function officialPrepareSignatureImages(){
+  await Promise.all(['student','guardian','teacher','principal','vice_principal','specialist'].map(role=>officialLoadSignatureImage(role)))
 }
 function officialDrawStoredSignature(ctx,role,cx,y,w=220,h=72){
-  const sig=officialGetSignature(role),strokes=sig?.strokes||[],b=officialSignatureBounds(strokes);if(!b)return false;
-  const pad=.05,usableW=w*(1-pad*2),usableH=h*(1-pad*2),scale=Math.min(usableW/b.w,usableH/b.h);
-  const drawW=b.w*scale,drawH=b.h*scale,left=cx-drawW/2,top=y+(h-drawH)/2;
-  const map=p=>({x:left+(p.x-b.minX)*scale,y:top+(p.y-b.minY)*scale});
-  const widthScale=Math.max(.9,Math.min(1.8,w/220));
-  strokes.forEach(st=>officialRenderSignatureStroke(ctx,st,map,widthScale));return true
+  const sig=officialGetSignature(role);if(!sig?.svg)return false;
+  const key=officialSignatureImageKey(role,sig),cached=officialSignatureImageCache.get(key);if(!cached)return false;
+  const draw=img=>{
+    if(!img)return false;
+    const ratio=(sig.width&&sig.height)?sig.width/sig.height:((img.naturalWidth||2)/(img.naturalHeight||1));
+    let dw=w,dh=dw/ratio;if(dh>h){dh=h;dw=dh*ratio}
+    ctx.drawImage(img,cx-dw/2,y+(h-dh)/2,dw,dh);return true
+  };
+  if(typeof cached.then==='function'){return false}
+  return draw(cached)
 }
-function officialSignaturePadRedraw(){
-  if(!officialSignaturePadCtx||!officialSignaturePad)return;
-  const ctx=officialSignaturePadCtx,w=officialSignaturePad.width,h=officialSignaturePad.height;ctx.clearRect(0,0,w,h);
-  const map=p=>({x:p.x*w,y:p.y*h});officialSignatureStrokes.forEach(st=>officialRenderSignatureStroke(ctx,st,map,1))
+async function officialPrimeSignatureImages(){
+  const roles=['student','guardian','teacher','principal','vice_principal','specialist'];
+  for(const role of roles){
+    const sig=officialGetSignature(role);if(!sig?.svg)continue;
+    const key=officialSignatureImageKey(role,sig),current=officialSignatureImageCache.get(key);
+    if(current&&typeof current.then!=='function')continue;
+    const img=await officialLoadSignatureImage(role);if(img)officialSignatureImageCache.set(key,img)
+  }
 }
 function officialSignatureResizePad(){
   if(!officialSignaturePad)return;const rect=officialSignaturePad.getBoundingClientRect();if(!rect.width)return;
-  officialSignaturePad.width=Math.max(320,Math.round(rect.width));officialSignaturePad.height=210;officialSignaturePadRedraw()
-}
-function officialSignaturePosition(e){
-  const rect=officialSignaturePad.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height)),t:Date.now()}
+  const saved=officialGetSignature(officialSignatureRole),normalized=officialSignatureStrokes.length?officialSignatureNormalizedStrokes():(saved?.strokes||[]);
+  officialSignaturePad.width=Math.max(320,Math.round(rect.width));officialSignaturePad.height=200;
+  officialSignatureStrokes=normalized.map(st=>({...st,points:(st.points||[]).map(p=>({x:p.x*officialSignaturePad.width,y:p.y*officialSignaturePad.height,time:p.time}))}));
+  officialSignatureRedraw()
 }
 function officialOpenSignatureCapture(role){
-  officialSignatureRole=role;const saved=officialGetSignature(role);officialSignatureStrokes=saved?.strokes?JSON.parse(JSON.stringify(saved.strokes)):[];
+  officialSignatureRole=role;const saved=officialGetSignature(role);
   const title=$('#officialSignatureTitle');if(title)title.textContent='توقيع '+officialSignatureRoleLabel(role);
   const dlg=$('#officialSignatureModal');if(!dlg)return;if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
-  requestAnimationFrame(()=>{officialSignatureResizePad();officialSignaturePadRedraw()})
+  requestAnimationFrame(()=>{
+    officialSignaturePad=$('#officialSignaturePad');officialSignatureResizePad();
+    officialSignatureStrokes=officialSignatureAbsoluteStrokes(saved);officialSignatureRedraw()
+  })
 }
-function officialSignatureClearPad(){officialSignatureStrokes=[];officialSignatureStroke=null;officialSignaturePadRedraw()}
+function officialSignatureClearPad(){officialSignatureStrokes=[];officialSignatureStroke=null;officialSignatureRedraw()}
 function officialSaveSignature(){
-  if(!officialSignatureBounds(officialSignatureStrokes)){toast('ارسم التوقيع أولاً');return}
-  officialSetSignature(officialSignatureRole,{strokes:officialSignatureStrokes,updatedAt:new Date().toISOString()});
-  const dlg=$('#officialSignatureModal');if(dlg?.open)dlg.close();toast('تم حفظ التوقيع محليًا')
+  if(!officialSignaturePad||!officialSignatureStrokes.some(st=>(st.points||[]).length>1)){toast('ارسم التوقيع أولاً');return}
+  const made=officialGenerateSignatureSvg(officialSignatureStrokes,officialSignaturePad.width,officialSignaturePad.height);if(!made){toast('تعذر حفظ التوقيع');return}
+  officialSetSignature(officialSignatureRole,{svg:made.svg,width:made.width,height:made.height,strokes:officialSignatureNormalizedStrokes(),updatedAt:new Date().toISOString()});
+  officialPrimeSignatureImages();
+  const dlg=$('#officialSignatureModal');if(dlg?.open)dlg.close();toast('تم حفظ التوقيع بنفس أبعاده ونسبته')
 }
 function officialClearAllSignatures(){
   if(!confirm('سيتم مسح جميع التوقيعات الرسمية المحفوظة على هذا الجهاز. هل تريد المتابعة؟'))return;
-  try{localStorage.removeItem(OFFICIAL_SIGNATURES_KEY)}catch{}officialRefreshSignatureButtons();toast('تم مسح التوقيعات المحفوظة')
+  try{localStorage.removeItem(OFFICIAL_SIGNATURES_KEY)}catch{}officialSignatureImageCache.clear();officialRefreshSignatureButtons();toast('تم مسح التوقيعات المحفوظة')
 }
 function officialInitSignaturePad(){
   officialSignaturePad=$('#officialSignaturePad');if(!officialSignaturePad||officialSignaturePad.dataset.ready)return;
@@ -209,17 +280,16 @@ function officialInitSignaturePad(){
   officialSignaturePad.addEventListener('pointerdown',e=>{
     e.preventDefault();officialSignatureDrawing=true;officialSignaturePad.setPointerCapture?.(e.pointerId);
     const width=parseFloat($('#officialSignatureWidth')?.value||'2.5'),color=$('#officialSignatureColor')?.value||'#0b3c8c',nib=$('#officialSignatureNib')?.value||'ballpoint';
-    officialSignatureStroke={points:[officialSignaturePosition(e)],color,width,nib};officialSignatureStrokes.push(officialSignatureStroke);officialSignaturePadRedraw()
+    officialSignatureStroke={points:[officialSignaturePadPoint(e)],color,width,nib};officialSignatureStrokes.push(officialSignatureStroke);
+    const p=officialSignatureStroke.points[0];officialSignaturePadCtx.fillStyle=color;officialSignaturePadCtx.beginPath();officialSignaturePadCtx.arc(p.x,p.y,width/2,0,Math.PI*2);officialSignaturePadCtx.fill()
   });
-  officialSignaturePad.addEventListener('pointermove',e=>{if(!officialSignatureDrawing||!officialSignatureStroke)return;e.preventDefault();officialSignatureStroke.points.push(officialSignaturePosition(e));officialSignaturePadRedraw()});
+  officialSignaturePad.addEventListener('pointermove',e=>{if(!officialSignatureDrawing||!officialSignatureStroke)return;e.preventDefault();officialSignatureStroke.points.push(officialSignaturePadPoint(e));officialSignatureRedraw()});
   const stop=()=>{officialSignatureDrawing=false;officialSignatureStroke=null};officialSignaturePad.addEventListener('pointerup',stop);officialSignaturePad.addEventListener('pointercancel',stop);
   $('#officialSignatureWidth')?.addEventListener('input',e=>{const v=$('#officialSignatureWidthValue');if(v)v.textContent=e.target.value});
   $('#clearOfficialSignaturePadBtn')?.addEventListener('click',officialSignatureClearPad);
   $('#saveOfficialSignatureBtn')?.addEventListener('click',officialSaveSignature);
-  window.addEventListener('resize',()=>{if($('#officialSignatureModal')?.open)officialSignatureResizePad()});
+  window.addEventListener('resize',()=>{if($('#officialSignatureModal')?.open)officialSignatureResizePad()})
 }
-
-
 
 function officialTeacherLogPages(recordId=''){
   const c=currentClass();if(!c)return [];
