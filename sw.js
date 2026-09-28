@@ -1,6 +1,6 @@
-// release 5.0.0-dev.7 official-forms-v2-signatures
+// release 5.0.0-dev.8 official-forms-v2-identity
 importScripts('./version.js');
-const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'5.0.0-dev.7');
+const CACHE='student-roster-pwa-v'+(self.APP_VERSION||'5.0.0-dev.8');
 const ASSETS=['./','./index.html','./styles.css','./behavior.css','./print.css','./app.js','./behavior.js','./official-forms.js','./version.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./assets/moe-logo.png'];
 
 async function broadcastUpdate(payload){
