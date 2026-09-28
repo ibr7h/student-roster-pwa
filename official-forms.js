@@ -655,11 +655,14 @@ function officialBehaviorPlanPages(){
 }
 function renderOfficialFormsSelectors(){
   const c=currentClass(),student=$('#officialFormsStudent'),record=$('#officialFormsRecord');if(!c||!student||!record)return;
+  const audience=typeof schoolAudience==='function'?schoolAudience():{student:'الطالب',studentName:'اسم الطالب'};
+  const studentFieldLabel=student.closest('label')?.querySelector('span');if(studentFieldLabel)studentFieldLabel.textContent=audience.student;
+  const studentSigLabel=document.querySelector('#officialSignatureButtons [data-sign-role="student"] span');if(studentSigLabel)studentSigLabel.textContent=audience.student;
   const prev=officialFormsStudentId||student.value||c.students?.[0]?.id||'';
   student.innerHTML=(c.students||[]).map(st=>`<option value="${escapeHtml(st.id)}">${escapeHtml(st.name)}</option>`).join('');
   officialFormsStudentId=(c.students||[]).some(st=>st.id===prev)?prev:(c.students?.[0]?.id||'');student.value=officialFormsStudentId;officialRefreshSignatureButtons();
   const recs=(c.behaviorRecords||[]).filter(r=>r.studentId===officialFormsStudentId).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-  record.innerHTML='<option value="">آخر سجل للطالب</option>'+recs.map(r=>`<option value="${escapeHtml(r.id)}">${escapeHtml(r.date||'')} — ${escapeHtml(r.violationLabel||'مخالفة')}</option>`).join('');
+  record.innerHTML='<option value="">آخر سجل لـ'+audience.student+'</option>'+recs.map(r=>`<option value="${escapeHtml(r.id)}">${escapeHtml(r.date||'')} — ${escapeHtml(r.violationLabel||'مخالفة')}</option>`).join('');
   if(recs.some(r=>r.id===officialFormsRecordId))record.value=officialFormsRecordId;else{officialFormsRecordId='';record.value=''}
   const stats=$('#officialFormsStudentStats'),st=officialStudent();if(stats&&st){const n=officialAbsenceCounts(st);stats.textContent=`غياب بعذر: ${arabicNum(n.excused)} · بدون عذر: ${arabicNum(n.unexcused)} · مخالفات: ${arabicNum(recs.length)}`}
   const identitySummary=$('#officialFormsIdentitySummary');if(identitySummary)identitySummary.textContent=officialIdentitySummaryText();
