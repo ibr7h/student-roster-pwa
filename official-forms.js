@@ -2,6 +2,11 @@
    Reference: Ministry of Education, Rules of Behavior and Attendance,
    fifth edition 1447H / 2025. */
 const OFFICIAL_FORM_FONT='"Sakkal Majalla","Traditional Arabic","Noto Naskh Arabic",Arial,Tahoma,sans-serif';
+const OFFICIAL_A4_WIDTH=1240,OFFICIAL_A4_HEIGHT=1754,OFFICIAL_A4_SIDE=118;
+function officialFitWidths(widths,W=OFFICIAL_A4_WIDTH,M=OFFICIAL_A4_SIDE){
+  const total=widths.reduce((sum,v)=>sum+v,0)||1,available=W-2*M;let used=0;
+  return widths.map((v,i)=>{const n=i===widths.length-1?available-used:Math.round(v/total*available);used+=n;return n})
+}
 let officialFormsStudentId='',officialFormsRecordId='';
 
 async function officialEnsurePrintReady(){
