@@ -66,4 +66,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# V2 preview refresh: signature-svg-v2
+# V2 preview refresh: school-identity-dev8
