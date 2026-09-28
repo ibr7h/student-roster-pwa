@@ -26,14 +26,17 @@ function officialRefSize(cssPx){return Math.round(cssPx*1.42)}
 function officialFont(ctx,size=24,weight='400'){
   ctx.font=`${weight} ${size}px ${OFFICIAL_FORM_FONT}`;
 }
-function officialText(ctx,text,x,y,size=24,weight='400',align='right',color='#194f5b'){
+function officialText(ctx,text,x,y,size=24,weight='400',align='right',color='#000000'){
   ctx.save();ctx.direction='rtl';ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillStyle=color;officialFont(ctx,size,weight);ctx.fillText(String(text??''),x,y);ctx.restore()
 }
-function officialLine(ctx,x1,y1,x2,y2,width=1,color='#aeb5b7'){
+function officialLine(ctx,x1,y1,x2,y2,width=1,color='#000000'){
   ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore()
 }
-function officialDottedLine(ctx,x1,y,x2,color='#2b4854'){
-  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=1.3;ctx.setLineDash([2.5,3.5]);ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();ctx.restore()
+function officialDottedLine(ctx,x1,y,x2,color='#444444'){
+  ctx.save();ctx.fillStyle=color;
+  const start=Math.min(x1,x2),end=Math.max(x1,x2),step=7,r=1.25;
+  for(let x=start;x<=end;x+=step){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+  ctx.restore()
 }
 function officialWrappedLines(ctx,text,maxWidth,size=21,weight='400',maxLines=4){
   const words=String(text||'').trim().split(/\s+/).filter(Boolean);if(!words.length)return [];
@@ -45,13 +48,14 @@ function officialWrappedLines(ctx,text,maxWidth,size=21,weight='400',maxLines=4)
   }
   if(line&&lines.length<maxLines)lines.push(line);ctx.restore();return lines
 }
-function officialWrappedText(ctx,text,x,y,maxWidth,{size=21,weight='400',lineHeight=30,maxLines=4,align='right',color='#194f5b'}={}){
+function officialWrappedText(ctx,text,x,y,maxWidth,{size=21,weight='400',lineHeight=30,maxLines=4,align='right',color='#000000'}={}){
   const lines=officialWrappedLines(ctx,text,maxWidth,size,weight,maxLines);
   lines.forEach((ln,i)=>officialText(ctx,ln,x,y+i*lineHeight,size,weight,align,color));
   return y+Math.max(1,lines.length)*lineHeight
 }
-function officialCell(ctx,x,y,w,h,text,{size=18,weight='400',align='center',fill='#fff',maxLines=4}={}){
-  ctx.save();ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.strokeStyle='#657b89';ctx.lineWidth=1.4;ctx.strokeRect(x,y,w,h);ctx.restore();
+function officialCell(ctx,x,y,w,h,text,{size=18,weight='400',align='center',fill='',maxLines=4}={}){
+  const cellFill=fill||((weight==='700'||weight==='bold')?'#f8fafc':'#fff');
+  ctx.save();ctx.fillStyle=cellFill;ctx.fillRect(x,y,w,h);ctx.strokeStyle='#000';ctx.lineWidth=1.2;ctx.strokeRect(x,y,w,h);ctx.restore();
   const lines=officialWrappedLines(ctx,text,w-12,size,weight,maxLines),lh=Math.min(size*1.35,h/Math.max(1,lines.length));
   const start=y+h/2-(Math.max(1,lines.length)-1)*lh/2;
   if(!lines.length)officialText(ctx,'',x+w/2,y+h/2,size,weight,align);
@@ -63,11 +67,11 @@ function officialLogo(ctx,cx,y,w=150,h=90){
 }
 function officialHeader(ctx,title,{confidential='',titleY=250}={}){
   const W=OFFICIAL_A4_WIDTH,M=OFFICIAL_A4_SIDE,gov=state.appMeta||{},center=W/2;
-  officialText(ctx,'المملكة العربية السعودية',W-M,92,28,'400');
-  officialText(ctx,'وزارة التعليـــــــــــــــــم',W-M,132,28,'400');
+  officialText(ctx,'المملكة العربية السعودية',W-M,92,28,'700');
+  officialText(ctx,'وزارة التعليـــــــــــــــــم',W-M,132,27,'400');
   officialLogo(ctx,center,48,190,112);
-  officialText(ctx,'المنطقة/المحافظة: '+(gov.region||'........................'),M,96,26,'400','left');
-  officialText(ctx,'المدرسة: '+(gov.school||'........................'),M,139,26,'400','left');
+  officialText(ctx,'المنطقة/المحافظة: '+(gov.region||'........................'),M,96,25,'400','left');
+  officialText(ctx,'المدرسة: '+(gov.school||'........................'),M,139,25,'400','left');
   if(confidential)officialText(ctx,confidential,center,titleY-62,30,'700','center','#222');
   officialText(ctx,title,center,titleY,40,'700','center');
 }
@@ -102,6 +106,114 @@ function officialSignatureBlock(ctx,x,y,title,name=''){
   officialText(ctx,'التاريخ: .........................................',x,y+120,20,'400','center')
 }
 function officialPageNumber(ctx,n){officialText(ctx,String(n),OFFICIAL_A4_SIDE,OFFICIAL_A4_HEIGHT-48,18,'400','left','#94a3b8')}
+
+
+const OFFICIAL_SIGNATURES_KEY='student-roster-official-signatures-v1';
+let officialSignatureRole='',officialSignaturePad=null,officialSignaturePadCtx=null,officialSignatureDrawing=false,officialSignatureStrokes=[],officialSignatureStroke=null;
+
+function officialSignatureRoleLabel(role){
+  return {student:'الطالب/الطالبة',guardian:'ولي الأمر',teacher:'المعلم/المعلمة',principal:'مدير/مديرة المدرسة',vice_principal:'وكيل/وكيلة شؤون الطلبة',specialist:'القائم بتعديل السلوك'}[role]||role
+}
+function officialSignatureStore(){
+  try{return JSON.parse(localStorage.getItem(OFFICIAL_SIGNATURES_KEY)||'{}')||{}}catch{return {}}
+}
+function officialSignatureRoleKey(role){
+  const c=currentClass(),st=officialStudent();
+  if(role==='student'||role==='guardian')return [role,c?.id||'class',st?.id||'student'].join(':');
+  return role
+}
+function officialGetSignature(role){
+  const store=officialSignatureStore();return store[officialSignatureRoleKey(role)]||null
+}
+function officialSetSignature(role,value){
+  const store=officialSignatureStore(),key=officialSignatureRoleKey(role);
+  if(value)store[key]=value;else delete store[key];
+  try{localStorage.setItem(OFFICIAL_SIGNATURES_KEY,JSON.stringify(store))}catch{}
+  officialRefreshSignatureButtons()
+}
+function officialRefreshSignatureButtons(){
+  document.querySelectorAll('#officialSignatureButtons [data-sign-role]').forEach(btn=>{
+    const saved=!!officialGetSignature(btn.dataset.signRole);btn.classList.toggle('saved',saved);
+    const small=btn.querySelector('small');if(small)small.textContent=saved?'محفوظ — اضغط للتعديل':'غير محفوظ — اضغط للتوقيع'
+  })
+}
+function officialSignatureBounds(strokes){
+  let minX=1,minY=1,maxX=0,maxY=0,has=false;
+  (strokes||[]).forEach(st=>(st.points||[]).forEach(p=>{has=true;minX=Math.min(minX,p.x);minY=Math.min(minY,p.y);maxX=Math.max(maxX,p.x);maxY=Math.max(maxY,p.y)}));
+  return has?{minX,minY,maxX,maxY,w:Math.max(.02,maxX-minX),h:Math.max(.02,maxY-minY)}:null
+}
+function officialRenderSignatureStroke(ctx,stroke,map,widthScale=1){
+  const pts=stroke.points||[];if(!pts.length)return;
+  const mp=pts.map(map);ctx.save();ctx.strokeStyle=stroke.color||'#0b3c8c';ctx.fillStyle=stroke.color||'#0b3c8c';ctx.lineCap='round';ctx.lineJoin='round';
+  const base=Math.max(.8,(stroke.width||2.5)*widthScale);
+  if(mp.length===1){ctx.beginPath();ctx.arc(mp[0].x,mp[0].y,base/2,0,Math.PI*2);ctx.fill();ctx.restore();return}
+  if(stroke.nib==='calligraphy'){
+    const angle=Math.PI/4,w=base*1.8,dx=Math.cos(angle)*w/2,dy=Math.sin(angle)*w/2;
+    for(let i=0;i<mp.length-1;i++){const a=mp[i],b=mp[i+1];ctx.beginPath();ctx.moveTo(a.x-dx,a.y-dy);ctx.lineTo(a.x+dx,a.y+dy);ctx.lineTo(b.x+dx,b.y+dy);ctx.lineTo(b.x-dx,b.y-dy);ctx.closePath();ctx.fill()}
+  }else{
+    ctx.lineWidth=base;ctx.beginPath();ctx.moveTo(mp[0].x,mp[0].y);
+    if(stroke.nib==='fountain'){
+      for(let i=1;i<mp.length;i++){ctx.lineTo(mp[i].x,mp[i].y)}
+    }else{
+      for(let i=1;i<mp.length-1;i++){const mid={x:(mp[i].x+mp[i+1].x)/2,y:(mp[i].y+mp[i+1].y)/2};ctx.quadraticCurveTo(mp[i].x,mp[i].y,mid.x,mid.y)}
+      ctx.lineTo(mp[mp.length-1].x,mp[mp.length-1].y)
+    }
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+function officialDrawStoredSignature(ctx,role,cx,y,w=220,h=72){
+  const sig=officialGetSignature(role),strokes=sig?.strokes||[],b=officialSignatureBounds(strokes);if(!b)return false;
+  const pad=.05,usableW=w*(1-pad*2),usableH=h*(1-pad*2),scale=Math.min(usableW/b.w,usableH/b.h);
+  const drawW=b.w*scale,drawH=b.h*scale,left=cx-drawW/2,top=y+(h-drawH)/2;
+  const map=p=>({x:left+(p.x-b.minX)*scale,y:top+(p.y-b.minY)*scale});
+  const widthScale=Math.max(.9,Math.min(1.8,w/220));
+  strokes.forEach(st=>officialRenderSignatureStroke(ctx,st,map,widthScale));return true
+}
+function officialSignaturePadRedraw(){
+  if(!officialSignaturePadCtx||!officialSignaturePad)return;
+  const ctx=officialSignaturePadCtx,w=officialSignaturePad.width,h=officialSignaturePad.height;ctx.clearRect(0,0,w,h);
+  const map=p=>({x:p.x*w,y:p.y*h});officialSignatureStrokes.forEach(st=>officialRenderSignatureStroke(ctx,st,map,1))
+}
+function officialSignatureResizePad(){
+  if(!officialSignaturePad)return;const rect=officialSignaturePad.getBoundingClientRect();if(!rect.width)return;
+  officialSignaturePad.width=Math.max(320,Math.round(rect.width));officialSignaturePad.height=210;officialSignaturePadRedraw()
+}
+function officialSignaturePosition(e){
+  const rect=officialSignaturePad.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height)),t:Date.now()}
+}
+function officialOpenSignatureCapture(role){
+  officialSignatureRole=role;const saved=officialGetSignature(role);officialSignatureStrokes=saved?.strokes?structuredClone(saved.strokes):[];
+  const title=$('#officialSignatureTitle');if(title)title.textContent='توقيع '+officialSignatureRoleLabel(role);
+  const dlg=$('#officialSignatureModal');if(!dlg)return;if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
+  requestAnimationFrame(()=>{officialSignatureResizePad();officialSignaturePadRedraw()})
+}
+function officialSignatureClearPad(){officialSignatureStrokes=[];officialSignatureStroke=null;officialSignaturePadRedraw()}
+function officialSaveSignature(){
+  if(!officialSignatureBounds(officialSignatureStrokes)){toast('ارسم التوقيع أولاً');return}
+  officialSetSignature(officialSignatureRole,{strokes:officialSignatureStrokes,updatedAt:new Date().toISOString()});
+  const dlg=$('#officialSignatureModal');if(dlg?.open)dlg.close();toast('تم حفظ التوقيع محليًا')
+}
+function officialClearAllSignatures(){
+  if(!confirm('سيتم مسح جميع التوقيعات الرسمية المحفوظة على هذا الجهاز. هل تريد المتابعة؟'))return;
+  try{localStorage.removeItem(OFFICIAL_SIGNATURES_KEY)}catch{}officialRefreshSignatureButtons();toast('تم مسح التوقيعات المحفوظة')
+}
+function officialInitSignaturePad(){
+  officialSignaturePad=$('#officialSignaturePad');if(!officialSignaturePad||officialSignaturePad.dataset.ready)return;
+  officialSignaturePad.dataset.ready='1';officialSignaturePadCtx=officialSignaturePad.getContext('2d');
+  officialSignaturePad.addEventListener('pointerdown',e=>{
+    e.preventDefault();officialSignatureDrawing=true;officialSignaturePad.setPointerCapture?.(e.pointerId);
+    const width=parseFloat($('#officialSignatureWidth')?.value||'2.5'),color=$('#officialSignatureColor')?.value||'#0b3c8c',nib=$('#officialSignatureNib')?.value||'ballpoint';
+    officialSignatureStroke={points:[officialSignaturePosition(e)],color,width,nib};officialSignatureStrokes.push(officialSignatureStroke);officialSignaturePadRedraw()
+  });
+  officialSignaturePad.addEventListener('pointermove',e=>{if(!officialSignatureDrawing||!officialSignatureStroke)return;e.preventDefault();officialSignatureStroke.points.push(officialSignaturePosition(e));officialSignaturePadRedraw()});
+  const stop=()=>{officialSignatureDrawing=false;officialSignatureStroke=null};officialSignaturePad.addEventListener('pointerup',stop);officialSignaturePad.addEventListener('pointercancel',stop);
+  $('#officialSignatureWidth')?.addEventListener('input',e=>{const v=$('#officialSignatureWidthValue');if(v)v.textContent=e.target.value});
+  $('#clearOfficialSignaturePadBtn')?.addEventListener('click',officialSignatureClearPad);
+  $('#saveOfficialSignatureBtn')?.addEventListener('click',officialSaveSignature);
+  window.addEventListener('resize',()=>{if($('#officialSignatureModal')?.open)officialSignatureResizePad()});
+}
+
 
 
 function officialTeacherLogPages(recordId=''){
