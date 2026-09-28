@@ -709,6 +709,20 @@
         <div class="official-forms-stats" id="officialFormsStudentStats"></div>
       </section>
       <div class="official-forms-note"><b>خط الطباعة</b><span>التقارير مضبوطة على Sakkal Majalla كما في النماذج المرجعية، مع بدائل عربية تلقائية إذا لم يكن الخط متاحًا على الجهاز.</span></div>
+      <section class="official-signatures-panel">
+        <div class="official-signatures-head">
+          <div><b>التوقيعات الإلكترونية</b><small>تُحفظ محليًا على هذا الجهاز وتظهر تلقائيًا في النماذج الرسمية.</small></div>
+          <button type="button" class="btn" id="clearOfficialSignaturesBtn">مسح التوقيعات المحفوظة</button>
+        </div>
+        <div class="official-signatures-grid" id="officialSignatureButtons">
+          <button type="button" data-sign-role="student"><span>الطالب/الطالبة</span><small>غير محفوظ</small></button>
+          <button type="button" data-sign-role="guardian"><span>ولي الأمر</span><small>غير محفوظ</small></button>
+          <button type="button" data-sign-role="teacher"><span>المعلم/المعلمة</span><small>غير محفوظ</small></button>
+          <button type="button" data-sign-role="principal"><span>مدير/مديرة المدرسة</span><small>غير محفوظ</small></button>
+          <button type="button" data-sign-role="vice_principal"><span>وكيل/وكيلة شؤون الطلبة</span><small>غير محفوظ</small></button>
+          <button type="button" data-sign-role="specialist"><span>القائم بتعديل السلوك</span><small>غير محفوظ</small></button>
+        </div>
+      </section>
       <section class="official-forms-grid" id="officialFormsGrid">
         <button type="button" class="official-form-card ready" data-official-form="attendance-commitment"><span>المواظبة</span><b>تعهد الالتزام بالحضور</b><small>يقرأ الغياب بدون عذر من سجل الطالب.</small></button>
         <button type="button" class="official-form-card ready" data-official-form="absence-excused"><span>المواظبة</span><b>نموذج إجراءات الغياب بعذر</b><small>عتبات ٣، ٥، ١٠ أيام.</small></button>
@@ -727,6 +741,29 @@
       </section>
     </div>
     <div class="modalfooter"><button class="btn" data-close>إغلاق</button></div>
+  </div>
+</dialog>
+
+<dialog class="modal official-signature-modal" id="officialSignatureModal">
+  <div class="modalbox">
+    <div class="modalhead">
+      <div><p class="eyebrow">التوقيع الإلكتروني</p><h3 id="officialSignatureTitle">إضافة توقيع</h3><small>ارسم التوقيع بإصبعك أو Apple Pencil أو الماوس.</small></div>
+      <button class="iconbtn" data-close aria-label="إغلاق">×</button>
+    </div>
+    <div class="modalbody official-signature-body">
+      <div class="official-signature-controls">
+        <label><span>لون الحبر</span><select id="officialSignatureColor"><option value="#0b3c8c">أزرق رسمي</option><option value="#111827">أسود</option><option value="#196f3d">أخضر</option></select></label>
+        <label><span>نوع القلم</span><select id="officialSignatureNib"><option value="ballpoint">حبر جاف</option><option value="fountain">حبر سائل</option><option value="calligraphy">ريشة خطاط</option></select></label>
+        <label><span>السُمك</span><input id="officialSignatureWidth" type="range" min="1.5" max="6" step=".5" value="2.5"><b id="officialSignatureWidthValue">2.5</b></label>
+      </div>
+      <div class="official-signature-canvas-wrap"><canvas id="officialSignaturePad"></canvas></div>
+      <div class="official-signature-hint">التوقيع متجهي ويُعاد رسمه داخل PDF بجودة عالية.</div>
+    </div>
+    <div class="modalfooter">
+      <button class="btn danger" id="clearOfficialSignaturePadBtn">مسح اللوحة</button>
+      <button class="btn" data-close>إلغاء</button>
+      <button class="btn primary" id="saveOfficialSignatureBtn">اعتماد التوقيع</button>
+    </div>
   </div>
 </dialog>
 
