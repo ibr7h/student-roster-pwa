@@ -1265,3 +1265,26 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
 }
 .dev-preview-banner b{font-size:13px}
 @media(max-width:640px){.dev-preview-banner{align-items:flex-start;flex-direction:column;gap:3px;text-align:right}}
+
+.official-signatures-panel{border:1px solid #d9e4e5;background:#fff;border-radius:12px;padding:11px;display:grid;gap:10px}
+.official-signatures-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.official-signatures-head>div{display:grid;gap:2px}.official-signatures-head b{font-size:12px}.official-signatures-head small{font-size:9.5px;color:var(--muted)}
+.official-signatures-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.official-signatures-grid button{border:1px solid #d9e2e4;background:#fafcfc;border-radius:10px;padding:9px 10px;display:grid;gap:3px;text-align:right;font:inherit;cursor:pointer}
+.official-signatures-grid button span{font-size:11px;font-weight:900;color:#20333b}.official-signatures-grid button small{font-size:9px;color:#8a9498}
+.official-signatures-grid button.saved{border-color:#9acbbb;background:#f3fbf7}.official-signatures-grid button.saved small{color:#24765d;font-weight:900}
+.official-signature-modal .modalbox{width:min(620px,calc(100vw - 18px))}
+.official-signature-body{display:grid;gap:12px}
+.official-signature-controls{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px}
+.official-signature-controls label{display:grid;gap:4px;font-size:10px;font-weight:800}.official-signature-controls select,.official-signature-controls input{min-width:0}
+.official-signature-controls label:last-child{grid-template-columns:auto 1fr auto;align-items:center;column-gap:7px}.official-signature-controls label:last-child span{grid-column:1/-1}
+.official-signature-canvas-wrap{background:#fafafa;padding:10px;border-radius:10px;border:1px solid #dce4e7;touch-action:none}
+#officialSignaturePad{display:block;width:100%;height:210px;background:#fff;border:2px dashed #cbd5e1;border-radius:8px;touch-action:none;cursor:crosshair}
+.official-signature-hint{font-size:9.5px;color:var(--muted);text-align:center}
+@media(max-width:640px){
+  .official-signatures-head{align-items:stretch;flex-direction:column}.official-signatures-head .btn{width:100%}
+  .official-signatures-grid{grid-template-columns:1fr 1fr}
+  .official-signature-controls{grid-template-columns:1fr}
+  .official-signature-controls label:last-child{grid-template-columns:auto 1fr auto}
+}
+@media(max-width:390px){.official-signatures-grid{grid-template-columns:1fr}}
