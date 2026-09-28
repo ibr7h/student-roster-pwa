@@ -488,6 +488,7 @@ function behaviorTeacherLogPdfPage(records,c,pageIndex,pageCount,startOrdinal=0)
   attendancePdfText(ctx,g.teacher,W*.72,signY,14,'400','center');
   attendancePdfText(ctx,x.teacher||'—',W*.72,signY+25,16,'700','center');
   attendancePdfText(ctx,'التوقيع: __________________',W*.72,signY+49,13,'400','center');
+  if(typeof officialDrawStoredSignature==='function')officialDrawStoredSignature(ctx,'teacher',W*.72,signY+24,200,52);
   attendancePdfText(ctx,'التاريخ',W*.28,signY,14,'400','center');
   attendancePdfText(ctx,formatDate(localDateISO()),W*.28,signY+25,16,'700','center');
   attendancePdfText(ctx,'__________________',W*.28,signY+49,13,'400','center');
