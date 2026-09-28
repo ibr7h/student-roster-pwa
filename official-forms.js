@@ -183,7 +183,7 @@ function officialSignaturePosition(e){
   const rect=officialSignaturePad.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height)),t:Date.now()}
 }
 function officialOpenSignatureCapture(role){
-  officialSignatureRole=role;const saved=officialGetSignature(role);officialSignatureStrokes=saved?.strokes?structuredClone(saved.strokes):[];
+  officialSignatureRole=role;const saved=officialGetSignature(role);officialSignatureStrokes=saved?.strokes?JSON.parse(JSON.stringify(saved.strokes)):[];
   const title=$('#officialSignatureTitle');if(title)title.textContent='توقيع '+officialSignatureRoleLabel(role);
   const dlg=$('#officialSignatureModal');if(!dlg)return;if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
   requestAnimationFrame(()=>{officialSignatureResizePad();officialSignaturePadRedraw()})
@@ -237,6 +237,7 @@ function officialTeacherLogPages(recordId=''){
     officialText(ctx,'المعلم/ المعلمة',300,1420,officialRefSize(22),'700','center');
     officialText(ctx,'الاسم: '+(state.appMeta?.teacher||'........................................'),300,1470,sign,'400','center');
     officialText(ctx,'التوقيع: ........................................',300,1520,sign,'400','center');
+    officialDrawStoredSignature(ctx,'teacher',300,1490,230,62);
     officialText(ctx,'التاريخ: .........................................',300,1570,sign,'400','center');
     return officialPage(canvas)
   })
@@ -258,10 +259,11 @@ function officialBehaviorUndertakingPage(){
   officialText(ctx,'وهي',right,y,body);officialDottedLine(ctx,M+15,y,right-55);officialWrappedText(ctx,r.violationLabel||'',right-70,y,870,{size:officialRefSize(20),lineHeight:34,maxLines:2});y+=92;
   officialWrappedText(ctx,'وأتعهد بعدم تكرار أي مشكلة سلوكية مستقبلاً وعلى ذلك جرى التوقيع.',right,y,W-2*M,{size:body,lineHeight:42,maxLines:2});
   const sy=1280;
-  [['الطالب/الطالبة',st.name,900],['ولي الأمر','',620],['مدير/مديرة المدرسة',state.appMeta?.principal||'',320]].forEach(([title,name,x])=>{
+  [['الطالب/الطالبة',st.name,900,'student'],['ولي الأمر','',620,'guardian'],['مدير/مديرة المدرسة',state.appMeta?.principal||'',320,'principal']].forEach(([title,name,x,role])=>{
     officialText(ctx,title,x,sy,officialRefSize(23),'700','center');
     officialText(ctx,'الاسم: '+(name||'................................'),x,sy+58,sign,'400','center');
     officialText(ctx,'التوقيع: ................................',x,sy+110,sign,'400','center');
+    officialDrawStoredSignature(ctx,role,x,sy+78,210,62);
     officialText(ctx,'التاريخ: ................................',x,sy+162,sign,'400','center');
   });
   return officialPage(canvas)
@@ -285,6 +287,7 @@ function officialParentNoticePage(){
   officialText(ctx,'مدير/مديرة المدرسة',315,1335,body,'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'........................................'),315,1390,small,'400','center');
   officialText(ctx,'التوقيع: ........................................',315,1445,small,'400','center');
+  officialDrawStoredSignature(ctx,'principal',315,1415,220,62);
   return officialPage(canvas)
 }
 function officialParentInvitationPage(){
@@ -303,6 +306,7 @@ function officialParentInvitationPage(){
   officialText(ctx,'مدير/مديرة المدرسة',315,990,officialRefSize(22),'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1045,small,'400','center');
   officialText(ctx,'التوقيع: ................................',315,1095,small,'400','center');
+  officialDrawStoredSignature(ctx,'principal',315,1065,220,62);
   officialText(ctx,'التاريخ: ................................',315,1145,small,'400','center');
   officialLine(ctx,M,1220,W-M,1220,1,'#cbd5e1');
   officialText(ctx,'رد ولي الأمر:',right,1270,officialRefSize(22),'700');y=1330;
@@ -310,6 +314,7 @@ function officialParentInvitationPage(){
   officialText(ctx,'□ أقر بالعلم، وأرغب بتغيير الموعد (خلال نفس الأسبوع)، وذلك في يوم ........................ الموافق '+officialHijriPlaceholder(),right,y,officialRefSize(20));y+=92;
   officialText(ctx,'الاسم: ........................................',400,1490,small,'400','center');
   officialText(ctx,'التوقيع: .....................................',400,1540,small,'400','center');
+  officialDrawStoredSignature(ctx,'guardian',400,1510,220,62);
   officialText(ctx,'التاريخ: ......................................',400,1590,small,'400','center');
   officialPageNumber(ctx,68);
   return officialPage(canvas)
@@ -335,6 +340,7 @@ function officialAbsenceProceduresPage(kind='excused'){
   officialText(ctx,'مدير/مديرة المدرسة',315,1430,officialRefSize(22),'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1485,sign,'400','center');
   officialText(ctx,'التوقيع: ................................',315,1535,sign,'400','center');
+  officialDrawStoredSignature(ctx,'principal',315,1505,220,62);
   officialText(ctx,'التاريخ: ................................',315,1585,sign,'400','center');
   return officialPage(canvas)
 }
@@ -349,10 +355,11 @@ function officialAttendanceCommitmentPage(){
   officialText(ctx,'أيام، بتاريخ',610,y,body);officialDottedLine(ctx,M+15,y,480);if(dates.length)officialWrappedText(ctx,dates.join('، '),465,y,320,{size:officialRefSize(18),lineHeight:30,maxLines:2,align:'right'});y+=88;
   officialWrappedText(ctx,'وأتعهد بالالتزام بالخطة التربوية والعلاجية المقدمة لتحسين الحضور، وعلى ذلك جرى التوقيع.',right,y,W-2*M,{size:body,lineHeight:42,maxLines:2});
   const sy=1280;
-  [['الطالب/الطالبة',st.name,900],['ولي الأمر','',620],['مدير/مديرة المدرسة',state.appMeta?.principal||'',320]].forEach(([title,name,x])=>{
+  [['الطالب/الطالبة',st.name,900,'student'],['ولي الأمر','',620,'guardian'],['مدير/مديرة المدرسة',state.appMeta?.principal||'',320,'principal']].forEach(([title,name,x,role])=>{
     officialText(ctx,title,x,sy,officialRefSize(23),'700','center');
     officialText(ctx,'الاسم: '+(name||'................................'),x,sy+58,sign,'400','center');
     officialText(ctx,'التوقيع: ................................',x,sy+110,sign,'400','center');
+    officialDrawStoredSignature(ctx,role,x,sy+78,210,62);
     officialText(ctx,'التاريخ: ................................',x,sy+162,sign,'400','center');
   });
   return officialPage(canvas)
@@ -372,6 +379,7 @@ function officialHighRiskPage(){
   officialText(ctx,'مدير/مديرة المدرسة',315,1430,officialRefSize(22),'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1485,sign,'400','center');
   officialText(ctx,'التوقيع: ................................',315,1535,sign,'400','center');
+  officialDrawStoredSignature(ctx,'principal',315,1505,220,62);
   officialText(ctx,'التاريخ: ................................',315,1585,sign,'400','center');
   return officialPage(canvas)
 }
@@ -394,14 +402,17 @@ function officialIncidentReportPage(){
   officialText(ctx,'الطالب/الطالبة',915,1380,body,'700','center');
   officialText(ctx,'الاسم: '+(st.name||'................................'),915,1430,small,'400','center');
   officialText(ctx,'التوقيع: ................................',915,1480,small,'400','center');
+  officialDrawStoredSignature(ctx,'student',915,1450,210,62);
   officialText(ctx,'التاريخ: ................................',915,1530,small,'400','center');
   officialText(ctx,'ولي الأمر',620,1380,body,'700','center');
   officialText(ctx,'الاسم: ................................',620,1430,small,'400','center');
   officialText(ctx,'التوقيع: ................................',620,1480,small,'400','center');
+  officialDrawStoredSignature(ctx,'guardian',620,1450,210,62);
   officialText(ctx,'التاريخ: ................................',620,1530,small,'400','center');
   officialText(ctx,'مدير/مديرة المدرسة',320,1380,body,'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),320,1430,small,'400','center');
   officialText(ctx,'التوقيع: ................................',320,1480,small,'400','center');
+  officialDrawStoredSignature(ctx,'principal',320,1450,210,62);
   officialText(ctx,'التاريخ: ................................',320,1530,small,'400','center');
   return officialPage(canvas)
 }
@@ -422,6 +433,7 @@ function officialPositiveCompensationPage(){
   officialText(ctx,'مدير/مديرة المدرسة',315,1430,officialRefSize(22),'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1485,sign,'400','center');
   officialText(ctx,'التوقيع: ................................',315,1535,sign,'400','center');
+  officialDrawStoredSignature(ctx,'principal',315,1505,220,62);
   officialText(ctx,'التاريخ: ................................',315,1585,sign,'400','center');
   return officialPage(canvas)
 }
@@ -442,6 +454,7 @@ function officialBehaviorProblemPage(){
   officialText(ctx,'مدير/مديرة المدرسة',315,1430,officialRefSize(22),'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1485,sign,'400','center');
   officialText(ctx,'التوقيع: ................................',315,1535,sign,'400','center');
+  officialDrawStoredSignature(ctx,'principal',315,1505,220,62);
   officialText(ctx,'التاريخ: ................................',315,1585,sign,'400','center');
   return officialPage(canvas)
 }
@@ -458,6 +471,7 @@ function officialDistinguishedBehaviorPage(){
   officialText(ctx,'مدير/مديرة المدرسة',315,1410,officialRefSize(22),'700','center');
   officialText(ctx,'الاسم: '+(state.appMeta?.principal||'................................'),315,1460,sign,'400','center');
   officialText(ctx,'التوقيع: ................................',315,1510,sign,'400','center');
+  officialDrawStoredSignature(ctx,'principal',315,1480,220,62);
   officialText(ctx,'التاريخ: ................................',315,1560,sign,'400','center');
   officialPageNumber(ctx,59);
   return officialPage(canvas)
@@ -478,6 +492,7 @@ function officialReferralPage(){
   officialText(ctx,'وكيل/وكيلة شؤون الطلبة',320,1295,body,'700','center');
   officialText(ctx,'الاسم: ........................................',320,1355,small,'400','center');
   officialText(ctx,'التوقيع: .....................................',320,1410,small,'400','center');
+  officialDrawStoredSignature(ctx,'vice_principal',320,1380,220,62);
   officialText(ctx,'التاريخ: ......................................',320,1465,small,'400','center');
   return officialPage(canvas)
 }
@@ -530,6 +545,7 @@ function officialBehaviorPlanPages(){
     officialText(ctx,'القائم بتعديل السلوك (معلم/معلمة - موجه طلابي/موجهة طلابية)',355,1380,body,'400','center');
     officialText(ctx,'الاسم: ................................................',355,1435,officialRefSize(18),'400','center');
     officialText(ctx,'التوقيع: .............................................',355,1485,officialRefSize(18),'400','center');
+    officialDrawStoredSignature(ctx,'specialist',355,1455,240,62);
     officialText(ctx,'التاريخ: ..............................................',355,1535,officialRefSize(18),'400','center');
     pages.push(officialPage(canvas))
   }
@@ -539,7 +555,7 @@ function renderOfficialFormsSelectors(){
   const c=currentClass(),student=$('#officialFormsStudent'),record=$('#officialFormsRecord');if(!c||!student||!record)return;
   const prev=officialFormsStudentId||student.value||c.students?.[0]?.id||'';
   student.innerHTML=(c.students||[]).map(st=>`<option value="${escapeHtml(st.id)}">${escapeHtml(st.name)}</option>`).join('');
-  officialFormsStudentId=(c.students||[]).some(st=>st.id===prev)?prev:(c.students?.[0]?.id||'');student.value=officialFormsStudentId;
+  officialFormsStudentId=(c.students||[]).some(st=>st.id===prev)?prev:(c.students?.[0]?.id||'');student.value=officialFormsStudentId;officialRefreshSignatureButtons();
   const recs=(c.behaviorRecords||[]).filter(r=>r.studentId===officialFormsStudentId).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   record.innerHTML='<option value="">آخر سجل للطالب</option>'+recs.map(r=>`<option value="${escapeHtml(r.id)}">${escapeHtml(r.date||'')} — ${escapeHtml(r.violationLabel||'مخالفة')}</option>`).join('');
   if(recs.some(r=>r.id===officialFormsRecordId))record.value=officialFormsRecordId;else{officialFormsRecordId='';record.value=''}
@@ -577,7 +593,10 @@ async function printOfficialForm(type){
 function initOfficialForms(){
   $('#officialFormsBtn')?.addEventListener('click',()=>openOfficialFormsCenter());
   $('#attendanceOfficialFormsBtn')?.addEventListener('click',()=>openOfficialFormsCenter());
-  $('#officialFormsStudent')?.addEventListener('change',e=>{officialFormsStudentId=e.target.value;officialFormsRecordId='';renderOfficialFormsSelectors()});
+  $('#officialFormsStudent')?.addEventListener('change',e=>{officialFormsStudentId=e.target.value;officialFormsRecordId='';renderOfficialFormsSelectors();officialRefreshSignatureButtons()});
   $('#officialFormsRecord')?.addEventListener('change',e=>{officialFormsRecordId=e.target.value});
   $('#officialFormsGrid')?.addEventListener('click',async e=>{const b=e.target.closest('[data-official-form]');if(b)await printOfficialForm(b.dataset.officialForm)});
+  $('#officialSignatureButtons')?.addEventListener('click',e=>{const b=e.target.closest('[data-sign-role]');if(b)officialOpenSignatureCapture(b.dataset.signRole)});
+  $('#clearOfficialSignaturesBtn')?.addEventListener('click',officialClearAllSignatures);
+  officialInitSignaturePad();officialRefreshSignatureButtons();
 }
