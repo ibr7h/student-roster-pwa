@@ -693,6 +693,13 @@ async function printOfficialForm(type){
     if(page)officialOpenPdf([page],filename,title)
   }catch(err){console.error(err);toast('تعذر إنشاء النموذج الرسمي')}
 }
+async function printOfficialFormForContext(type,{studentId='',recordId=''}={}){
+  if(studentId)officialFormsStudentId=studentId;
+  if(recordId!==undefined)officialFormsRecordId=recordId||'';
+  renderOfficialFormsSelectors();
+  return printOfficialForm(type)
+}
+
 function initOfficialForms(){
   $('#officialFormsBtn')?.addEventListener('click',()=>openOfficialFormsCenter());
   $('#attendanceOfficialFormsBtn')?.addEventListener('click',()=>openOfficialFormsCenter());
