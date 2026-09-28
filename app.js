@@ -2368,8 +2368,8 @@ function dailyBehaviorPdfPage(rows,start,end,stats,pageIndex,pageCount){
   });
 
   const signY=H-82;attendancePdfLine(ctx,M,signY-22,W-M,signY-22,1,'#555');
-  attendancePdfText(ctx,a.subjectTeacher,W*.72,signY,13,'400','center');attendancePdfText(ctx,m.teacher||'—',W*.72,signY+23,15,'700','center');
-  attendancePdfText(ctx,a.principal,W*.28,signY,13,'400','center');attendancePdfText(ctx,m.principal||'—',W*.28,signY+23,15,'700','center');
+  attendancePdfText(ctx,a.subjectTeacher,W*.72,signY,13,'400','center');attendancePdfText(ctx,m.teacher||'—',W*.72,signY+23,15,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.72,signY+46,12,'400','center');drawReportSignature(ctx,'teacher',W*.72,signY+20,185,44);
+  attendancePdfText(ctx,a.principal,W*.28,signY,13,'400','center');attendancePdfText(ctx,m.principal||'—',W*.28,signY+23,15,'700','center');attendancePdfText(ctx,'التوقيع: __________________',W*.28,signY+46,12,'400','center');drawReportSignature(ctx,'principal',W*.28,signY+20,185,44);
   const data=canvas.toDataURL('image/jpeg',0.95);return {bytes:base64Bytes(data.split(',')[1]),width:W,height:H}
 }
 function buildDailyBehaviorReportPdf(start,end=start){
