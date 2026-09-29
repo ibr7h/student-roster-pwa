@@ -138,3 +138,23 @@
   body.print-attendance-report .official-signatures b{font-size:7.8pt!important}
   body.print-attendance-report .official-signatures em{font-size:6.2pt!important}
 }
+
+
+@media print{
+  .schedule-official-logo,
+  .compact-class-logo img,
+  body.print-student .student-official-logo img,
+  .daily-behavior-head>img{
+    display:block!important;
+    width:130px!important;
+    height:70px!important;
+    max-width:130px!important;
+    max-height:70px!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    margin-inline:auto!important
+  }
+  .compact-class-header{grid-template-columns:minmax(0,1fr) 130px minmax(0,1fr)!important}
+  body.print-student .student-official-header{grid-template-columns:minmax(0,1fr) 130px minmax(0,1.15fr)!important}
+  .daily-behavior-head{grid-template-columns:minmax(0,1fr) 130px minmax(0,1fr)!important}
+}
