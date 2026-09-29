@@ -388,7 +388,7 @@ function behaviorSummaryPdfPage(records,c,stats,pageIndex,pageCount,startOrdinal
   attendancePdfText(ctx,'وزارة التعليم',right,68,17,'400');
   attendancePdfText(ctx,x.region||'إدارة التعليم',right,93,16,'400');
   attendancePdfText(ctx,x.school||'اسم المدرسة',right,118,16,'400');
-  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-48,22,96,76)}catch{}}
+  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,'تقرير السلوك والانضباط',left,56,28,'700','left');
   attendancePdfText(ctx,(c.grade||'—')+' · '+(c.name||'—')+' · '+(c.subject||'—'),left,91,17,'700','left');
   attendancePdfText(ctx,'صفحة '+arabicNum(pageIndex+1)+' من '+arabicNum(pageCount),left,118,13,'400','left');
@@ -439,7 +439,7 @@ function behaviorTeacherLogPdfPage(records,c,pageIndex,pageCount,startOrdinal=0)
   attendancePdfText(ctx,'وزارة التعليم',right,68,17,'400');
   attendancePdfText(ctx,x.region||'إدارة التعليم',right,93,16,'400');
   attendancePdfText(ctx,x.school||'اسم المدرسة',right,118,16,'400');
-  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-48,22,96,76)}catch{}}
+  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,`نموذج رصد ${g.teacher} لمشكلة سلوكية`,left,56,27,'700','left');
   attendancePdfText(ctx,`${c.grade||'—'} · ${c.name||'—'} · ${c.subject||'—'}`,left,91,17,'700','left');
   attendancePdfText(ctx,`صفحة ${arabicNum(pageIndex+1)} من ${arabicNum(pageCount)}`,left,118,13,'400','left');
@@ -525,7 +525,7 @@ function behaviorReferralPdfCanvas(c,r,{official=false}={}){
   attendancePdfText(ctx,x.region||'إدارة التعليم',right,top+59,20,'400');
   attendancePdfText(ctx,x.school||'اسم المدرسة',right,top+88,20,'400');
   const logo=document.querySelector('.app-brand-logo');
-  if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-48,top-6,96,78)}catch{}}
+  if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,top,130,70)}catch{}}
   attendancePdfText(ctx,title,left,top+25,32,'700','left');
   attendancePdfText(ctx,x.year||'',left,top+66,19,'400','left');
   attendancePdfLine(ctx,M,top+116,W-M,top+116,2,'#2f3740');
