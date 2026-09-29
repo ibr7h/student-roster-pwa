@@ -24,8 +24,9 @@
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
-      <button class="btn compact global-student-search-btn" id="globalStudentSearchBtn" type="button" aria-label="البحث عن طالب">
-        <span aria-hidden="true">⌕</span><span id="globalStudentSearchLabel">بحث عن طالب</span>
+      <button class="btn compact global-student-search-btn" id="globalStudentSearchBtn" type="button" aria-label="البحث عن طالب" title="بحث سريع عن طالب في جميع الفصول">
+        <span class="global-student-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span id="globalStudentSearchLabel">بحث عن طالب</span>
       </button>
       <button class="btn compact admin-top-btn" data-nav="admin" aria-label="فتح الإدارة">⚙ <span>الإدارة</span></button>
     </div>
@@ -825,7 +826,7 @@
     </div>
     <div class="modalbody global-student-search-body">
       <label class="global-student-search-field">
-        <span aria-hidden="true">⌕</span>
+        <span class="global-student-search-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
         <input id="globalStudentSearchInput" type="search" autocomplete="off" enterkeyhint="search" placeholder="اكتب اسم الطالب…">
         <button type="button" class="iconbtn" id="globalStudentSearchClear" aria-label="مسح البحث">×</button>
       </label>
