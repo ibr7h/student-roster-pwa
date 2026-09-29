@@ -93,15 +93,17 @@ function officialIdentitySummaryText(){
   return parts.join(' · ')||'لم تُستكمل هوية المدرسة بعد — يمكن إدخالها من الإدارة ← هوية المدرسة والتقارير.'
 }
 
-function officialLogo(ctx,cx,y,w=150,h=90){
+function officialLogo(ctx,cx,y,w=130,h=70){
   const logo=document.querySelector('.app-brand-logo')||document.querySelector('img[src*="moe-logo"]');
-  if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,cx-w/2,y,w,h)}catch{}}
+  if(!logo?.complete||!logo.naturalWidth||!logo.naturalHeight)return false;
+  const scale=Math.min(w/logo.naturalWidth,h/logo.naturalHeight),dw=logo.naturalWidth*scale,dh=logo.naturalHeight*scale;
+  try{ctx.drawImage(logo,cx-dw/2,y+(h-dh)/2,dw,dh);return true}catch{return false}
 }
 function officialHeader(ctx,title,{confidential='',titleY=250}={}){
   const W=OFFICIAL_A4_WIDTH,M=OFFICIAL_A4_SIDE,gov=officialIdentity(),center=W/2;
   officialText(ctx,'المملكة العربية السعودية',W-M,92,28,'700');
   officialText(ctx,'وزارة التعليـــــــــــــــــم',W-M,132,27,'400');
-  officialLogo(ctx,center,48,190,112);
+  officialLogo(ctx,center,48,130,70);
   officialText(ctx,'المنطقة/المحافظة: '+(gov.region||'........................'),M,96,25,'400','left');
   officialText(ctx,'المدرسة: '+(gov.school||'........................'),M,139,25,'400','left');
   if(confidential)officialText(ctx,confidential,center,titleY-62,30,'700','center','#222');
@@ -632,7 +634,7 @@ function officialBehaviorPlanPages(){
     const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,OFFICIAL_A4_WIDTH,OFFICIAL_A4_HEIGHT);
     const W=OFFICIAL_A4_WIDTH,M=OFFICIAL_A4_SIDE,right=W-M,body=officialRefSize(20),head=officialRefSize(21),table=officialRefSize(17);
     // Page 61 reference uses its special logo-only header.
-    officialLogo(ctx,W-M-75,45,165,98);
+    officialLogo(ctx,W/2,45,130,70);
     let y=220;officialText(ctx,'خامساً: تصميم خطة تعديل السلوك',right,y,head,'700');y+=56;
     officialText(ctx,'تعريف السلوك المرغوب في إكسابه للطالب/ الطالبة إجرائياً.',right,y,body);y+=36;officialDottedLine(ctx,M+15,y,right);y+=62;
     officialText(ctx,'الإجراءات المستخدمة للحد من السلوك غير المرغوب فيه وتساعد على تحقيق السلوك المرغوب :',right,y,body);y+=48;
