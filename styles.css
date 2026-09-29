@@ -1323,3 +1323,34 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
 .student-official-header{grid-template-columns:minmax(0,1fr) 130px minmax(0,1.15fr)!important}
 .compact-class-header{grid-template-columns:minmax(0,1fr) 130px minmax(0,1fr)!important}
 .daily-behavior-head{grid-template-columns:minmax(0,1fr) 130px minmax(0,1fr)!important}
+
+/* Global student search */
+.global-student-search-btn{display:inline-flex;align-items:center;gap:6px}
+.global-student-search-modal .modalbox{width:min(760px,calc(100vw - 18px));max-height:88dvh}
+.global-student-search-body{display:grid;gap:10px}
+.global-student-search-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:8px 10px}
+.global-student-search-field>span{font-size:20px;color:var(--muted)}
+.global-student-search-field input{border:0;outline:0;min-width:0;width:100%;font:inherit;font-size:16px;background:transparent;color:var(--ink);padding:6px 0}
+.global-student-search-field .iconbtn{width:34px;height:34px;min-height:34px}
+.global-student-search-meta{font-size:10px;color:var(--muted);min-height:18px}
+.global-student-search-results{display:grid;gap:8px;max-height:54dvh;overflow:auto;padding-inline-end:2px}
+.global-student-result{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid #dde5e9;border-radius:13px;background:#fff;padding:11px 12px}
+.global-student-result-main{min-width:0;display:grid;gap:4px}
+.global-student-result-main b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.global-student-result-main span{font-size:10px;color:var(--muted);line-height:1.55}
+.global-student-result-actions{display:flex;gap:6px;align-items:center}
+.global-student-result-actions .btn{min-height:36px;padding:6px 9px;font-size:10px}
+.global-student-search-empty{border:1px dashed #cbd5e1;border-radius:13px;padding:24px 14px;text-align:center;color:var(--muted);display:grid;gap:5px}
+.global-student-search-empty b{color:var(--ink);font-size:13px}
+.global-student-search-shortcut{margin-inline-end:auto;font-size:9px;color:var(--muted)}
+@media(max-width:760px){
+  .top-actions .save-pill{display:none}
+  .global-student-search-btn #globalStudentSearchLabel{display:none}
+  .global-student-search-btn{width:40px;min-width:40px;padding:8px;justify-content:center}
+}
+@media(max-width:520px){
+  .global-student-search-modal .modalbox{width:calc(100vw - 10px)}
+  .global-student-result{grid-template-columns:1fr}
+  .global-student-result-actions{display:grid;grid-template-columns:1fr 1fr}
+  .global-student-result-actions .btn{width:100%}
+}
