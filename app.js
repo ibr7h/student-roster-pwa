@@ -1732,6 +1732,12 @@ function attendancePdfText(ctx,text,x,y,size=20,weight='400',align='right'){
 function attendancePdfLine(ctx,x1,y1,x2,y2,width=1,color='#5b6570'){
   ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore()
 }
+function reportDrawLogoContain(ctx,logo,cx,y,boxW=130,boxH=70){
+  if(!ctx||!logo?.complete||!logo.naturalWidth||!logo.naturalHeight)return false;
+  const scale=Math.min(boxW/logo.naturalWidth,boxH/logo.naturalHeight);
+  const w=logo.naturalWidth*scale,h=logo.naturalHeight*scale;
+  try{ctx.drawImage(logo,cx-w/2,y+(boxH-h)/2,w,h);return true}catch{return false}
+}
 function attendancePdfCell(ctx,x,y,w,h,text,{align='center',size=17,weight='400',fill=null}={}){
   if(fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h)}
   ctx.strokeStyle='#5f6670';ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
@@ -1746,7 +1752,7 @@ function attendancePdfPage(c,part,allSessions,meta,periodText,pageIndex,pageCoun
   attendancePdfText(ctx,gov.region||'إدارة التعليم',right,94,16,'400');
   attendancePdfText(ctx,gov.school||c.school||'المدرسة',right,117,16,'400');
   const logo=document.querySelector('.app-brand-logo');
-  if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-51,20,102,81)}catch{}}
+  if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,'سجل متابعة الحضور والغياب',left,52,25,'700','left');
   attendancePdfText(ctx,periodText||gov.semester||'',left,82,17,'700','left');
   attendancePdfText(ctx,gov.year||'',left,107,16,'400','left');
@@ -1851,7 +1857,7 @@ function studentPdfCanvas(c,st,periodText,{section='assessments',rows=[],first=f
   attendancePdfText(ctx,gov.region||'إدارة التعليم',right,99,17,'400');
   attendancePdfText(ctx,gov.school||c.school||'المدرسة',right,126,17,'400');
   const logo=document.querySelector('.app-brand-logo');
-  if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-45,28,90,72)}catch{}}
+  if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,`تقرير متابعة ${audience.studentBare}`,left,60,28,'700','left');
   attendancePdfText(ctx,periodText||gov.semester||'',left,94,18,'700','left');
   attendancePdfText(ctx,gov.year||'',left,122,17,'400','left');
@@ -1911,7 +1917,7 @@ function buildStudentSinglePagePdf(c,st,periodText,assessments,attendance){
   attendancePdfText(ctx,gov.region||'إدارة التعليم',right,91,16,'400');
   attendancePdfText(ctx,gov.school||c.school||'المدرسة',right,116,16,'400');
   const logo=document.querySelector('.app-brand-logo');
-  if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-40,25,80,64)}catch{}}
+  if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,`تقرير متابعة ${audience.studentBare}`,left,55,26,'700','left');
   attendancePdfText(ctx,periodText||gov.semester||'',left,87,17,'700','left');
   attendancePdfText(ctx,gov.year||'',left,112,15,'400','left');
@@ -2012,7 +2018,7 @@ function buildTeacherScheduleLandscapePdf(){
   const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   const gov=state.appMeta||{},right=W-M,left=M,center=W/2;
   attendancePdfText(ctx,'المملكة العربية السعودية',right,44,19,'700');attendancePdfText(ctx,'وزارة التعليم',right,70,17,'400');attendancePdfText(ctx,gov.region||'إدارة التعليم',right,95,16,'400');attendancePdfText(ctx,t.school||gov.school||'المدرسة',right,120,16,'400');
-  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-50,22,100,80)}catch{}}
+  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,'جدول المعلم الأسبوعي',left,56,28,'700','left');attendancePdfText(ctx,t.semester||gov.semester||'',left,88,17,'700','left');attendancePdfText(ctx,gov.year||'',left,114,16,'400','left');
   attendancePdfLine(ctx,M,145,W-M,145,2,'#2f3740');
   attendancePdfText(ctx,`المعلم: ${t.teacherName||gov.teacher||'—'}`,right,172,18,'700');attendancePdfText(ctx,`الجدول: ${t.title||'الجدول'}`,left,172,18,'700','left');
@@ -2190,7 +2196,7 @@ function buildClassLandscapePdf(){
   const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   const gov=state.appMeta||{},audience=schoolAudience(gov),right=W-M,left=M,center=W/2;
   attendancePdfText(ctx,'المملكة العربية السعودية',right,44,19,'700');attendancePdfText(ctx,'وزارة التعليم',right,70,17,'400');attendancePdfText(ctx,gov.region||'إدارة التعليم',right,94,16,'400');attendancePdfText(ctx,gov.school||'المدرسة',right,117,16,'400');
-  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-51,20,102,81)}catch{}}
+  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,'كشف متابعة الفصل',left,52,26,'700','left');attendancePdfText(ctx,periodText||gov.semester||'',left,83,17,'700','left');attendancePdfText(ctx,gov.year||'',left,108,16,'400','left');attendancePdfLine(ctx,M,140,W-M,140,2,'#2f3740');
   const metaY=151,metaH=39,metaW=(W-2*M)/3;[['الصف',c.grade||'—'],['الفصل',c.name||'—'],['المادة',c.subject||'—']].forEach((it,i)=>{const x=M+i*metaW;ctx.strokeStyle='#7b838c';ctx.strokeRect(x,metaY,metaW,metaH);attendancePdfText(ctx,`${it[0]}: ${it[1]}`,x+metaW-9,metaY+metaH/2,16,'700')});
   const tableY=212,tableW=W-2*M,numW=40,nameW=292,metricCount=9,metricW=(tableW-numW-nameW)/metricCount,headH=68;
@@ -2335,7 +2341,7 @@ function dailyBehaviorPdfPage(rows,start,end,stats,pageIndex,pageCount){
   attendancePdfText(ctx,'وزارة التعليم',right,68,17,'400');
   attendancePdfText(ctx,m.region||'إدارة التعليم',right,93,16,'400');
   attendancePdfText(ctx,m.school||'اسم المدرسة',right,118,16,'400');
-  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{ctx.drawImage(logo,center-48,22,96,76)}catch{}}
+  const logo=document.querySelector('.app-brand-logo');if(logo?.complete&&logo.naturalWidth){try{reportDrawLogoContain(ctx,logo,center,25,130,70)}catch{}}
   attendancePdfText(ctx,'تقرير المخالفات السلوكية',left,56,27,'700','left');
   attendancePdfText(ctx,`${dailyBehaviorRangeLabel(from,to)} · جميع الفصول`,left,91,17,'700','left');
   attendancePdfText(ctx,`صفحة ${arabicNum(pageIndex+1)} من ${arabicNum(pageCount)}`,left,118,13,'400','left');
