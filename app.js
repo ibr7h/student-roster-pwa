@@ -514,6 +514,69 @@ function setActiveClass(id){
   renderAll();if(state.ui.activeView==='reports')showReportsHub(false);queueSave()
 }
 
+function globalStudentSearchMatches(term=''){
+  const q=studentNameKey(term),rows=[];
+  (state.classes||[]).forEach(c=>(c.students||[]).forEach(st=>{
+    const nameKey=studentNameKey(st.name),hay=studentNameKey([st.name,c.grade,c.name,c.subject].filter(Boolean).join(' '));
+    if(q&&!hay.includes(q))return;
+    let rank=0;
+    if(q){
+      if(nameKey===q)rank=3;
+      else if(nameKey.startsWith(q))rank=2;
+      else if(nameKey.includes(q))rank=1;
+    }
+    rows.push({student:st,classItem:c,rank});
+  }));
+  rows.sort((a,b)=>b.rank-a.rank||String(a.student.name||'').localeCompare(String(b.student.name||''),'ar'));
+  return rows;
+}
+function renderGlobalStudentSearch(){
+  const input=$('#globalStudentSearchInput'),results=$('#globalStudentSearchResults'),meta=$('#globalStudentSearchMeta');if(!input||!results||!meta)return;
+  const q=input.value.trim(),allCount=(state.classes||[]).reduce((n,c)=>n+(c.students?.length||0),0),rows=globalStudentSearchMatches(q),shown=rows.slice(0,50),aud=schoolAudience();
+  if(!allCount){
+    meta.textContent='لا توجد أسماء مسجلة بعد.';
+    results.innerHTML='<div class="global-student-search-empty"><b>لا توجد '+escapeHtml(aud.students)+' مسجلون</b><span>أضف الأسماء أو استوردها أولًا.</span></div>';
+    return;
+  }
+  meta.textContent=q
+    ?`تم العثور على ${arabicNum(rows.length)} نتيجة من أصل ${arabicNum(allCount)}`
+    :`إجمالي ${arabicNum(allCount)} ${aud.students} — اكتب الاسم لتضييق النتائج`;
+  if(!shown.length){
+    results.innerHTML='<div class="global-student-search-empty"><b>لا توجد نتيجة مطابقة</b><span>جرّب جزءًا من الاسم أو تحقق من كتابته.</span></div>';
+    return;
+  }
+  results.innerHTML=shown.map(({student:st,classItem:c})=>{
+    const at=attendanceCounts(st,'all'),behaviorCount=(c.behaviorRecords||[]).filter(r=>r.studentId===st.id).length;
+    return `<article class="global-student-result">
+      <div class="global-student-result-main">
+        <b>${escapeHtml(st.name)}</b>
+        <span>${escapeHtml(c.grade||'—')} · ${escapeHtml(c.name||'—')} · ${escapeHtml(c.subject||'—')}</span>
+        <span>غياب: ${arabicNum(at.absent+at.absent_excused)} · مخالفات: ${arabicNum(behaviorCount)}</span>
+      </div>
+      <div class="global-student-result-actions">
+        <button type="button" class="btn primary" data-global-student-report="${escapeHtml(st.id)}" data-global-class="${escapeHtml(c.id)}">فتح التقرير</button>
+        <button type="button" class="btn" data-global-student-class="${escapeHtml(c.id)}">فتح الفصل</button>
+      </div>
+    </article>`;
+  }).join('');
+  if(rows.length>shown.length)meta.textContent+=` · تظهر أول ${arabicNum(shown.length)} نتيجة`;
+}
+function openGlobalStudentSearch(){
+  const dlg=$('#globalStudentSearchModal'),input=$('#globalStudentSearchInput');if(!dlg||!input)return;
+  renderGlobalStudentSearch();
+  if(typeof dlg.showModal==='function'){if(!dlg.open)dlg.showModal()}else dlg.setAttribute('open','');
+  setTimeout(()=>{input.focus();input.select()},60);
+}
+function closeGlobalStudentSearch(){const dlg=$('#globalStudentSearchModal');if(dlg?.open)dlg.close();}
+function openGlobalStudentReport(studentId,classId){
+  if(classId&&findClass(classId))setActiveClass(classId);
+  closeGlobalStudentSearch();showView('reports',false);setReportTab('students',false,true);openStudentReport(studentId);
+}
+function openGlobalStudentClass(classId){
+  if(!findClass(classId))return;
+  closeGlobalStudentSearch();setActiveClass(classId);showView('reports',false);setReportTab('class',false,true);
+}
+
 function renderAppMeta(){
   $$('[data-app-meta]').forEach(inp=>{
     const k=inp.dataset.appMeta;
@@ -563,6 +626,10 @@ function renderAppMeta(){
   };
   Object.entries(textMap).forEach(([id,label])=>{const el=$('#'+id);if(el)el.textContent=label});
   if($('#studentSearch'))$('#studentSearch').placeholder='بحث باسم '+audience.student;
+  if($('#globalStudentSearchLabel'))$('#globalStudentSearchLabel').textContent='بحث عن '+audience.studentBare;
+  if($('#globalStudentSearchBtn'))$('#globalStudentSearchBtn').setAttribute('aria-label','البحث عن '+audience.studentBare);
+  if($('#globalStudentSearchTitle'))$('#globalStudentSearchTitle').textContent='البحث عن '+audience.studentBare;
+  if($('#globalStudentSearchInput'))$('#globalStudentSearchInput').placeholder='اكتب اسم '+audience.student+'…';
   if($('#reportStudentSearch')){$('#reportStudentSearch').placeholder='اكتب اسم '+audience.student+'…';const label=$('#reportStudentSearch').closest('.field')?.querySelector('label');if(label)label.textContent='بحث عن '+audience.student}
 }
 function classChipMarkup(c){return `<button class="chip ${c.id===state.activeClassId?'active':''}" data-class-switch="${c.id}">${escapeHtml(c.grade)} · ${escapeHtml(c.name)}</button>`}
@@ -2625,6 +2692,21 @@ try{
   const onPrintMediaChange=e=>{if(!printSessionActive)return;if(e.matches)printMediaEntered=true;else if(printMediaEntered)setTimeout(()=>{if(printSessionActive)cleanupPrintSession()},150)};
   if(printMq?.addEventListener)printMq.addEventListener('change',onPrintMediaChange);else if(printMq?.addListener)printMq.addListener(onPrintMediaChange)
 }catch{}
+$('#globalStudentSearchBtn')?.addEventListener('click',openGlobalStudentSearch);
+$('#globalStudentSearchInput')?.addEventListener('input',renderGlobalStudentSearch);
+$('#globalStudentSearchClear')?.addEventListener('click',()=>{const input=$('#globalStudentSearchInput');if(input){input.value='';renderGlobalStudentSearch();input.focus()}});
+$('#globalStudentSearchResults')?.addEventListener('click',e=>{
+  const report=e.target.closest('[data-global-student-report]');
+  if(report){openGlobalStudentReport(report.dataset.globalStudentReport,report.dataset.globalClass);return}
+  const cls=e.target.closest('[data-global-student-class]');if(cls)openGlobalStudentClass(cls.dataset.globalStudentClass)
+});
+$('#globalStudentSearchInput')?.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const first=$('#globalStudentSearchResults [data-global-student-report]');if(first){e.preventDefault();openGlobalStudentReport(first.dataset.globalStudentReport,first.dataset.globalClass)}
+});
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()==='k'){e.preventDefault();openGlobalStudentSearch()}
+});
 $('#checkUpdateBtn')?.addEventListener('click',()=>checkForAppUpdate({manual:true}));
 load().then(()=>{startSchoolDayTicker();initBehaviorModule();initOfficialForms()});
 initAppUpdater();
