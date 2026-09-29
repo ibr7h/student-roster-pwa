@@ -1354,3 +1354,34 @@ body.schedule-picker-open{overflow:hidden!important;touch-action:none}
   .global-student-result-actions{display:grid;grid-template-columns:1fr 1fr}
   .global-student-result-actions .btn{width:100%}
 }
+
+/* Make global student search unmistakable, especially on mobile */
+.global-student-search-btn{
+  border-color:#9fc9c3!important;
+  background:#eef8f6!important;
+  color:#155e57!important;
+  font-weight:900!important;
+  box-shadow:0 2px 8px rgba(21,94,87,.08)
+}
+.global-student-search-btn .global-student-search-icon{
+  display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 auto
+}
+.global-student-search-btn #globalStudentSearchLabel{
+  display:inline!important;white-space:nowrap
+}
+.global-student-search-field .global-student-search-field-icon{
+  display:inline-flex;align-items:center;justify-content:center;color:#155e57
+}
+@media(max-width:760px){
+  .global-student-search-btn{
+    width:auto!important;min-width:104px!important;max-width:132px!important;
+    padding:7px 10px!important;justify-content:center!important;gap:5px!important
+  }
+  .top-actions .global-student-search-btn #globalStudentSearchLabel{
+    display:inline!important;font-size:11px!important
+  }
+}
+@media(max-width:390px){
+  .global-student-search-btn{min-width:88px!important;padding-inline:8px!important}
+  .top-actions .global-student-search-btn #globalStudentSearchLabel{font-size:10px!important}
+}
