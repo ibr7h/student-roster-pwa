@@ -24,6 +24,9 @@
     </button>
     <div class="top-actions">
       <span class="save-pill" id="saveStatus">محفوظ على هذا الجهاز</span>
+      <button class="btn compact global-student-search-btn" id="globalStudentSearchBtn" type="button" aria-label="البحث عن طالب">
+        <span aria-hidden="true">⌕</span><span id="globalStudentSearchLabel">بحث عن طالب</span>
+      </button>
       <button class="btn compact admin-top-btn" data-nav="admin" aria-label="فتح الإدارة">⚙ <span>الإدارة</span></button>
     </div>
   </header>
@@ -806,6 +809,32 @@
       <button class="btn danger" id="deleteBehaviorBtn" hidden>حذف</button>
       <button class="btn" data-close>إلغاء</button>
       <button class="btn primary" id="saveBehaviorBtn">حفظ الرصد</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="modal global-student-search-modal" id="globalStudentSearchModal">
+  <div class="modalbox">
+    <div class="modalhead">
+      <div>
+        <p class="eyebrow">بحث شامل</p>
+        <h3 id="globalStudentSearchTitle">البحث عن طالب</h3>
+        <small>يبحث في جميع الفصول المسجلة في التطبيق.</small>
+      </div>
+      <button class="iconbtn" data-close aria-label="إغلاق">×</button>
+    </div>
+    <div class="modalbody global-student-search-body">
+      <label class="global-student-search-field">
+        <span aria-hidden="true">⌕</span>
+        <input id="globalStudentSearchInput" type="search" autocomplete="off" enterkeyhint="search" placeholder="اكتب اسم الطالب…">
+        <button type="button" class="iconbtn" id="globalStudentSearchClear" aria-label="مسح البحث">×</button>
+      </label>
+      <div class="global-student-search-meta" id="globalStudentSearchMeta"></div>
+      <div class="global-student-search-results" id="globalStudentSearchResults"></div>
+    </div>
+    <div class="modalfooter">
+      <span class="global-student-search-shortcut">⌘/Ctrl + K</span>
+      <button class="btn" data-close>إغلاق</button>
     </div>
   </div>
 </dialog>
