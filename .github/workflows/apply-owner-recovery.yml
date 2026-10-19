@@ -1,0 +1,30 @@
+name: Apply school owner recovery
+on:
+  push:
+    branches:
+      - deploy/school-evidence-v3.3-neon-mobile-20261019
+    paths:
+      - scripts/apply-owner-recovery.mjs
+      - .github/workflows/apply-owner-recovery.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Apply password recovery patch and run tests
+        run: node scripts/apply-owner-recovery.mjs
+      - name: Save verified package
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-package.b64
+          git diff --cached --quiet && exit 0
+          git commit -m "Deploy one-time owner password recovery v3.3.1"
+          git push
