@@ -11,13 +11,15 @@
 - Inspected tables from Neon; all eight exist and are empty.
 - Tested a temporary SQL transaction with two simulated school IDs, writes and school-filtered reads; no permanent test rows remain.
 - Confirmed that Neon storage bucket `uploads` is configured private.
+- Deployed Neon Function `schoolhealth` to the production branch; Neon reports deployment 1 as `completed`. This function only checks runtime configuration, it is NOT the application API.
+- Neon SQL smoke test used two temporary school identifiers; filtered select returned only the matching identifier. The database itself remains empty.
 - Existing v3.2 backend's 18 Node tests pass locally (not database integration tests).
 
 ## Not done
 - The v3.2 web frontend is statically hosted on Render; it does **not** have a live app backend.
 - The v3.2 server is a Node HTTP listener: it cannot be deployed to Neon Functions as-is.
 - File upload routes currently store `BYTEA` in PostgreSQL, not Neon Object Storage.
-- No real login or cross-school API integration tests have passed.
+- No real login or cross-school API integration tests have passed. The Function deployment was confirmed by Neon control plane, but its HTTPS endpoint could not be invoked from this environment.
 - No production backup/restore test or security acceptance has been done.
 - Do not use real school/student information yet.
 
