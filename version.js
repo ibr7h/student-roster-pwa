@@ -1,2 +1,0 @@
-self.APP_VERSION='4.21.1';
-self.APP_RELEASE_DATE='2026-09-27';
