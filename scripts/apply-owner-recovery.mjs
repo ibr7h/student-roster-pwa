@@ -25,7 +25,7 @@ patcher+="\nconst fs2=await import('node:fs');const h=fs2.readFileSync('public/o
 write('patch-release.mjs',patcher);
 write('public/owner-recover.html',page);
 const pkg=JSON.parse(read('package.json'));pkg.version='3.3.1';write('package.json',JSON.stringify(pkg,null,2)+'\n');
-const docs=read('README-v3.3.md');write('README-v3.3.md',docs+'\nOwner recovery: /owner-recover.html using deployment setup secret; only one redemption per secret, invalidates owner sessions. Rotate the setup secret after use.\n');
+// README-v3.3.md is not part of the compact deployment archive.
 const test="import test from 'node:test';import assert from 'node:assert/strict';import{readFileSync}from'node:fs';const s=readFileSync(new URL('./server.mjs',import.meta.url),'utf8');test('owner recovery protects secrets and revokes sessions',()=>{for(const token of ['/api/platform/recover','secureEqual(b.setupToken,SETUP_TOKEN)','owner_recovery_uses','DELETE FROM sessions WHERE owner_id'])assert.ok(s.includes(token),token)});";
 write('backend/owner-recovery.test.mjs',test);
 execFileSync('node',['--check',path.join(unpack,'backend/server.mjs')],{stdio:'inherit'});
