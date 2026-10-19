@@ -1,7 +1,7 @@
-# School Evidence PWA — isolated publishing branch
+# School Evidence PWA v1.0.2
 
-This branch contains a standalone PWA that does NOT change the student roster application on main.
+Isolated deployment branch; the student roster main branch is untouched.
 
-Deploy with `unzip -q -o site.zip -d public` and publish the `public` directory. All assets are inside `site.zip`.
+Render build: `unzip -q -o site.zip -d public` and publish `public`.
 
-Security note: this is a local-storage prototype, not a multi-user secure server. Keep student information off it until proper backend authentication is implemented.
+Caveats: local-only storage and client-side PIN are not secure enterprise authentication; automated Google Drive upload is not implemented. Keep sensitive records off this prototype.
