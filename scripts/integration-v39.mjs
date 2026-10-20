@@ -24,6 +24,10 @@ try{
  await pool.query(await readFile(new URL('./schema.sql',import.meta.url),'utf8'));
  const ownerId=randomUUID(),ownerHash=await hashPassword('ExampleOwnerPassword#123456');
  await pool.query('INSERT INTO platform_owners(id,username,name,password_hash) VALUES($1,$2,$3,$4)',[ownerId,'integration.owner','Test Owner',ownerHash]);
+ const oldSchoolId=randomUUID(),oldManagerId=randomUUID();
+ await pool.query("INSERT INTO schools(id,login_code,school,license_until) VALUES($1,$2,$3,NOW()+interval '1 year')",[oldSchoolId,'SCH-LEGACY-CI',{name:'Existing school without email',code:'6754312221',schoolType:'boys'}]);
+ await pool.query("INSERT INTO members(id,school_id,username,name,role,is_admin,allowed_sections,password_hash) VALUES($1,$2,$3,$4,$5,true,$6,$7)",[oldManagerId,oldSchoolId,'legacy.manager','Legacy Manager','مدير المدرسة',SECTIONS,await hashPassword('LegacyExamplePassword#1234')]);
+
  const memberName='newschoolmanager',email='integration.manager@example.edu',password='ExampleSchoolPassword#123456';
  const payload={schoolName:'مدرسة التكامل التجريبية',schoolType:'boys',ministryCode:'8754312221',name:'مدير الاختبار',email,phone:'0551234567',username:memberName,password,confirmPassword:password};
  let otp;
@@ -68,6 +72,14 @@ try{
  let healthy=false;
  for(let i=0;i<70;i++){if(server.exitCode!==null)break;try{const r=await req('/api/health');if(r.status===200){healthy=true;break}}catch{}await sleep(200)}
  assert.ok(healthy,'Backend failed to start: '+stderr);say('Actual Node API process boots with v3.9 migration in disposable PostgreSQL');
+
+ const legacy=await req('/api/login',{method:'POST',body:{username:'legacy.manager',password:'LegacyExamplePassword#1234'}});
+ assert.equal(legacy.status,200,JSON.stringify(legacy.data));
+ assert.equal(legacy.data.user.activationRequired,false);
+ assert.equal(legacy.data.user.isAdmin,true);
+ assert.equal((await req('/api/data',{token:legacy.data.sessionToken})).status,200);
+ assert.equal((await req('/api/platform/me',{token:legacy.data.sessionToken})).status,403);
+ say('Legacy manager without email keeps access under global-login migration');
  const login=await req('/api/login',{method:'POST',body:{username:memberName,password}});
  assert.equal(login.status,200,JSON.stringify(login.data));
  assert.equal(login.data.user.activationRequired,true);
