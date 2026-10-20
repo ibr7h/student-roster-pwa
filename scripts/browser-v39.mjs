@@ -37,6 +37,8 @@ try{
   if(p==='/api/login')return res(200,{user:{id:'ci-test',name:'Manager',isAdmin:true,activationRequired:true,allowedSections:[],license:{canWrite:false,status:'expired'}},sessionToken:'p'.repeat(43)});
   if(p==='/api/school/activate'){active=true;return res(200,{ok:true})}
   if(p==='/api/data')return res(200,{school:{name:'Test school'},team:[],evidences:{},user:{id:'ci-test',name:'Manager',isAdmin:true,allowedSections:[],license:{canWrite:true,status:'active'}},license:{canWrite:true,status:'active'}});
+  if(p==='/api/profile/email/start')return res(202,{challengeId:'c2345678-abcd-4def-8899-123456789012'});
+  if(p==='/api/profile/email/verify')return res(200,{verified:true});
   if(p==='/api/password/reset/start')return res(202,{ok:true,challengeId:'b2345678-abcd-4def-8899-123456789012'});
   if(p==='/api/password/reset/verify')return res(200,{ok:true});
   return res(404,{error:'Route not mocked '+p});
@@ -91,6 +93,22 @@ try{
  await page.locator('#auth39-activationForm button[type=submit]').click();
  await page.waitForTimeout(800);
  assert.ok(reqLog.some(x=>x.path==='/api/school/activate'&&x.body.serial==='EDU-ABCDE-ABCDE-ABCDE-ABCDE'));
+ const linkButton=page.locator('#auth39-link-email-action');
+ assert.equal(await linkButton.count(),1);
+ assert.equal(await linkButton.evaluate(e=>e.hidden),false,'Old manager must be offered verified email linking');
+ await linkButton.evaluate(el=>el.click());
+ await page.locator('#auth39-emailLink').waitFor({state:'visible'});
+ await page.locator('#auth39-emailToLink').fill('legacy.manager@example.edu');
+ await page.locator('#auth39-emailPassword').fill('LegacyExamplePassword#1234');
+ await page.locator('#auth39-emailLinkForm button[type=submit]').click();
+ await page.locator('#auth39-emailVerify').waitFor({state:'visible'});
+ await page.locator('#auth39-emailCode').fill('123456');
+ await page.locator('#auth39-emailVerifyForm button[type=submit]').click();
+ await page.locator('#auth39-emailVerify').waitFor({state:'hidden'});
+ assert.equal(await linkButton.evaluate(e=>e.hidden),true,'Email-link action must disappear after verification');
+ assert.ok(reqLog.some(x=>x.path==='/api/profile/email/start'&&x.body.email==='legacy.manager@example.edu'));
+ assert.ok(reqLog.some(x=>x.path==='/api/profile/email/verify'&&x.body.code==='123456'));
+
  const manifestResponse=await page.request.get(base+'/manifest.webmanifest');
  const manifest=await manifestResponse.json();assert.equal(manifest.display,'standalone');
  active=false;
@@ -108,7 +126,7 @@ try{
  await page.locator('#auth39-resetVerifyForm button[type=submit]').click();
  await page.locator('#auth39-login').waitFor({state:'visible'});
  assert.deepEqual(exceptions,[],'Browser errors: '+exceptions.join('; '));
- console.log('SUCCESS iPhone 390/320 responsive login, unified identity, mobile registration, OTP, activation, password reset, and standalone PWA manifest');
+ console.log('SUCCESS iPhone 390/320 responsive login, unified identity, mobile registration, OTP, activation, password reset, legacy account email confirmation, and standalone PWA manifest');
 }finally{
  await browser?.close().catch(()=>{});
  await new Promise(resolve=>server.close(resolve));
