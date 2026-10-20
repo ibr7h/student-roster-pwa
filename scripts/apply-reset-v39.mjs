@@ -37,11 +37,15 @@ try{
    " if(already)throw fail('اسم المستخدم مستخدم بالفعل في المنصة.',409); // username is already registered globally\n"+memberMarker);
  }
 
- // The archived v3.8 share handler references downloadEvidence but may lack its import.
- // Verify the handler symbol is resolvable before bundling; preserves private bucket checks.
- if(server.includes('downloadEvidence(')&&!/^import\s*\{[^}]*\bdownloadEvidence\b[^}]*\}\s*from\s*['"]\.\/storage\.mjs['"]/m.test(server)){
-  server="import {downloadEvidence} from './storage.mjs';\n"+server;
+
+ // The bundled storage module exports readSchoolEvidence; the reviewer route
+ // must use this exact school-prefix-checked reader, like authenticated files.
+ if(server.includes('downloadEvidence(')){
+  if(!server.includes('readSchoolEvidence'))throw Error('Private storage reader missing');
+  server=server.replaceAll('downloadEvidence(','readSchoolEvidence(');
  }
+ server=server.replace(/^import \\{downloadEvidence\\} from ['"]\\.\\/storage\\.mjs['"];?\\n/m,'');
+ if(server.includes('downloadEvidence'))throw Error('Outdated storage function still referenced');
  fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/reset-v39.mjs',f('backend/reset-v39.mjs'));
  const schema=f('backend/schema.sql'),old=fs.readFileSync(schema,'utf8');
