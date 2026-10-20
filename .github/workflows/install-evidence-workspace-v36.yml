@@ -1,0 +1,31 @@
+name: Publish mobile evidence workspace v3.6
+on:
+  push:
+    branches:
+      - deploy/school-evidence-v3.3-neon-mobile-20261019
+    paths:
+      - scripts/install-evidence-workspace-v36.mjs
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify source and apply patch safely
+        run: |
+          node --check scripts/evidence-workspace-v36.js
+          node scripts/install-evidence-workspace-v36.mjs
+      - name: Commit tested deployment package
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-package.b64
+          git diff --cached --quiet && exit 0
+          git commit -m "Deploy mobile in-page evidence experience v3.6.0"
+          git push
