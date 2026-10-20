@@ -57,3 +57,6 @@ console.log('Static PWA v3.7 ready; all interfaces use direct authenticated API 
 
 // Mobile v3.8: full-screen in-app pages and bottom sheets; no browser prompts.
 await import('./apply-mobile-v38.mjs');
+
+// v3.9: shared school-account login, email verification and authenticated school activation.
+await import('./apply-auth-ui-v39.mjs');
