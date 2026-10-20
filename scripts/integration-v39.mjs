@@ -97,7 +97,7 @@ try{
  assert.equal((await req('/api/school/activate',{method:'POST',token,body:{serial}})).status,409);
  assert.equal((await req('/api/data',{token})).status,200);
  const evidenceItems=JSON.parse(await readFile(new URL('./items.json',import.meta.url),'utf8'));
- await exerciseEvidence({req,base,token,itemId:Object.keys(evidenceItems)[0]});
+ try{await exerciseEvidence({req,base,token,itemId:Object.keys(evidenceItems)[0]})}catch(e){console.error('TEST API error:',stderr.slice(-3200));throw e}
  say('Protected PDF stored over S3-compatible protocol; QR, timed sharing and revocation passed');
  const consumed=(await pool.query('SELECT redeemed_school_id FROM serial_keys WHERE id=$1',[serialId])).rows[0];
  assert.equal(consumed.redeemed_school_id,row.id);say('Manager-only post-login activation is atomic, once-only, and unlocks school data');
