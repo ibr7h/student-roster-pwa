@@ -31,7 +31,7 @@ try{
  replace('backend/server.mjs',"version:'3.4.0'","version:'3.5.0'");
  replace('backend/server.mjs',"requireWrite(user);const b=await readJson(req,9*1024*1024),itemId=shortText(b.itemId,80);",
   "requireWrite(user);const b=await readJson(req,34*1024*1024),itemId=shortText(b.itemId,80);");
- replace('backend/server.mjs',"  const id=randomUUID();let key=null;",
+ replace('backend/server.mjs',"const id=randomUUID();let key=null;",
   "  const originalFile=type==='file'?await preparePdfForStorage(bytes,mimetype):null;\n  if(originalFile)bytes=originalFile.bytes;\n  const id=randomUUID();let key=null;");
  replace('backend/server.mjs',"await audit(user,'evidence_add',id);return send(res,201,{id});",
   "await audit(user,'evidence_add',id);return send(res,201,{id,...(originalFile?{compression:{originalBytes:originalFile.originalBytes,storedBytes:originalFile.storedBytes,compressed:originalFile.compressed,reason:originalFile.reason}}:{})});");
