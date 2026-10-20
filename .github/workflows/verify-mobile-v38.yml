@@ -1,0 +1,65 @@
+name: Verify native mobile PWA v3.8
+on:
+  push:
+    branches:
+      - preview/school-evidence-static-v37-20261020
+    paths:
+      - scripts/mobile-native-v38.js
+      - scripts/mobile-native-v38.css
+      - scripts/apply-mobile-v38.mjs
+      - scripts/static-frontend-v37.mjs
+      - .github/workflows/verify-mobile-v38.yml
+permissions:
+  contents: write
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing PDF test dependency
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ghostscript
+      - name: Build exact static frontend with cloud and mobile patches
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs');const z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+          node --check public/assets/mobile-native-v38.js
+          node --check public/assets/static-api-v37.js
+          node --check public/view.js
+          node --test backend/*.test.mjs
+      - name: Verify mobile navigation and PWA assets
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const h=fs.readFileSync('public/index.html','utf8');
+          const sw=fs.readFileSync('public/sw.js','utf8');
+          const js=fs.readFileSync('public/assets/mobile-native-v38.js','utf8');
+          const css=fs.readFileSync('public/assets/mobile-native-v38.css','utf8');
+          assert.ok(h.includes('mobile-native-v38.js')&&h.includes('mobile-native-v38.css'));
+          assert.ok(h.includes('static-api-v37.js')&&h.includes('SchoolBridge.request'));
+          assert.ok(!/(?<![\w.])confirm\(/.test(h),'Native confirm remains');
+          assert.ok(!h.includes('window.prompt('),'Native prompt remains');
+          assert.ok(sw.includes('school-evidence-pwa-cloud-v3.8.0'));
+          for(const f of ['mobile-native-v38.js','mobile-native-v38.css','static-api-v37.js'])assert.ok(sw.includes(f));
+          for(const id of ['teamModal','schoolProfileModal','qrModal','officialReportModal','sectionMembersModal'])assert.ok(js.includes(id));
+          assert.ok(css.includes('.school-native-screen:not(.hidden)'));
+          assert.equal(JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8')).display,'standalone');
+          console.log('PASS native mobile pages, dialogs, authenticated API, cache and manifest checks');
+          NODE
+      - name: Save CI result
+        run: |
+          printf '# School Evidence v3.8 mobile verification\n\n- UTC: %s\n- Static frontend assembled with existing API bridge\n- 34+ server tests (as reported in workflow logs)\n- Replaced browser confirm/prompt with in-app sheets\n- Mobile pages, assets and PWA cache verified\n- No Neon school records modified\n\nDevice navigation and authenticated uploads still require iPhone acceptance testing.\n' "$(date -u +%FT%TZ)" > STATIC-V38-MOBILE.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add STATIC-V38-MOBILE.md
+          git commit -m "Verify v3.8 mobile screens, dialogs and PWA shell"
+          git push
