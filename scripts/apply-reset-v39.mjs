@@ -29,6 +29,13 @@ try{
   ].join('\n');
   server=server.replace(mark,handlers+'\n'+mark);
  }
+ const memberMarker=" const old=(await pool.query('SELECT id,password_hash,is_admin FROM members WHERE id=$1 AND school_id=$2',[id,user.schoolId])).rows[0];";
+ if(!server.includes('username is already registered globally')){
+  if(!server.includes(memberMarker))throw Error('School member validation marker missing');
+  server=server.replace(memberMarker,
+   " const already=(await pool.query('SELECT id FROM members WHERE lower(username)=lower($1) AND id<>$2 LIMIT 1',[b.username,id])).rows[0];\n"+
+   " if(already)throw fail('اسم المستخدم مستخدم بالفعل في المنصة.',409); // username is already registered globally\n"+memberMarker);
+ }
  fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/reset-v39.mjs',f('backend/reset-v39.mjs'));
  const schema=f('backend/schema.sql'),old=fs.readFileSync(schema,'utf8');
