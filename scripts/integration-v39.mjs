@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname} from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {Pool} from 'pg';
-import {start,verify} from './auth-v39.mjs';
+import {start,verify,resend} from './auth-v39.mjs';
 import {beginReset,finishReset} from './reset-v39.mjs';
 import {generateSerial,serialHash} from './licensing.mjs';
 import {hashPassword,SECTIONS} from './security.mjs';
@@ -31,6 +31,13 @@ try{
  assert.ok(/^[0-9a-f-]{36}$/.test(signup.challengeId)&&/^\d{6}$/.test(otp));
  const before=(await pool.query("SELECT count(*)::int AS n FROM members WHERE lower(username)=$1",[memberName])).rows[0].n;
  assert.equal(before,0,'Account must not exist until OTP verified');say('Registration creates challenge without granting account/session');
+ await assert.rejects(()=>resend(pool,{challengeId:signup.challengeId},async()=>{}),e=>e.status===429);
+ await pool.query("UPDATE school_signup_challenges SET resend_after=NOW()-interval '1 second' WHERE id=$1",[signup.challengeId]);
+ const prior=otp;
+ await resend(pool,{challengeId:signup.challengeId},async(addr,code)=>{assert.equal(addr,email);otp=code});
+ const fresh=(await pool.query('SELECT attempts,otp_hmac FROM school_signup_challenges WHERE id=$1',[signup.challengeId])).rows[0];
+ assert.equal(fresh.attempts,0);say('Resend enforces cooldown, refreshes the code and resets attempt count');
+
  await assert.rejects(()=>verify(pool,{challengeId:signup.challengeId,code:'000000'}),e=>e.status===400);
  const failure=(await pool.query('SELECT attempts FROM school_signup_challenges WHERE id=$1',[signup.challengeId])).rows[0];
  assert.equal(failure.attempts,1);say('Invalid OTP increments durable attempt counter');
@@ -39,6 +46,13 @@ try{
  await assert.rejects(()=>verify(pool,{challengeId:signup.challengeId,code:otp}),e=>e.status===410);
  const row=(await pool.query('SELECT s.id,s.activation_status,s.license_until,m.id member_id,m.email_verified_at,m.phone_e164 FROM schools s JOIN members m ON m.school_id=s.id WHERE m.username=$1',[memberName])).rows[0];
  assert.equal(row.activation_status,'pending_activation');assert.ok(new Date(row.license_until)<=new Date('1971-01-01'));
+ await assert.rejects(()=>start(pool,{...payload,schoolName:'Another Test School',ministryCode:'8754312222',email:'other.school@example.edu'},async()=>{}),e=>e.status===409);
+ const staleBody={...payload,schoolName:'Expired School',ministryCode:'8754312223',email:'expired.school@example.edu',username:'expired.manager'};
+ const expired=await start(pool,staleBody,async()=>{});
+ await pool.query("UPDATE school_signup_challenges SET expires_at=NOW()-interval '1 minute' WHERE id=$1",[expired.challengeId]);
+ await assert.rejects(()=>verify(pool,{challengeId:expired.challengeId,code:'123456'}),e=>e.status===410);
+ say('Global duplicate identity and expired code are rejected before creating school accounts');
+
  assert.ok(row.email_verified_at);assert.equal(row.phone_e164,'+966551234567');say('Email confirmation creates verified unlicensed school once');
  const serial=generateSerial(),serialId=randomUUID();
  await pool.query("INSERT INTO serial_keys(id,serial_hash,kind,issued_by,claim_by) VALUES($1,$2,'activation',$3,NOW()+interval '30 days')",[serialId,serialHash(serial),ownerId]);
@@ -60,6 +74,7 @@ try{
  const token=login.data.sessionToken;assert.match(token,/^[A-Za-z0-9_-]{43}$/);
  assert.equal(login.headers.get('access-control-allow-origin'),origin);
  assert.equal((await req('/api/me',{token})).status,200);
+ assert.equal((await req('/api/platform/me',{token})).status,403,'School member must not gain platform owner privileges');
  assert.equal((await req('/api/data',{token})).status,403);
  assert.equal((await req('/api/school/activate',{method:'POST',body:{serial}})).status,403,'No unauthenticated activation');
  say('Unified username login works without school code, pending-school data is forbidden');
@@ -80,6 +95,7 @@ try{
  assert.equal(teamLogin.status,200);assert.equal(teamLogin.data.user.isAdmin,false);
  assert.equal((await req('/api/permissions',{method:'POST',token:teamLogin.data.sessionToken,body:{sectionId:'manager',memberIds:[]}})).status,403);
  assert.equal((await req('/api/school',{method:'POST',token:teamLogin.data.sessionToken,body:{school:{name:'tamper'}}})).status,403);
+ assert.equal((await req('/api/school/activate',{method:'POST',token:teamLogin.data.sessionToken,body:{serial}})).status,403);
  const items=JSON.parse(await readFile(new URL('./items.json',import.meta.url),'utf8'));
  const item=Object.keys(items)[0];
  await pool.query('INSERT INTO evidences(id,school_id,item_id,title,kind,url,added_by) VALUES($1,$2,$3,$4,$5,$6,$7)',[entryId,school2,item,'PRIVATE OTHER SCHOOL EVIDENCE','link','https://example.edu/school2','integration']);
