@@ -8,6 +8,7 @@ import {setTimeout as sleep} from 'node:timers/promises';
 import {Pool} from 'pg';
 import {start,verify,resend} from './auth-v39.mjs';
 import {beginReset,finishReset} from './reset-v39.mjs';
+import {startEmailLink,verifyEmailLink} from './link-email-v39.mjs';
 import {openTestStorage,exerciseEvidence} from './evidence-wire-v39.mjs';
 import {generateSerial,serialHash} from './licensing.mjs';
 import {hashPassword,SECTIONS} from './security.mjs';
@@ -27,6 +28,19 @@ try{
  const oldSchoolId=randomUUID(),oldManagerId=randomUUID();
  await pool.query("INSERT INTO schools(id,login_code,school,license_until) VALUES($1,$2,$3,NOW()+interval '1 year')",[oldSchoolId,'SCH-LEGACY-CI',{name:'Existing school without email',code:'6754312221',schoolType:'boys'}]);
  await pool.query("INSERT INTO members(id,school_id,username,name,role,is_admin,allowed_sections,password_hash) VALUES($1,$2,$3,$4,$5,true,$6,$7)",[oldManagerId,oldSchoolId,'legacy.manager','Legacy Manager','مدير المدرسة',SECTIONS,await hashPassword('LegacyExamplePassword#1234')]);
+
+ const legacyUser={kind:'school',id:oldManagerId,schoolId:oldSchoolId,isAdmin:true};
+ let mailLinkCode;
+ await assert.rejects(()=>startEmailLink(pool,{...legacyUser,isAdmin:false},{email:'existing.manager@example.edu',password:'LegacyExamplePassword#1234'},async()=>{}),e=>e.status===403);
+ await assert.rejects(()=>startEmailLink(pool,legacyUser,{email:'existing.manager@example.edu',password:'incorrect'},async()=>{}),e=>e.status===401);
+ const link=await startEmailLink(pool,legacyUser,{email:'existing.manager@example.edu',password:'LegacyExamplePassword#1234'},async(_addr,code)=>{mailLinkCode=code});
+ assert.match(link.challengeId,/^[0-9a-f-]{36}$/);
+ await assert.rejects(()=>verifyEmailLink(pool,legacyUser,{challengeId:link.challengeId,code:'999999'}),e=>e.status===400);
+ const linked=await verifyEmailLink(pool,legacyUser,{challengeId:link.challengeId,code:mailLinkCode});
+ assert.equal(linked.verified,true);
+ assert.ok((await pool.query('SELECT email_verified_at FROM members WHERE id=$1',[oldManagerId])).rows[0].email_verified_at);
+ await assert.rejects(()=>verifyEmailLink(pool,legacyUser,{challengeId:link.challengeId,code:mailLinkCode}),e=>e.status===410);
+ say('Existing manager may securely link an email without creating another school or changing the license');
 
  const memberName='newschoolmanager',email='integration.manager@example.edu',password='ExampleSchoolPassword#123456';
  const payload={schoolName:'مدرسة التكامل التجريبية',schoolType:'boys',ministryCode:'8754312221',name:'مدير الاختبار',email,phone:'0551234567',username:memberName,password,confirmPassword:password};
