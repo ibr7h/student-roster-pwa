@@ -1,0 +1,32 @@
+name: Deploy smart PDF compression
+on:
+  push:
+    branches:
+      - deploy/school-evidence-v3.3-neon-mobile-20261019
+    paths:
+      - scripts/apply-pdf-compression-v35.mjs
+      - .github/workflows/apply-pdf-v35.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Ghostscript for end-to-end PDF validation
+        run: sudo apt-get update -qq && sudo apt-get install -y ghostscript
+      - name: Patch archived backend and run all tests
+        run: node scripts/apply-pdf-compression-v35.mjs
+      - name: Commit prepared backend
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-package.b64
+          git diff --cached --quiet && exit 0
+          git commit -m "Deploy balanced signed-safe PDF compression v3.5.0"
+          git push
