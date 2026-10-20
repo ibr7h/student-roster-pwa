@@ -9,7 +9,7 @@ import {Pool} from 'pg';
 import {start,verify,resend} from './auth-v39.mjs';
 import {beginReset,finishReset} from './reset-v39.mjs';
 import {startEmailLink,verifyEmailLink} from './link-email-v39.mjs';
-import {openTestStorage,exerciseEvidence} from './evidence-wire-v39.mjs';
+import {openTestStorage,exerciseEvidence,makeCompressiblePdf} from './evidence-wire-v39.mjs';
 import {generateSerial,serialHash} from './licensing.mjs';
 import {hashPassword,SECTIONS} from './security.mjs';
 const here=dirname(fileURLToPath(import.meta.url));
@@ -115,6 +115,9 @@ try{
  assert.equal((await req('/api/data',{token})).status,200);
  const evidenceItems=JSON.parse(await readFile(new URL('./items.json',import.meta.url),'utf8'));
  try{await exerciseEvidence({req,base,token,itemId:Object.keys(evidenceItems)[0]})}catch(e){console.error('TEST API error:',stderr.slice(-3200));throw e}
+ const compressed=await exerciseEvidence({req,base,token,itemId:Object.keys(evidenceItems)[0],fileBytes:makeCompressiblePdf(),expectCompressed:true});
+ assert.match(compressed.id,/^[0-9a-f-]{36}$/);
+ say('Oversized PDF is actually compressed during protected HTTP upload, then downloadable and shareable');
  assert.ok([...storage.files.keys()].some(key=>/^8754312221\/evidence\/[0-9a-f-]{36}$/i.test(key)),'Object key must be isolated under owning ministry number');
  say('Protected PDF stored over S3-compatible protocol; QR, timed sharing and revocation passed');
  const consumed=(await pool.query('SELECT redeemed_school_id FROM serial_keys WHERE id=$1',[serialId])).rows[0];
