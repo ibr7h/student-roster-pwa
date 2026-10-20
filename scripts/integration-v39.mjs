@@ -8,6 +8,7 @@ import {setTimeout as sleep} from 'node:timers/promises';
 import {Pool} from 'pg';
 import {start,verify,resend} from './auth-v39.mjs';
 import {beginReset,finishReset} from './reset-v39.mjs';
+import {openTestStorage,exerciseEvidence} from './evidence-wire-v39.mjs';
 import {generateSerial,serialHash} from './licensing.mjs';
 import {hashPassword,SECTIONS} from './security.mjs';
 const here=dirname(fileURLToPath(import.meta.url));
@@ -18,7 +19,7 @@ process.env.SCHOOL_OTP_FROM='verification@schools.example';
 process.env.SCHOOL_STATIC_ORIGIN='https://school-evidence-v39-preview.onrender.com';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3});
 const sent={};
-let server;
+let server,storage;
 const say=msg=>console.log('PASS '+msg);
 try{
  await pool.query(await readFile(new URL('./schema.sql',import.meta.url),'utf8'));
@@ -60,6 +61,7 @@ try{
  assert.ok(row.email_verified_at);assert.equal(row.phone_e164,'+966551234567');say('Email confirmation creates verified unlicensed school once');
  const serial=generateSerial(),serialId=randomUUID();
  await pool.query("INSERT INTO serial_keys(id,serial_hash,kind,issued_by,claim_by) VALUES($1,$2,'activation',$3,NOW()+interval '30 days')",[serialId,serialHash(serial),ownerId]);
+ storage=await openTestStorage();
  const port=process.env.TEST_PORT||'30189',origin=process.env.SCHOOL_STATIC_ORIGIN;
  server=spawn(process.execPath,['server.mjs'],{cwd:here,env:{...process.env,PORT:String(port)},stdio:['ignore','pipe','pipe']});
  let stderr='';
@@ -94,6 +96,9 @@ try{
  assert.equal(activation.status,200,JSON.stringify(activation.data));
  assert.equal((await req('/api/school/activate',{method:'POST',token,body:{serial}})).status,409);
  assert.equal((await req('/api/data',{token})).status,200);
+ const evidenceItems=JSON.parse(await readFile(new URL('./items.json',import.meta.url),'utf8'));
+ await exerciseEvidence({req,base,token,itemId:Object.keys(evidenceItems)[0]});
+ say('Protected PDF stored over S3-compatible protocol; QR, timed sharing and revocation passed');
  const consumed=(await pool.query('SELECT redeemed_school_id FROM serial_keys WHERE id=$1',[serialId])).rows[0];
  assert.equal(consumed.redeemed_school_id,row.id);say('Manager-only post-login activation is atomic, once-only, and unlocks school data');
  const forbidden=(await req('/api/me',{headers:{Authorization:'Bearer '+'A'.repeat(43)}}));
@@ -135,5 +140,6 @@ try{
  console.log('SUCCESS all full-flow isolated v3.9 API integration assertions passed');
 }finally{
  if(server){server.kill('SIGTERM');await sleep(300)}
+ if(storage)await storage.close();
  await pool.end().catch(()=>{});
 }
