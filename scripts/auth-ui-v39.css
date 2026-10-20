@@ -1,0 +1,36 @@
+/* v3.9 mobile-first identity experience; no externally hosted UI assets. */
+#loginScreenOverlay{box-sizing:border-box!important;position:fixed!important;inset:0!important;padding:0!important;margin:0!important;width:100%!important;max-width:100vw!important;height:100dvh!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;display:flex!important;align-items:flex-start!important;justify-content:center!important;background:#f5f7fc!important;z-index:1000!important;-webkit-overflow-scrolling:touch;}
+#loginScreenOverlay.hidden{display:none!important;}
+#loginScreenOverlay > :not(#authV39Shell){display:none!important;}
+#authV39Shell{box-sizing:border-box;width:100%;max-width:480px;min-height:100dvh;background:#fff;display:flex;flex-direction:column;color:#12223d;box-shadow:0 8px 38px #00122a0f;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;touch-action:pan-y;}
+#authV39Shell *{box-sizing:border-box;min-width:0}
+#authV39Shell .auth39-head{background:linear-gradient(145deg,#091d3a,#152c55);padding:calc(22px + env(safe-area-inset-top,0px)) 22px 23px;text-align:center;color:white;flex:0 0 auto}
+#authV39Shell .auth39-emblem{width:57px;height:57px;border:1px solid #d6b45f70;background:#dbb55125;display:grid;place-items:center;font-size:31px;margin:0 auto 12px;border-radius:18px;color:#d7b24b;line-height:1}
+#authV39Shell .auth39-wordmark{font-size:19px;line-height:1.5;font-weight:900;letter-spacing:-.3px}
+#authV39Shell .auth39-head p{font-size:12px;color:#c8d5e8;margin:4px 0 0}
+#authV39Shell .auth39-body{flex:1 0 auto;padding:24px 21px calc(26px + env(safe-area-inset-bottom,0px));}
+#authV39Shell .auth39-page[hidden],#authV39Shell [hidden]{display:none!important}
+#authV39Shell h1{font-size:21px;line-height:1.55;font-weight:900;margin:0 0 3px;color:#102749}
+#authV39Shell .auth39-intro{font-size:13px;line-height:1.7;margin:0 0 18px;color:#64748b}
+#authV39Shell form{display:flex;flex-direction:column}
+#authV39Shell label{display:block;color:#344661;font-weight:800;font-size:13px;margin:12px 0 7px}
+#authV39Shell input,#authV39Shell select{width:100%;max-width:100%;min-height:49px;display:block;border:1px solid #c9d4e5;border-radius:13px;padding:11px 13px;background:#fff;color:#10243c;outline:none;font-size:16px!important;line-height:1.5;direction:auto;text-align:start;box-shadow:0 1px 1px #00000003}
+#authV39Shell input:focus,#authV39Shell select:focus{border-color:#3a669f;box-shadow:0 0 0 3px #3b82f61c}
+#authV39Shell input::placeholder{color:#94a3b8}
+#authV39Shell input[dir=ltr]{text-align:center;letter-spacing:.7px}
+#authV39Shell .auth39-primary,#authV39Shell .auth39-secondary{width:100%;min-height:49px;border:0;border-radius:13px;font-size:15px;font-weight:900;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:8px}
+#authV39Shell .auth39-primary{color:white;background:#173b75;margin:23px 0 0;box-shadow:0 6px 13px #112e5a25}
+#authV39Shell .auth39-primary:active{background:#09285a}
+#authV39Shell .auth39-secondary{background:#edf2f8;color:#294362;margin:12px 0 0}
+#authV39Shell button:disabled{opacity:.55;cursor:wait}
+#authV39Shell .auth39-links{display:flex;justify-content:space-between;gap:16px;margin:22px 0 3px;align-items:center}
+#authV39Shell .auth39-links a,#authV39Shell .auth39-links button,#authV39Shell .auth39-back{font-size:13px;color:#204c85;text-decoration:none;border:0;background:none;font-weight:800;padding:9px 0}
+#authV39Shell .auth39-back{text-align:right;width:100%;margin-bottom:14px}
+#authV39Shell .auth39-message{margin:16px 0 0;padding:11px 13px;background:#e7f5ec;color:#17633e;border-radius:12px;font-size:13px;line-height:1.7}
+#authV39Shell .auth39-message.auth39-error{background:#fff1f0;color:#a12827}
+#authV39Shell .auth39-step-icon{display:flex;align-items:center;justify-content:center;width:62px;height:62px;border-radius:50%;background:#edf5ff;margin:0 auto 20px;color:#184677;font-size:30px}
+#authV39Shell .auth39-muted{display:block;text-align:center;font-size:12px;color:#617086;margin-top:10px}
+html,body{max-width:100%;overflow-x:clip;}
+@media(max-width:767px){#authV39Shell{max-width:100%;min-height:100dvh;box-shadow:none}#authV39Shell .auth39-body{padding-inline:19px}#authV39Shell .auth39-head{padding-top:calc(20px + env(safe-area-inset-top,0px))}}
+@media(min-width:768px){#loginScreenOverlay{align-items:center!important}#authV39Shell{min-height:0;max-height:min(92dvh,960px);overflow:auto;border-radius:23px;box-shadow:0 16px 45px #001e4933}#loginScreenOverlay .auth39-head{padding-top:24px}}
+@media(prefers-reduced-motion:reduce){#authV39Shell *{scroll-behavior:auto!important;transition:none!important}}
