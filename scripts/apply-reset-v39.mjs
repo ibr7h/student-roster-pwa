@@ -41,7 +41,7 @@ try{
 
  // Keep private reviewer links tied to the *real* S3 reader exported by
  // this packaged backend (readSchoolEvidence). Fix the stale v3.4 call.
- server=server.split('\\n').filter(line=>!line.includes("import {downloadEvidence} from './storage.mjs'")).join('\\n');
+ server=server.split(String.fromCharCode(10)).filter(line=>!line.includes("import {downloadEvidence} from './storage.mjs'")).join(String.fromCharCode(10));
  if(server.includes('downloadEvidence(')){
   if(!server.includes("readSchoolEvidence"))throw Error('School-scoped private storage reader is missing');
   server=server.replaceAll('downloadEvidence(','readSchoolEvidence(');
