@@ -71,6 +71,8 @@ try{
  const saved=path.join(dir,'old-public');if(fs.existsSync(f('public')))fs.cpSync(f('public'),saved,{recursive:true});
  fs.rmSync(f('public'),{recursive:true,force:true});fs.mkdirSync(f('public'),{recursive:true});
  execFileSync('unzip',['-q','-o',path.resolve('site.zip'),'-d',f('public')]);
+ fs.mkdirSync(f('scripts'),{recursive:true});
+ for(const asset of ['evidence-workspace-v36.js','evidence-workspace-v36.css','patch-pdf-ui-v35.mjs'])if(fs.existsSync('scripts/'+asset))fs.copyFileSync('scripts/'+asset,f('scripts/'+asset));
  execFileSync('node',['patch-release.mjs'],{cwd:pkg,stdio:'inherit'});
  // CI can verify all front-end assets; files are regenerated from site.zip by Render.
  fs.rmSync(f('public'),{recursive:true,force:true});if(fs.existsSync(saved))fs.cpSync(saved,f('public'),{recursive:true});
