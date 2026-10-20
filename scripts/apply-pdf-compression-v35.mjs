@@ -47,6 +47,10 @@ try{
   'readJson\\(req,34\\*1024\\*1024\\),itemId');
  fs.appendFileSync(at('patch-release.mjs'),"\n// PDF compression UI is applied after protected sharing/QR features.\nawait import('./scripts/patch-pdf-ui-v35.mjs');\n");
  const pkgFile=at('package.json');const pkg=JSON.parse(fs.readFileSync(pkgFile,'utf8'));pkg.version='3.5.0';fs.writeFileSync(pkgFile,JSON.stringify(pkg,null,2)+'\n');
+ // Preserve only the public files that existed in the original backend archive; generated assets must not be packed.
+ const savedPublic=path.join(temp,'saved-original-public');
+ const hadPublic=fs.existsSync(at('public'));
+ if(hadPublic)fs.cpSync(at('public'),savedPublic,{recursive:true});
  fs.mkdirSync(at('public'),{recursive:true});
  execFileSync('unzip',['-q','-o',path.resolve('site.zip'),'-d',at('public')],{stdio:'inherit'});
  execFileSync('node',['patch-release.mjs'],{cwd:dir,stdio:'inherit'});
@@ -57,6 +61,9 @@ try{
  const ui=fs.readFileSync(at('public/index.html'),'utf8');
  if(!ui.includes('CLOUD_MAX_INCOMING_PDF')||!ui.includes('result.compression'))throw Error('Upload UI missing');
  if(!fs.readFileSync(at('public/sw.js'),'utf8').includes('school-evidence-pwa-cloud-v3.5.0'))throw Error('PWA cache not refreshed');
+ // Render extracts site.zip first and runs patch-release.mjs; avoid overwriting it with CI's already-patched pages.
+ fs.rmSync(at('public'),{recursive:true,force:true});
+ if(hadPublic)fs.cpSync(savedPublic,at('public'),{recursive:true});
  const archive=path.join(temp,'output.tar');
  execFileSync('tar',['-cf',archive,'-C',dir,'.']);
  fs.writeFileSync('backend-package.b64',brotliCompressSync(fs.readFileSync(archive),{params:{[constants.BROTLI_PARAM_QUALITY]:10}}).toString('base64'));
