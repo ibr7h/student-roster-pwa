@@ -27,7 +27,6 @@ jobs:
           unzip -q -o site.zip -d public
           node -e "const f=require('node:fs'),z=require('node:zlib');f.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(f.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
           tar -xf school-backend.tar
-          for f in evidence-workspace-v36.js evidence-workspace-v36.css patch-pdf-ui-v35.mjs; do cp "scripts/$f" "scripts/$f"; done
           node patch-release.mjs
           node scripts/static-frontend-v37.mjs
           node --check public/assets/auth-ui-v39.js
