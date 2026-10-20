@@ -100,9 +100,17 @@ try{
  assert.equal(forbidden.status,401);
  const preflight=await fetch(base+'/api/me',{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Headers':'authorization,content-type','Access-Control-Request-Method':'GET'}});
  assert.equal(preflight.status,204);assert.equal(preflight.headers.get('access-control-allow-origin'),origin);say('Bearer access requires a valid token and CORS allowlist is exact');
- const school2=randomUUID(),secondId=randomUUID(),entryId=randomUUID(),memberId=randomUUID();
+ const school2=randomUUID(),entryId=randomUUID();
  await pool.query("INSERT INTO schools(id,login_code,school,license_until,activation_status) VALUES($1,$2,$3,NOW()+interval '1 year','active')",[school2,'SCH-INTEGRATION02',{name:'مدرسة فصل أخرى',code:'4567812345',schoolType:'girls'}]);
- await pool.query('INSERT INTO members(id,school_id,username,name,is_admin,allowed_sections,password_hash) VALUES($1,$2,$3,$4,false,$5,$6)',[memberId,row.id,'integration.staff','Team Member',['manager'],await hashPassword('SomeOtherMemberPassword!')]);
+
+ await pool.query("UPDATE schools SET school=jsonb_set(school,'{teamGroups}', $1::jsonb, true) WHERE id=$2",[JSON.stringify(['integration-team']),row.id]);
+ const createdMember=await req('/api/members',{method:'POST',token,body:{
+  username:'integration.staff',name:'Team Member',teamGroup:'integration-team',role:'عضو فريق',
+  isAdmin:false,allowedSections:['manager'],password:'SomeOtherMemberPassword!'
+ }});
+ assert.equal(createdMember.status,200,JSON.stringify(createdMember.data));
+ assert.match(createdMember.data.id,/^[0-9a-f-]{36}$/);
+
  const teamLogin=await req('/api/login',{method:'POST',body:{username:'integration.staff',password:'SomeOtherMemberPassword!'}});
  assert.equal(teamLogin.status,200);assert.equal(teamLogin.data.user.isAdmin,false);
  assert.equal((await req('/api/permissions',{method:'POST',token:teamLogin.data.sessionToken,body:{sectionId:'manager',memberIds:[]}})).status,403);
