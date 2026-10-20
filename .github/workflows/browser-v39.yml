@@ -1,0 +1,42 @@
+name: Verify v3.9 iPhone browser registration and login
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/browser-v39.mjs
+      - .github/workflows/browser-v39.yml
+permissions:
+  contents: write
+jobs:
+  iphone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build the exact static PWA
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+      - name: Install headless Chromium
+        run: |
+          npm install --no-audit --no-fund --no-save playwright-core@1.58.2
+          npx playwright-core install --with-deps chromium
+      - name: Test iPhone mobile viewport, registration and recovery
+        run: node scripts/browser-v39.mjs
+      - name: Record verified UI navigation
+        run: |
+          printf '# v3.9 mobile browser check\n\nUTC: %s\n\n- Chromium emulated mobile, 320px and 390px viewports\n- Login, school registration (including email and mandatory phone), code confirmation, login without school code, post-login activation, password recovery\n- Standalone PWA manifest and minimum 16px auth input text\n- Responses were intercepted with test fixtures; this is **not** evidence of real mail delivery or live Neon login\n- Safari hardware acceptance remains required\n' "$(date -u +%FT%TZ)" > BROWSER-V39-RESULTS.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add BROWSER-V39-RESULTS.md
+          git commit -m "Verify v3.9 iPhone-scale browser account navigation"
+          git push
