@@ -69,9 +69,37 @@ try{
  fs.copyFileSync('scripts/rate-limit-v39.mjs',f('backend/rate-limit-v39.mjs'));
  fs.copyFileSync('scripts/rate-limit-v39.test.mjs',f('backend/rate-limit-v39.test.mjs'));
 
+ // Legacy manager email verification, bound to the live authenticated school session.
+ if(!server.includes('/api/profile/email/start')){
+  const imp="import {startEmailLink,verifyEmailLink} from './link-email-v39.mjs';";
+  const poolImport="import {Pool} from 'pg';";
+  if(!server.includes(poolImport))throw Error('Legacy email-link import marker missing');
+  server=server.replace(poolImport,poolImport+"\n"+imp);
+  const anchor="if(req.method==='POST'&&url.pathname==='/api/school/activate')return send(res,200,await signupActivate(pool,user,await readJson(req,10000)));";
+  if(!server.includes(anchor))throw Error('Email-link authenticated route marker missing');
+  const routes=[
+   " if(req.method==='POST'&&url.pathname==='/api/profile/email/start'){",
+   "  await durableThrottle(pool,req.socket.remoteAddress,'email-link',{limit:8,windowSeconds:900});",
+   "  return send(res,202,await startEmailLink(pool,user,await readJson(req,10000)));",
+   " }",
+   " if(req.method==='POST'&&url.pathname==='/api/profile/email/verify'){",
+   "  await durableThrottle(pool,req.socket.remoteAddress,'email-link',{limit:15,windowSeconds:900});",
+   "  return send(res,200,await verifyEmailLink(pool,user,await readJson(req,5000)));",
+   " }"
+  ].join('\n');
+  server=server.replace(anchor,anchor+'\n'+routes);
+ }
+ fs.copyFileSync('scripts/link-email-v39.mjs',f('backend/link-email-v39.mjs'));
+ fs.copyFileSync('scripts/link-email-v39.test.mjs',f('backend/link-email-v39.test.mjs'));
+
  fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/reset-v39.mjs',f('backend/reset-v39.mjs'));
  const schema=f('backend/schema.sql'),old=fs.readFileSync(schema,'utf8');
+ if(!old.includes('CREATE TABLE IF NOT EXISTS member_email_challenges')){
+  fs.appendFileSync(schema,
+   "\nCREATE TABLE IF NOT EXISTS member_email_challenges (id TEXT PRIMARY KEY,member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,school_id TEXT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,email TEXT NOT NULL,otp_hmac TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts BETWEEN 0 AND 10),expires_at TIMESTAMPTZ NOT NULL,consumed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());\nCREATE INDEX IF NOT EXISTS member_email_challenges_recent_idx ON member_email_challenges(member_id,created_at DESC);\n");
+ }
+
  if(!old.includes('CREATE TABLE IF NOT EXISTS api_rate_buckets')){
    fs.appendFileSync(schema,"\nCREATE TABLE IF NOT EXISTS api_rate_buckets (bucket TEXT PRIMARY KEY,hits INTEGER NOT NULL CHECK(hits>=1),expires_at TIMESTAMPTZ NOT NULL);\nCREATE INDEX IF NOT EXISTS api_rate_buckets_expiry_idx ON api_rate_buckets(expires_at);\n");
  }
