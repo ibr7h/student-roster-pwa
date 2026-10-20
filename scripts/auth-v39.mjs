@@ -24,6 +24,7 @@ export function fields(b){
 }
 export async function start(pool,body,send=sendMail){
  config();const b=fields(body);
+ await pool.query("DELETE FROM school_signup_challenges WHERE id IN (SELECT id FROM school_signup_challenges WHERE expires_at<NOW()-interval '7 days' LIMIT 200)");
  const c=await pool.query("SELECT EXISTS(SELECT 1 FROM schools WHERE school->>'code'=$1) AS school, EXISTS(SELECT 1 FROM members WHERE lower(username)=$2 OR lower(email)=$3) AS member",[b.ministry,b.username,b.email]);
  if(c.rows[0].school||c.rows[0].member)throw fail('بيانات المدرسة أو الحساب مستخدمة بالفعل.',409);
  const attempts=await pool.query("SELECT count(*)::int AS n FROM school_signup_challenges WHERE created_at>NOW()-interval '15 minutes' AND (lower(email)=$1 OR phone_e164=$2)",[b.email,b.phone]);
