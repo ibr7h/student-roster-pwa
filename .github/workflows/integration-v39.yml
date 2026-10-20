@@ -47,11 +47,12 @@ jobs:
           node --check backend/integration-v39.mjs
       - name: Test OTP, activation, role permissions, isolation and recovery
         run: node backend/integration-v39.mjs
-      - name: Record passed integrated tests
+      - name: Save integration test report
         run: |
-          printf '# v3.9 account lifecycle integration\n\n- Tested: %s UTC\n- Disposable PostgreSQL 16 in CI, not Neon production\n- Pending registration, invalid/valid one-time verification, account creation, global login, single-use school license, school data embargo, cross-school isolation, member RBAC, password recovery and session revocation\n- No actual emails were sent: test transport recorded codes in memory\n- Production and test Neon accounts were not changed by this test\n' "$(date -u +%FT%TZ)" > INTEGRATION-V39-RESULTS.md
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add INTEGRATION-V39-RESULTS.md
-          git commit -m "Verify complete v3.9 account lifecycle in isolated PostgreSQL"
-          git push
+          printf '# v3.9 account lifecycle integration\n\n- Tested: %s UTC\n- Disposable PostgreSQL 16 in CI; production Neon untouched\n- OTP, login, activation, limits, tenant isolation, roles, upload and reset passed\n- No real email was sent\n' "$(date -u +%FT%TZ)" > INTEGRATION-V39-RESULTS.md
+      - name: Upload CI evidence without competing branch pushes
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-v39-integration-report
+          path: INTEGRATION-V39-RESULTS.md
+          retention-days: 30
