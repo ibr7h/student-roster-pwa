@@ -18,7 +18,17 @@ try{
  const diagnostic=fs.readFileSync(at('backend/server.mjs'),'utf8');
  const evidenceRoute=diagnostic.indexOf("if(req.method==='POST'&&url.pathname==='/api/evidences')");
  console.log('DIAGNOSTIC PDF evidence route:',diagnostic.slice(evidenceRoute-30,evidenceRoute+2200));
- if(fs.readFileSync(at('backend/server.mjs'),'utf8').includes('preparePdfForStorage'))throw Error('PDF patch already present');
+ if(fs.readFileSync(at('backend/server.mjs'),'utf8').includes('preparePdfForStorage')){
+  // A previous CI pass bundled pre-patched public assets. Restore the invariant that Render gets clean site.zip.
+  const recovery=at('public/owner-recover.html');const savedRecovery=fs.existsSync(recovery)?fs.readFileSync(recovery):null;
+  fs.rmSync(at('public'),{recursive:true,force:true});fs.mkdirSync(at('public'),{recursive:true});
+  if(savedRecovery)fs.writeFileSync(recovery,savedRecovery);
+  const original=path.join(temp,'sanitized-backend.tar');
+  execFileSync('tar',['-cf',original,'-C',dir,'.']);
+  fs.writeFileSync('backend-package.b64',brotliCompressSync(fs.readFileSync(original),{params:{[constants.BROTLI_PARAM_QUALITY]:10}}).toString('base64'));
+  console.log('Removed CI-generated public assets from already-tested PDF package');
+  process.exit(0);
+ }
  fs.copyFileSync('scripts/pdf-compression-v35.mjs',at('backend/pdf-compression.mjs'));
  fs.copyFileSync('scripts/pdf-compression-v35.test.mjs',at('backend/pdf-compression.test.mjs'));
  fs.mkdirSync(at('scripts'),{recursive:true});
