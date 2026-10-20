@@ -4,6 +4,7 @@ import {hashPassword,fail} from './security.mjs';
 const reply={ok:true,note:'إذا كان البريد مرتبطًا بحساب مؤكد، فستصلك تعليمات الاستعادة.'};
 export async function beginReset(pool,body,send=sendMail){
  config();const addr=email(body.email);
+ await pool.query("DELETE FROM password_reset_challenges WHERE id IN (SELECT id FROM password_reset_challenges WHERE expires_at<NOW()-interval '7 days' LIMIT 200)");
  const member=(await pool.query('SELECT id,email FROM members WHERE lower(email)=$1 AND email_verified_at IS NOT NULL LIMIT 1',[addr])).rows[0];
  if(!member)return {...reply,challengeId:randomUUID()};
  const recent=await pool.query("SELECT count(*)::int AS n FROM password_reset_challenges WHERE member_id=$1 AND created_at>NOW()-interval '15 minutes'",[member.id]);
