@@ -9,6 +9,8 @@ on:
       - scripts/apply-auth-v39.mjs
       - scripts/reset-v39.mjs
       - scripts/apply-reset-v39.mjs
+      - scripts/rate-limit-v39.mjs
+      - scripts/rate-limit-v39.test.mjs
       - migrations/20261020-v3.9-auth.sql
       - .github/workflows/verify-auth-v39.yml
 permissions:
