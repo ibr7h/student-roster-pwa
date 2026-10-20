@@ -54,3 +54,6 @@ fs.writeFileSync(root+'sw.js',sw);
 const checks=['index.html','owner.html','activate.html','view.html'].map(x=>fs.readFileSync(root+x,'utf8'));
 if(checks.some(s=>!s.includes('static-api-v37.js')) || !checks[0].includes('window.SchoolBridge.request'))throw Error('Missing static API integration');
 console.log('Static PWA v3.7 ready; all interfaces use direct authenticated API requests.');
+
+// Mobile v3.8: full-screen in-app pages and bottom sheets; no browser prompts.
+await import('./apply-mobile-v38.mjs');
