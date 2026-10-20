@@ -5,6 +5,7 @@ on:
       - deploy/school-evidence-v3.3-neon-mobile-20261019
     paths:
       - scripts/install-evidence-workspace-v36.mjs
+      - .github/workflows/install-evidence-workspace-v36.yml
 permissions:
   contents: write
 jobs:
@@ -17,6 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Install Ghostscript for PDF compression regression tests
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ghostscript
       - name: Verify source and apply patch safely
         run: |
           node --check scripts/evidence-workspace-v36.js
