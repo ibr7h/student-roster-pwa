@@ -70,8 +70,9 @@ export async function activate(pool,user,body){
  if(!user.activationRequired)throw fail('المدرسة مفعلة بالفعل.',409);
  const c=await pool.connect();
  try{await c.query('BEGIN');
-  const row=(await c.query('SELECT activation_status FROM schools WHERE id=$1 FOR UPDATE',[user.schoolId])).rows[0];
+  const row=(await c.query('SELECT s.activation_status,m.email_verified_at FROM schools s JOIN members m ON m.school_id=s.id AND m.id=$2 WHERE s.id=$1 FOR UPDATE OF s',[user.schoolId,user.id])).rows[0];
   if(!row||row.activation_status!=='pending_activation')throw fail('حالة المدرسة تغيرت.',409);
+  if(!row.email_verified_at)throw fail('يلزم تأكيد البريد الإلكتروني أولًا.',403);
   const serial=await claimLicense(c,{serial:body.serial,kind:'activation'});
   const until=newLicenseUntil(null);
   await c.query("UPDATE schools SET activation_status='active',license_until=$1,updated_at=NOW() WHERE id=$2",[until,user.schoolId]);
