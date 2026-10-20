@@ -74,3 +74,37 @@
   .school-native-bar,.school-native-sheet-backdrop{display:none!important;}
   .school-native-screen:not(.hidden){position:static!important;height:auto!important;overflow:visible!important;animation:none!important;}
 }
+/* The "More" toolbar becomes an in-app tools screen rather than a floating popup. */
+@media(max-width:767px){
+ body.mobile-menu-open{overflow:hidden!important;}
+ body.mobile-menu-open #appHeader{z-index:90!important;}
+ body.mobile-menu-open .app-toolbar{
+   position:fixed!important;inset:calc(66px + env(safe-area-inset-top,0px)) 0 0!important;
+   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   align-content:start;justify-items:stretch;gap:10px!important;
+   background:#f6f8fc!important;color:#0f172a!important;
+   border:0!important;border-radius:0!important;box-shadow:none!important;
+   max-height:none!important;height:calc(100dvh - 66px - env(safe-area-inset-top,0px))!important;
+   overflow-y:auto!important;padding:22px 14px calc(22px + env(safe-area-inset-bottom,0px))!important;
+ }
+ body.mobile-menu-open .app-toolbar > button,
+ body.mobile-menu-open .app-toolbar > label{
+   color:#1e293b!important;background:white!important;border:1px solid #e2e8f0!important;
+   min-height:80px!important;border-radius:17px!important;box-shadow:0 2px 8px rgba(15,23,42,.04)!important;
+   display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;
+ }
+ body.mobile-menu-open .app-toolbar > button i,body.mobile-menu-open .app-toolbar > label i{color:#123b75!important;font-size:21px;}
+ body.mobile-menu-open .mobile-bottom-nav{visibility:hidden;}
+ body.mobile-menu-open .mobile-menu-backdrop{display:none!important;}
+}
+@media(min-width:768px){
+ .school-native-sheet-backdrop{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,19,38,.49);z-index:9000;}
+ .school-native-sheet{max-width:480px;width:calc(100% - 32px);background:white;padding:20px;border-radius:20px;box-shadow:0 20px 45px #0003;direction:rtl;}
+ .school-native-sheet h2{font-size:20px;font-weight:800;margin-bottom:10px;}
+ .school-native-sheet p{line-height:1.75;}
+ .school-native-field{display:block;width:100%;min-height:48px;margin:12px 0;padding:10px;border:1px solid #ccd1dc;border-radius:9px;}
+ .school-native-actions{display:flex;gap:10px;margin-top:18px;}
+ .school-native-actions button{flex:1;min-height:44px;border-radius:11px;font-weight:800;}
+ .school-native-cancel{background:#e2e8f0;color:#1e293b;}
+ .school-native-accept{background:#123b75;color:white;}
+}
