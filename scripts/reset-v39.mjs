@@ -5,13 +5,13 @@ const reply={ok:true,note:'إذا كان البريد مرتبطًا بحساب 
 export async function beginReset(pool,body,send=sendMail){
  config();const addr=email(body.email);
  const member=(await pool.query('SELECT id,email FROM members WHERE lower(email)=$1 AND email_verified_at IS NOT NULL LIMIT 1',[addr])).rows[0];
- if(!member)return reply;
+ if(!member)return {...reply,challengeId:randomUUID()};
  const recent=await pool.query("SELECT count(*)::int AS n FROM password_reset_challenges WHERE member_id=$1 AND created_at>NOW()-interval '15 minutes'",[member.id]);
- if(recent.rows[0].n>=3)return reply;
+ if(recent.rows[0].n>=3)return {...reply,challengeId:randomUUID()};
  const id=randomUUID(),otp=String(randomInt(100000,1000000));
  await pool.query("INSERT INTO password_reset_challenges(id,member_id,email,otp_hmac,expires_at) VALUES($1,$2,$3,$4,NOW()+interval '10 minutes')",[id,member.id,addr,digest(id,addr,otp,process.env.SCHOOL_OTP_HMAC_SECRET)]);
  try{await send(addr,otp)}
- catch{await pool.query('DELETE FROM password_reset_challenges WHERE id=$1',[id]).catch(()=>{});return reply}
+ catch{await pool.query('DELETE FROM password_reset_challenges WHERE id=$1',[id]).catch(()=>{});return {...reply,challengeId:randomUUID()}}
  return {...reply,challengeId:id};
 }
 export async function finishReset(pool,body){
