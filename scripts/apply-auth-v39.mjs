@@ -55,7 +55,8 @@ try{
  s=s.slice(0,loginStart)+code+s.slice(loginEnd);
  patch(" const user=await auth(req);\n",
   " const user=await auth(req);\n if(req.method==='POST'&&url.pathname==='/api/school/activate')return send(res,200,await signupActivate(pool,user,await readJson(req,10000)));\n if(user?.kind==='school'&&user.activationRequired&&!((url.pathname==='/api/me'&&req.method==='GET')||(url.pathname==='/api/logout'&&req.method==='POST')))throw fail('يلزم تفعيل المدرسة أولًا من حساب المدير.',403);\n");
- patch("version:'3.6.0'","version:'3.9.0'");
+ if(!/version:'3\.[0-9]+\.[0-9]+'/.test(s))throw Error('Backend version marker missing');
+ s=s.replace(/version:'3\.[0-9]+\.[0-9]+'/,'version:\'3.9.0\'');
  fs.writeFileSync(f('backend/server.mjs'),s);
  fs.copyFileSync('scripts/auth-v39.mjs',f('backend/auth-v39.mjs'));
  fs.copyFileSync('scripts/auth-v39.test.mjs',f('backend/auth-v39.test.mjs'));
