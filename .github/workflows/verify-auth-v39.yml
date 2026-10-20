@@ -7,6 +7,8 @@ on:
       - scripts/auth-v39.mjs
       - scripts/auth-v39.test.mjs
       - scripts/apply-auth-v39.mjs
+      - scripts/reset-v39.mjs
+      - scripts/apply-reset-v39.mjs
       - migrations/20261020-v3.9-auth.sql
       - .github/workflows/verify-auth-v39.yml
 permissions:
@@ -25,7 +27,9 @@ jobs:
       - name: Install PDF tool for existing regressions
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ghostscript
       - name: Build v3.9 auth backend and run full tests
-        run: node scripts/apply-auth-v39.mjs
+        run: |
+          node scripts/apply-auth-v39.mjs
+          node scripts/apply-reset-v39.mjs
       - name: Commit verified non-production package
         run: |
           git config user.name "github-actions[bot]"
