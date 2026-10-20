@@ -9,7 +9,7 @@ shell.innerHTML=[
 '<form id="auth39-loginForm"><label for="auth39-identity">البريد الإلكتروني أو اسم المستخدم</label><input id="auth39-identity" name="username" autocomplete="username" spellcheck="false" autocapitalize="none" required placeholder="البريد أو اسم المستخدم">',
 '<label for="auth39-password">كلمة المرور</label><input id="auth39-password" name="password" type="password" autocomplete="current-password" required placeholder="كلمة المرور">',
 '<button class="auth39-primary" type="submit" id="auth39-loginSubmit">دخول المنصة</button></form>',
-'<div class="auth39-links"><button type="button" data-auth-page="register">إنشاء حساب مدرسة</button><a href="./owner.html">إدارة المنصة</a></div></section>',
+'<div class="auth39-links"><button type="button" data-auth-page="register">إنشاء حساب مدرسة</button><button type="button" data-auth-page="reset">نسيت كلمة المرور؟</button></div><div class="auth39-links"><a href="./owner.html">إدارة المنصة</a></div></section>',
 '<section id="auth39-register" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ العودة للدخول</button><h1>تسجيل مدرسة جديدة</h1><p class="auth39-intro">سيتم إرسال رمز تحقق إلى بريد مدير المدرسة قبل إنشاء الحساب.</p>',
 '<form id="auth39-registerForm">',
 '<label for="auth39-schoolName">اسم المدرسة</label><input id="auth39-schoolName" name="schoolName" maxlength="130" required>',
@@ -30,17 +30,19 @@ shell.innerHTML=[
 '<section id="auth39-activation" class="auth39-page" hidden><div class="auth39-step-icon">✓</div><h1>تفعيل المدرسة</h1><p class="auth39-intro">حسابك مؤكد. أدخل الرقم التسلسلي السنوي الذي أصدرته إدارة المنصة لتفعيل المدرسة بعد تسجيل الدخول.</p>',
 '<form id="auth39-activationForm"><label for="auth39-serial">الرقم التسلسلي السنوي</label><input id="auth39-serial" autocomplete="off" placeholder="EDU-XXXXX-XXXXX-XXXXX-XXXXX" dir="ltr" required>',
 '<button class="auth39-primary" type="submit">تفعيل المدرسة وفتح لوحة التحكم</button></form><button type="button" id="auth39-logout" class="auth39-secondary">تسجيل الخروج</button></section>',
+'<section id="auth39-reset" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ العودة للدخول</button><h1>استعادة كلمة المرور</h1><p class="auth39-intro">أدخل بريدك المؤكد لإرسال رمز استعادة من 6 أرقام.</p><form id="auth39-resetStartForm"><label for="auth39-resetEmail">البريد الإلكتروني</label><input id="auth39-resetEmail" type="email" inputmode="email" autocomplete="email" required><button class="auth39-primary" type="submit">إرسال رمز الاستعادة</button></form></section>',
+'<section id="auth39-resetVerify" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ العودة للدخول</button><h1>تعيين كلمة مرور جديدة</h1><p class="auth39-intro">إذا كان البريد مرتبطًا بحساب مؤكد فستصلك رسالة بالرمز. لا تشاركه.</p><form id="auth39-resetVerifyForm"><label for="auth39-resetCode">رمز الاستعادة</label><input id="auth39-resetCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required><label for="auth39-resetPassword">كلمة المرور الجديدة (12 حرفًا فأكثر)</label><input id="auth39-resetPassword" type="password" minlength="12" autocomplete="new-password" required><label for="auth39-resetConfirm">تأكيد كلمة المرور</label><input id="auth39-resetConfirm" type="password" minlength="12" autocomplete="new-password" required><button class="auth39-primary" type="submit">تغيير كلمة المرور</button></form></section>',
 '<p id="auth39-message" role="status" aria-live="polite" class="auth39-message" hidden></p>',
 '</div>'
 ].join('');
 overlay.appendChild(shell);
 const el=id=>document.getElementById('auth39-'+id);
-let challengeId='',resendUntil=0,countdown=null,busy=false;
+let challengeId='',resetChallenge='',resendUntil=0,countdown=null,busy=false;
 function message(text='',error=false){
  const p=el('message');p.textContent=text;p.hidden=!text;p.classList.toggle('auth39-error',!!error);
 }
 function show(page){
- for(const name of ['login','register','verify','activation'])el(name).hidden=name!==page;
+ for(const name of ['login','register','verify','activation','reset','resetVerify'])el(name).hidden=name!==page;
  message('');
  overlay.classList.remove('hidden');
  overlay.scrollTop=0;
@@ -100,6 +102,18 @@ el('activationForm').addEventListener('submit',e=>{e.preventDefault();safe(async
  const serial=el('serial').value.trim();
  await cloudRequest('/school/activate',{method:'POST',body:JSON.stringify({serial})});
  const me=await cloudRequest('/me');await loggedIn(me.user);
+})});
+
+el('resetStartForm').addEventListener('submit',e=>{e.preventDefault();safe(async()=>{
+ const result=await cloudRequest('/password/reset/start',{method:'POST',body:JSON.stringify({email:el('resetEmail').value.trim()})});
+ resetChallenge=result.challengeId;
+ show('resetVerify');message('إذا كان البريد مؤكدًا، فقد أُرسل إليه رمز الاستعادة.');
+})});
+el('resetVerifyForm').addEventListener('submit',e=>{e.preventDefault();safe(async()=>{
+ const password=el('resetPassword').value,confirm=el('resetConfirm').value;
+ if(password!==confirm)throw Error('كلمتا المرور غير متطابقتين.');
+ await cloudRequest('/password/reset/verify',{method:'POST',body:JSON.stringify({challengeId:resetChallenge,code:el('resetCode').value.trim(),password})});
+ show('login');message('تم تعيين كلمة مرور جديدة. سجّل الدخول مجددًا.');
 })});
 el('logout').addEventListener('click',()=>logoutSession());
 })();
