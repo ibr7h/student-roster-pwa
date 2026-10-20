@@ -18,7 +18,6 @@ process.env.SCHOOL_RESEND_API_KEY='test-key-do-not-send';
 process.env.SCHOOL_OTP_FROM='verification@schools.example';
 process.env.SCHOOL_STATIC_ORIGIN='https://school-evidence-v39-preview.onrender.com';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3});
-const sent={};
 let server,storage;
 const say=msg=>console.log('PASS '+msg);
 try{
