@@ -21,6 +21,7 @@ try{
   "const mapUser=m=>({id:m.id,schoolId:m.school_id,name:m.name,role:m.role,isAdmin:!!m.is_admin,allowedSections:m.is_admin?SECTIONS:allowedSections(m.allowed_sections),activationRequired:m.activation_status==='pending_activation',license:licenseState(m)});");
  patch("sc.login_code,sc.license_until,sc.suspended_at,o.name AS owner_name",
   "sc.login_code,sc.license_until,sc.suspended_at,sc.activation_status,o.name AS owner_name");
+ patch(" if(req.method==='POST'&&url.pathname==='/api/activate'){"," if(req.method==='POST'&&url.pathname==='/api/activate')throw fail('التفعيل متاح بعد تسجيل الدخول فقط.',410);\n if(false&&req.method==='POST'&&url.pathname==='/api/activate'){");
  const loginStart=s.indexOf(" if(req.method==='POST'&&url.pathname==='/api/login'){");
  const loginEnd=s.indexOf(" // A bearer share token is separate from the school session.",loginStart);
  if(loginStart<0||loginEnd<loginStart)throw Error('Login endpoint markers absent');
