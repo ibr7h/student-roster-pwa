@@ -41,4 +41,11 @@ jobs:
           git add backend-package.b64
           git diff --cached --quiet && exit 0
           git commit -m "Build verified unified auth v3.9 preview backend"
-          git push
+          for attempt in 1 2 3 4; do
+            git fetch origin "$GITHUB_REF_NAME" --depth=100
+            git rebase FETCH_HEAD
+            if git push origin "HEAD:$GITHUB_REF_NAME"; then exit 0; fi
+            sleep 2
+          done
+          echo 'Unable to push tested artifact after four fast-forward retries' >&2
+          exit 1
