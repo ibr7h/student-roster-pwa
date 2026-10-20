@@ -1,6 +1,6 @@
 import {randomInt,randomUUID,randomBytes,createHmac,timingSafeEqual} from 'node:crypto';
 import {hashPassword,shortText,fail,SECTIONS} from './security.mjs';
-import {ministryCode} from './storage.mjs';
+const ministryCode=value=>{const v=String(value??'').trim();if(!/^[0-9]{5,12}$/.test(v))throw fail('الرقم الوزاري يجب أن يتكون من 5 إلى 12 رقمًا.');return v;};
 import {cleanSchoolSettings} from './school-settings.mjs';
 import {claimLicense,newLicenseUntil} from './licensing.mjs';
 export const norm=x=>typeof x==='string'?x.trim().toLowerCase():'';
