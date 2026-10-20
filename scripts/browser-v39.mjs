@@ -93,6 +93,7 @@ try{
  assert.ok(reqLog.some(x=>x.path==='/api/school/activate'&&x.body.serial==='EDU-ABCDE-ABCDE-ABCDE-ABCDE'));
  const manifestResponse=await page.request.get(base+'/manifest.webmanifest');
  const manifest=await manifestResponse.json();assert.equal(manifest.display,'standalone');
+ active=false;
  await page.setViewportSize({width:320,height:700});await page.reload({waitUntil:'domcontentloaded'});
  await page.locator('#auth39-login').waitFor({state:'visible'});
  await testViewport();
