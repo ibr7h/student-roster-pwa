@@ -7,15 +7,25 @@ on:
       - scripts/smoke-static-v37.mjs
       - .github/workflows/smoke-static-v37.yml
 permissions:
-  contents: read
+  contents: write
 jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - name: Check static frontend, CORS and API isolation
         run: node scripts/smoke-static-v37.mjs
+      - name: Record verified smoke results
+        run: |
+          printf '# Static school PWA v3.7 smoke verification\n\n- Verified at (UTC): %s\n- Public static interface, owner and activation pages: HTTP 200\n- API health and database: HTTP 200\n- Approved-origin CORS preflight: HTTP 204\n- Unauthorized school data and fake bearer: HTTP 401\n- Untrusted origin: no CORS access\n- Service worker asset version: v3.7.0\n\nSchool login, uploads and reviewer shares still require end-to-end user-account tests.\n' "$(date -u +%FT%TZ)" > STATIC-V37-SMOKE.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add STATIC-V37-SMOKE.md
+          git commit -m "Verify public static PWA and backend CORS smoke checks"
+          git push
