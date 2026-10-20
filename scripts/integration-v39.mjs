@@ -76,6 +76,10 @@ try{
 
  const legacy=await req('/api/login',{method:'POST',body:{username:'legacy.manager',password:'LegacyExamplePassword#1234'}});
  assert.equal(legacy.status,200,JSON.stringify(legacy.data));
+ const limiter=(await pool.query("SELECT bucket,hits FROM api_rate_buckets WHERE bucket LIKE 'school-login:%'")).rows;
+ assert.ok(limiter.length>=1,'School login must consume a persistent PostgreSQL rate bucket');
+ assert.ok(limiter.every(x=>/^school-login:[0-9a-f]{64}$/.test(x.bucket)),'Rate limiter must never persist plaintext client addresses');
+ say('PostgreSQL limits login attempts persist across application restarts');
  assert.equal(legacy.data.user.activationRequired,false);
  assert.equal(legacy.data.user.isAdmin,true);
  assert.equal((await req('/api/data',{token:legacy.data.sessionToken})).status,200);
