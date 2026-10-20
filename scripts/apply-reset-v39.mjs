@@ -38,14 +38,15 @@ try{
  }
 
 
- // The bundled storage module exports readSchoolEvidence; the reviewer route
- // must use this exact school-prefix-checked reader, like authenticated files.
+
+ // Keep private reviewer links tied to the *real* S3 reader exported by
+ // this packaged backend (readSchoolEvidence). Fix the stale v3.4 call.
+ server=server.split('\\n').filter(line=>!line.includes("import {downloadEvidence} from './storage.mjs'")).join('\\n');
  if(server.includes('downloadEvidence(')){
-  if(!server.includes('readSchoolEvidence'))throw Error('Private storage reader missing');
+  if(!server.includes("readSchoolEvidence"))throw Error('School-scoped private storage reader is missing');
   server=server.replaceAll('downloadEvidence(','readSchoolEvidence(');
  }
- server=server.replace(/^import \\{downloadEvidence\\} from ['"]\\.\\/storage\\.mjs['"];?\\n/m,'');
- if(server.includes('downloadEvidence'))throw Error('Outdated storage function still referenced');
+ if(server.includes('downloadEvidence('))throw Error('Deprecated PDF storage reader remains');
  fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/reset-v39.mjs',f('backend/reset-v39.mjs'));
  const schema=f('backend/schema.sql'),old=fs.readFileSync(schema,'utf8');
