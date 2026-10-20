@@ -10,6 +10,7 @@ fs.copyFileSync('scripts/auth-ui-v39.css','public/assets/auth-ui-v39.css');
 html=html.replace('</head>','<link rel="stylesheet" href="./assets/auth-ui-v39.css"></head>');
 html=html.replace('</body>','<script src="./assets/auth-ui-v39.js"></script></body>');
 fs.writeFileSync(page,html);
+fs.writeFileSync('public/activate.html','<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="refresh" content="0;url=./index.html"><title>تفعيل المدرسة بعد الدخول</title></head><body style="font:16px system-ui;background:#f4f7fc;color:#10253c;padding:30px"><p>أصبح تفعيل المدارس بعد تسجيل الدخول الموحد.</p><a href="./index.html">انتقل إلى المنصة</a></body></html>');
 let sw=fs.readFileSync('public/sw.js','utf8');
 if(!sw.includes('mobile-native-v38.js'))throw Error('PWA v3.8 marker missing');
 sw=sw.replace(/school-evidence-pwa-cloud-v3\.\d+\.\d+/g,'school-evidence-pwa-cloud-v3.9.0');
