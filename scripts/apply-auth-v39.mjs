@@ -11,7 +11,23 @@ try{
  execFileSync('tar',['-xf',tar,'-C',pkg]);
  const f=name=>path.join(pkg,name);
  let s=fs.readFileSync(f('backend/server.mjs'),'utf8');
- if(s.includes('register/start'))throw Error('Auth v3.9 patch already applied');
+ if(s.includes('register/start')){
+  // CI may have committed an earlier v3.9 bundle. Refresh the latest modules
+  // and keep this packaging step safely repeatable.
+  const marker=" if(req.method==='POST'&&url.pathname==='/api/activate'){";
+  if(s.includes(marker)&&!s.includes('التفعيل متاح بعد تسجيل الدخول فقط.'))
+   s=s.replace(marker," if(req.method==='POST'&&url.pathname==='/api/activate')throw fail('التفعيل متاح بعد تسجيل الدخول فقط.',410);\n if(false&&req.method==='POST'&&url.pathname==='/api/activate'){");
+  fs.writeFileSync(f('backend/server.mjs'),s);
+  fs.copyFileSync('scripts/auth-v39.mjs',f('backend/auth-v39.mjs'));
+  fs.copyFileSync('scripts/auth-v39.test.mjs',f('backend/auth-v39.test.mjs'));
+  execFileSync('node',['--check',f('backend/server.mjs')],{stdio:'inherit'});
+  execFileSync('node',['--test',...fs.readdirSync(f('backend')).filter(x=>x.endsWith('.test.mjs')).map(x=>f('backend/'+x))],{stdio:'inherit'});
+  const out=path.join(dir,'updated.tar');
+  execFileSync('tar',['-cf',out,'-C',pkg,'.']);
+  fs.writeFileSync(source,brotliCompressSync(fs.readFileSync(out),{params:{[constants.BROTLI_PARAM_QUALITY]:10}}).toString('base64'));
+  console.log('Refreshed existing v3.9 backend with latest auth module and tests.');
+  process.exit(0);
+ }
  function patch(before,after){
   if(!s.includes(before))throw Error('Missing v3.9 server marker: '+before.slice(0,100));
   s=s.replace(before,after);
