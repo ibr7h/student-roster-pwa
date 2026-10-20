@@ -7,6 +7,14 @@ if(!html.includes('static-api-v37.js')||!html.includes('mobile-native-v38.js'))t
 fs.mkdirSync('public/assets',{recursive:true});
 fs.copyFileSync('scripts/auth-ui-v39.js','public/assets/auth-ui-v39.js');
 fs.copyFileSync('scripts/auth-ui-v39.css','public/assets/auth-ui-v39.css');
+const bridge='public/assets/static-api-v37.js';
+let bridgeSource=fs.readFileSync(bridge,'utf8');
+const oldApi='https://school-evidence-v33-cloud-preview.onrender.com';
+const nextApi=process.env.SCHOOL_V39_API_ORIGIN||'https://school-evidence-v39-api-preview.onrender.com';
+if(!/^https:\/\/[a-z0-9.-]+\.onrender\.com$/.test(nextApi)||!bridgeSource.includes(oldApi))throw Error('Invalid or missing API origin in v3.9 PWA');
+bridgeSource=bridgeSource.replace(oldApi,nextApi);
+fs.writeFileSync(bridge,bridgeSource);
+
 html=html.replace('</head>','<link rel="stylesheet" href="./assets/auth-ui-v39.css"></head>');
 html=html.replace('</body>','<script src="./assets/auth-ui-v39.js"></script></body>');
 fs.writeFileSync(page,html);
