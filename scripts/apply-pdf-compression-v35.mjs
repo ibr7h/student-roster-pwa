@@ -15,6 +15,9 @@ try{
   if(!text.includes(before))throw Error('Cannot locate marker: '+filename+' '+before.slice(0,70));
   fs.writeFileSync(at(filename),text.replace(before,after));
  };
+ const diagnostic=fs.readFileSync(at('backend/server.mjs'),'utf8');
+ const evidenceRoute=diagnostic.indexOf("if(req.method==='POST'&&url.pathname==='/api/evidences')");
+ console.log('DIAGNOSTIC PDF evidence route:',diagnostic.slice(evidenceRoute-30,evidenceRoute+2200));
  if(fs.readFileSync(at('backend/server.mjs'),'utf8').includes('preparePdfForStorage'))throw Error('PDF patch already present');
  fs.copyFileSync('scripts/pdf-compression-v35.mjs',at('backend/pdf-compression.mjs'));
  fs.copyFileSync('scripts/pdf-compression-v35.test.mjs',at('backend/pdf-compression.test.mjs'));
