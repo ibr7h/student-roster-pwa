@@ -1,0 +1,36 @@
+name: Build and regression-test v3.9 school authentication
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/auth-v39.mjs
+      - scripts/auth-v39.test.mjs
+      - scripts/apply-auth-v39.mjs
+      - migrations/20261020-v3.9-auth.sql
+      - .github/workflows/verify-auth-v39.yml
+permissions:
+  contents: write
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install PDF tool for existing regressions
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ghostscript
+      - name: Build v3.9 auth backend and run full tests
+        run: node scripts/apply-auth-v39.mjs
+      - name: Commit verified non-production package
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-package.b64
+          git diff --cached --quiet && exit 0
+          git commit -m "Build verified unified auth v3.9 preview backend"
+          git push
