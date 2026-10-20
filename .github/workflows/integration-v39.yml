@@ -5,6 +5,7 @@ on:
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/integration-v39.mjs
+      - scripts/evidence-wire-v39.mjs
       - .github/workflows/integration-v39.yml
 permissions:
   contents: write
@@ -40,6 +41,7 @@ jobs:
           node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
           tar -xf school-backend.tar
           cp scripts/integration-v39.mjs backend/integration-v39.mjs
+          cp scripts/evidence-wire-v39.mjs backend/evidence-wire-v39.mjs
           npm install --no-audit --no-fund
           node --check backend/integration-v39.mjs
       - name: Test OTP, activation, role permissions, isolation and recovery
