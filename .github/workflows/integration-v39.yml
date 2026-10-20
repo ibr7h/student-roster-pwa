@@ -1,0 +1,54 @@
+name: Exercise v3.9 complete school account lifecycle against disposable PostgreSQL
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/integration-v39.mjs
+      - .github/workflows/integration-v39.yml
+permissions:
+  contents: write
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: school_evidence_ci
+          POSTGRES_USER: ci_test
+          POSTGRES_PASSWORD: not-a-production-secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci_test -d school_evidence_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://ci_test:not-a-production-secret@127.0.0.1:5432/school_evidence_ci
+      NODE_ENV: test
+      TEST_PORT: '30189'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Expand the exact v3.9 backend archive
+        run: |
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          cp scripts/integration-v39.mjs backend/integration-v39.mjs
+          npm install --no-audit --no-fund
+          node --check backend/integration-v39.mjs
+      - name: Test OTP, activation, role permissions, isolation and recovery
+        run: node backend/integration-v39.mjs
+      - name: Record passed integrated tests
+        run: |
+          printf '# v3.9 account lifecycle integration\n\n- Tested: %s UTC\n- Disposable PostgreSQL 16 in CI, not Neon production\n- Pending registration, invalid/valid one-time verification, account creation, global login, single-use school license, school data embargo, cross-school isolation, member RBAC, password recovery and session revocation\n- No actual emails were sent: test transport recorded codes in memory\n- Production and test Neon accounts were not changed by this test\n' "$(date -u +%FT%TZ)" > INTEGRATION-V39-RESULTS.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add INTEGRATION-V39-RESULTS.md
+          git commit -m "Verify complete v3.9 account lifecycle in isolated PostgreSQL"
+          git push
