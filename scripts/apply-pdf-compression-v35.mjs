@@ -26,8 +26,8 @@ try{
   "const maxBytes=mime==='application/pdf'?MAX_INCOMING_PDF_BYTES:MAX_FILE_BYTES;\n if(typeof input!=='string'||input.length>(Math.ceil(maxBytes*4/3)+200)||!MIME_TYPES.has(mime))");
  replace('backend/security.mjs',"if(!bytes.length||bytes.length>MAX_FILE_BYTES) throw fail('حجم الملف يتجاوز الحد الأقصى (6 ميغابايت).');",
   "if(!bytes.length||bytes.length>maxBytes) throw fail('حجم الملف يتجاوز الحد الأقصى المسموح لهذا النوع.',413);");
- replace('backend/server.mjs',"import {ministryCode,uploadEvidence,downloadEvidence,deleteEvidence} from './storage.mjs';",
-  "import {ministryCode,uploadEvidence,downloadEvidence,deleteEvidence} from './storage.mjs';\nimport {preparePdfForStorage} from './pdf-compression.mjs';");
+ replace('backend/server.mjs',"import {Pool} from 'pg';",
+  "import {Pool} from 'pg';\nimport {preparePdfForStorage} from './pdf-compression.mjs';");
  replace('backend/server.mjs',"version:'3.4.0'","version:'3.5.0'");
  replace('backend/server.mjs',"requireWrite(user);const b=await readJson(req,9*1024*1024),itemId=shortText(b.itemId,80);",
   "requireWrite(user);const b=await readJson(req,34*1024*1024),itemId=shortText(b.itemId,80);");
