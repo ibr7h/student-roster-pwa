@@ -38,8 +38,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install PDF test dependency
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ghostscript
       - name: Expand the exact v3.9 backend archive
         run: |
+          node scripts/apply-auth-v39.mjs
+          node scripts/apply-reset-v39.mjs
           node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
           tar -xf school-backend.tar
           cp scripts/integration-v39.mjs backend/integration-v39.mjs
