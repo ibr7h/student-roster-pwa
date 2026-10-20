@@ -47,9 +47,34 @@ try{
   server=server.replaceAll('downloadEvidence(','readSchoolEvidence(');
  }
  if(server.includes('downloadEvidence('))throw Error('Deprecated PDF storage reader remains');
+ // Durable PostgreSQL throttling keeps sensitive requests bounded across restarts.
+ const rateImport="import {durableThrottle} from './rate-limit-v39.mjs';";
+ if(!server.includes(rateImport)){
+  if(!server.includes("import {Pool} from 'pg';"))throw Error('Cannot add rate-limit import');
+  server=server.replace("import {Pool} from 'pg';","import {Pool} from 'pg';\n"+rateImport);
+ }
+ const guarded={
+  "school-registration":{limit:6,windowSeconds:900},
+  "school-registration-resend":{limit:15,windowSeconds:900},
+  "school-registration-verify":{limit:20,windowSeconds:900},
+  "school-login":{limit:35,windowSeconds:900},
+  "password-reset-start":{limit:8,windowSeconds:900},
+  "password-reset-verify":{limit:16,windowSeconds:900}
+ };
+ for(const [family,limits] of Object.entries(guarded)){
+  const matcher=new RegExp("throttle\\(req\\.socket\\.remoteAddress,'"+family+"',\\d+\\);","g");
+  server=server.replace(matcher,"await durableThrottle(pool,req.socket.remoteAddress,'"+family+"',"+JSON.stringify(limits)+");");
+  if(!server.includes("await durableThrottle(pool,req.socket.remoteAddress,'"+family+"'"))throw Error('Throttled route missing: '+family);
+ }
+ fs.copyFileSync('scripts/rate-limit-v39.mjs',f('backend/rate-limit-v39.mjs'));
+ fs.copyFileSync('scripts/rate-limit-v39.test.mjs',f('backend/rate-limit-v39.test.mjs'));
+
  fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/reset-v39.mjs',f('backend/reset-v39.mjs'));
  const schema=f('backend/schema.sql'),old=fs.readFileSync(schema,'utf8');
+ if(!old.includes('CREATE TABLE IF NOT EXISTS api_rate_buckets')){
+   fs.appendFileSync(schema,"\nCREATE TABLE IF NOT EXISTS api_rate_buckets (bucket TEXT PRIMARY KEY,hits INTEGER NOT NULL CHECK(hits>=1),expires_at TIMESTAMPTZ NOT NULL);\nCREATE INDEX IF NOT EXISTS api_rate_buckets_expiry_idx ON api_rate_buckets(expires_at);\n");
+ }
  if(!old.includes('password_reset_challenges')){
   fs.appendFileSync(schema,
    "\nCREATE TABLE IF NOT EXISTS password_reset_challenges (id TEXT PRIMARY KEY,member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,email TEXT NOT NULL,otp_hmac TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts BETWEEN 0 AND 10),expires_at TIMESTAMPTZ NOT NULL,consumed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());\nCREATE INDEX IF NOT EXISTS password_reset_challenges_recent_idx ON password_reset_challenges(member_id,created_at DESC);\nCREATE INDEX IF NOT EXISTS password_reset_challenges_expiry_idx ON password_reset_challenges(expires_at);\n"
