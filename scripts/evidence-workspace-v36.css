@@ -1,0 +1,26 @@
+/* Fix old utility ordering: .flex accidentally overrode .hidden, exposing dark overlays. */
+.fixed.hidden{display:none!important}
+#evidenceWorkspace.hidden,.evidence-page-panel.hidden,.evidence-page-preview.hidden,.evidence-page-share.hidden{display:none!important}
+#evidenceWorkspace{width:100%;min-width:0;max-width:100%;scroll-margin-top:70px}
+.evidence-workspace-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.evidence-back{border:1px solid #cbd5e1;background:#fff;color:#1e293b;border-radius:13px;padding:12px 15px;min-height:44px;font-size:13px;font-weight:800}
+.evidence-page-label{font-size:12px;font-weight:700;color:#64748b}
+.evidence-page-panel{position:static!important;inset:auto!important;width:100%!important;display:block!important;min-width:0;padding:0!important;background:transparent!important;backdrop-filter:none!important;z-index:auto!important}
+.evidence-page-card{display:flex;flex-direction:column;background:white;max-width:100%;min-width:0;overflow:visible;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 4px 18px #0f172a0a}
+.evidence-page-card>div{min-width:0}
+.evidence-page-card .sticky{position:static!important}
+.evidence-page-card .p-6{padding:clamp(12px,3vw,24px)}
+.evidence-page-panel #modernDropZone,.evidence-page-panel .flex,.evidence-page-panel .grid{min-width:0;max-width:100%}
+.evidence-page-preview{position:static!important;inset:auto!important;background:none!important;backdrop-filter:none!important;z-index:auto!important;display:block;min-width:0;padding:0!important;margin:14px 0;scroll-margin-top:90px}
+.evidence-page-preview-card{width:100%;min-width:0;max-width:100%;border:1px solid #cbd5e1;border-radius:16px;overflow:hidden;background:white}
+.evidence-page-preview-body{display:block;min-height:120px;padding:14px;background:#f8fafc}
+.evidence-preview-message{min-height:130px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;padding:12px;font-size:13px;line-height:1.8;color:#334155}
+.evidence-preview-message i{font-size:28px;color:#4f46e5}
+.evidence-preview-open{display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;min-height:44px;border-radius:12px;background:#4338ca;color:white!important;font-weight:800}
+.evidence-preview-image{display:block;max-width:100%;max-height:60vh;object-fit:contain;border-radius:12px;margin:auto}
+.evidence-page-share{position:static!important;inset:auto!important;background:transparent!important;z-index:auto!important;padding:0!important;min-width:0;margin:14px 0}
+.evidence-page-share-card{border:1px solid #cbd5e1;border-radius:16px;background:white;max-width:100%;width:100%;padding:16px}
+.evidence-nav-hidden{display:none!important}
+.evidence-busy-bar{animation:evidence-progress 1.6s ease-in-out infinite}
+@keyframes evidence-progress{0%,100%{opacity:.45}50%{opacity:1}}
+@media(max-width:640px){.evidence-page-card{border-radius:16px}.evidence-page-card .p-6{padding:14px!important}.evidence-page-panel input:not([type=radio]):not([type=file]),.evidence-page-panel select,.evidence-page-panel textarea{font-size:16px!important;min-width:0;max-width:100%}.evidence-page-panel button{max-width:100%}}
