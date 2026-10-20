@@ -32,17 +32,19 @@ shell.innerHTML=[
 '<button class="auth39-primary" type="submit">تفعيل المدرسة وفتح لوحة التحكم</button></form><button type="button" id="auth39-logout" class="auth39-secondary">تسجيل الخروج</button></section>',
 '<section id="auth39-reset" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ العودة للدخول</button><h1>استعادة كلمة المرور</h1><p class="auth39-intro">أدخل بريدك المؤكد لإرسال رمز استعادة من 6 أرقام.</p><form id="auth39-resetStartForm"><label for="auth39-resetEmail">البريد الإلكتروني</label><input id="auth39-resetEmail" type="email" inputmode="email" autocomplete="email" required><button class="auth39-primary" type="submit">إرسال رمز الاستعادة</button></form></section>',
 '<section id="auth39-resetVerify" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ العودة للدخول</button><h1>تعيين كلمة مرور جديدة</h1><p class="auth39-intro">إذا كان البريد مرتبطًا بحساب مؤكد فستصلك رسالة بالرمز. لا تشاركه.</p><form id="auth39-resetVerifyForm"><label for="auth39-resetCode">رمز الاستعادة</label><input id="auth39-resetCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required><label for="auth39-resetPassword">كلمة المرور الجديدة (12 حرفًا فأكثر)</label><input id="auth39-resetPassword" type="password" minlength="12" autocomplete="new-password" required><label for="auth39-resetConfirm">تأكيد كلمة المرور</label><input id="auth39-resetConfirm" type="password" minlength="12" autocomplete="new-password" required><button class="auth39-primary" type="submit">تغيير كلمة المرور</button></form></section>',
+'<section id="auth39-emailLink" class="auth39-page" hidden><button class="auth39-back" type="button" id="auth39-emailBack">‹ الرجوع للمنصة</button><h1>توثيق بريد حساب المدير</h1><p class="auth39-intro">للحسابات القديمة فقط: أكّد هويتك بكلمة المرور الحالية، ثم أكّد ملكية البريد برمز يُرسل إليه. لا يتغير الترخيص أو بيانات المدرسة.</p><form id="auth39-emailLinkForm"><label for="auth39-emailToLink">البريد الإلكتروني للمدير</label><input id="auth39-emailToLink" type="email" inputmode="email" autocomplete="email" required><label for="auth39-emailPassword">كلمة المرور الحالية</label><input id="auth39-emailPassword" type="password" autocomplete="current-password" required><button type="submit" class="auth39-primary">إرسال رمز التحقق للبريد</button></form></section>',
+'<section id="auth39-emailVerify" class="auth39-page" hidden><button class="auth39-back" type="button" id="auth39-emailVerifyBack">‹ الرجوع</button><h1>تأكيد البريد</h1><p class="auth39-intro">أدخل الرمز المكوّن من ستة أرقام الذي وصلك. بعد التأكيد يمكنك استخدام بريدك لاستعادة كلمة المرور.</p><form id="auth39-emailVerifyForm"><label for="auth39-emailCode">رمز التحقق</label><input id="auth39-emailCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" required><button class="auth39-primary" type="submit">توثيق البريد</button></form></section>',
 '<p id="auth39-message" role="status" aria-live="polite" class="auth39-message" hidden></p>',
 '</div>'
 ].join('');
 overlay.appendChild(shell);
 const el=id=>document.getElementById('auth39-'+id);
-let challengeId='',resetChallenge='',resendUntil=0,countdown=null,busy=false;
+let emailLinkId='',challengeId='',resetChallenge='',resendUntil=0,countdown=null,busy=false;
 function message(text='',error=false){
  const p=el('message');p.textContent=text;p.hidden=!text;p.classList.toggle('auth39-error',!!error);
 }
 function show(page){
- for(const name of ['login','register','verify','activation','reset','resetVerify'])el(name).hidden=name!==page;
+ for(const name of ['login','register','verify','activation','reset','resetVerify','emailLink','emailVerify'])el(name).hidden=name!==page;
  message('');
  overlay.classList.remove('hidden');
  overlay.scrollTop=0;
@@ -58,6 +60,7 @@ function block(state){busy=state;for(const b of shell.querySelectorAll('button[t
 async function safe(task){if(busy)return;block(true);message('جارٍ المعالجة...');try{await task()}catch(e){message(e.message||'تعذر تنفيذ العملية؛ حاول مرة أخرى.',true)}finally{block(false)}}
 async function loggedIn(user){
  state.currentUser=user;
+ refreshEmailLinkAction();
  if(user.activationRequired){show('activation');return}
  await cloudReload();
  state.showAllSectionsReadOnly=false;state.activeCategory='all';
@@ -115,5 +118,24 @@ el('resetVerifyForm').addEventListener('submit',e=>{e.preventDefault();safe(asyn
  await cloudRequest('/password/reset/verify',{method:'POST',body:JSON.stringify({challengeId:resetChallenge,code:el('resetCode').value.trim(),password})});
  show('login');message('تم تعيين كلمة مرور جديدة. سجّل الدخول مجددًا.');
 })});
+
+const emailButton=document.createElement('button');emailButton.type='button';emailButton.hidden=true;
+emailButton.id='auth39-link-email-action';emailButton.className='px-3 py-2 rounded-xl bg-indigo-800/80 text-white text-xs font-bold border border-indigo-500/40';
+emailButton.textContent='توثيق بريد المدير';
+document.getElementById('headerTools')?.append(emailButton);
+function refreshEmailLinkAction(){emailButton.hidden=!(state?.currentUser?.isAdmin&&!state?.currentUser?.emailVerified)}
+emailButton.addEventListener('click',()=>{if(!state?.currentUser?.isAdmin||state?.currentUser?.emailVerified)return;show('emailLink')});
+el('emailBack').addEventListener('click',()=>{overlay.classList.add('hidden');message('')});
+el('emailVerifyBack').addEventListener('click',()=>show('emailLink'));
+el('emailLinkForm').addEventListener('submit',e=>{e.preventDefault();safe(async()=>{
+ if(!state?.currentUser?.isAdmin)throw Error('لا تملك صلاحية مدير المدرسة.');
+ const result=await cloudRequest('/profile/email/start',{method:'POST',body:JSON.stringify({email:el('emailToLink').value.trim(),password:el('emailPassword').value})});
+ emailLinkId=result.challengeId;el('emailPassword').value='';show('emailVerify');message('أُرسل رمز التحقق؛ صالح لمدة 10 دقائق.');
+})});
+el('emailVerifyForm').addEventListener('submit',e=>{e.preventDefault();safe(async()=>{
+ await cloudRequest('/profile/email/verify',{method:'POST',body:JSON.stringify({challengeId:emailLinkId,code:el('emailCode').value.trim()})});
+ state.currentUser.emailVerified=true;refreshEmailLinkAction();overlay.classList.add('hidden');el('emailCode').value='';
+})});
+
 el('logout').addEventListener('click',()=>logoutSession());
 })();
