@@ -92,6 +92,12 @@ try{
  fs.copyFileSync('scripts/link-email-v39.mjs',f('backend/link-email-v39.mjs'));
  fs.copyFileSync('scripts/link-email-v39.test.mjs',f('backend/link-email-v39.test.mjs'));
 
+ if(!server.includes('emailVerified:!!m.email_verified_at')){
+  const existing="activationRequired:m.activation_status==='pending_activation',license:licenseState(m)";
+  if(!server.includes(existing))throw Error('Cannot expose verified email status safely');
+  server=server.replace(existing,
+   "activationRequired:m.activation_status==='pending_activation',emailVerified:!!m.email_verified_at,license:licenseState(m)");
+ }
  fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/reset-v39.mjs',f('backend/reset-v39.mjs'));
  const schema=f('backend/schema.sql'),old=fs.readFileSync(schema,'utf8');
