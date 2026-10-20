@@ -36,7 +36,7 @@ function refresh(){
   }
  }
  document.body.classList.toggle('school-screen-open',mobile()&&active.length>0);
- active.forEach((id,i)=>registered.get(id).el.style.setProperty('--school-screen-layer',String(105+i)));
+ active.forEach((id,i)=>{const e=registered.get(id).el,next=String(105+i);if(e.style.getPropertyValue('--school-screen-layer')!==next)e.style.setProperty('--school-screen-layer',next)});
 }
 function setup(){
  for(const [id,title,fn] of pages){
@@ -83,7 +83,7 @@ function sheet(message,{input=false,placeholder=''}={}){
   const title=document.createElement('h2');title.textContent=input?'إدخال البيانات':'تأكيد العملية';panel.append(title);
   const p=document.createElement('p');p.textContent=message;panel.append(p);
   let field;
-  if(input){field=document.createElement('input');field.type='text';field.autocomplete='off';field.placeholder=placeholder;field.className='school-native-field';field.addEventListener('keydown',e=>{if(e.key==='Enter')finish(field.value.trim())});panel.append(field)}
+  if(input){field=document.createElement('input');field.type='text';field.autocomplete='off';field.placeholder=placeholder;field.value=placeholder;field.className='school-native-field';field.addEventListener('keydown',e=>{if(e.key==='Enter')finish(field.value.trim())});panel.append(field)}
   const actions=document.createElement('div');actions.className='school-native-actions';
   const cancel=document.createElement('button');cancel.type='button';cancel.className='school-native-cancel';cancel.textContent='إلغاء';cancel.addEventListener('click',()=>finish(input?null:false));
   const yes=document.createElement('button');yes.type='button';yes.className='school-native-accept';yes.textContent=input?'متابعة':'تأكيد';yes.addEventListener('click',()=>finish(input?field.value.trim():true));
@@ -96,8 +96,8 @@ function sheet(message,{input=false,placeholder=''}={}){
 window.schoolMobileConfirm=message=>sheet(message);
 window.schoolMobilePrompt=(message,placeholder='')=>sheet(message,{input:true,placeholder});
 window.schoolMobileCopyFallback=async value=>{
- const result=await sheet('انسخ الرابط من الحقل التالي. يمكن تحديد النص بالضغط المطوّل.',{input:true,placeholder:value});
- if(result&&navigator.clipboard){try{await navigator.clipboard.writeText(value);return}catch{}}
+ try{if(navigator.clipboard){await navigator.clipboard.writeText(value);return}}catch{}
+ await sheet('حدد الرابط وانسخه يدويًا من الحقل التالي.',{input:true,placeholder:value});
 };
 window.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&current){e.preventDefault();finish(false);return}
