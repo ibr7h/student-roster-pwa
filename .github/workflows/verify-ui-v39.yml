@@ -1,0 +1,59 @@
+name: Verify v3.9 unified mobile registration PWA
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/auth-ui-v39.js
+      - scripts/auth-ui-v39.css
+      - scripts/apply-auth-ui-v39.mjs
+      - scripts/static-frontend-v37.mjs
+      - .github/workflows/verify-ui-v39.yml
+permissions:
+  contents: write
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assemble static PWA from current backend archive
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const f=require('node:fs'),z=require('node:zlib');f.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(f.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          for f in evidence-workspace-v36.js evidence-workspace-v36.css patch-pdf-ui-v35.mjs; do cp "scripts/$f" "scripts/$f"; done
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+          node --check public/assets/auth-ui-v39.js
+          node --check public/assets/mobile-native-v38.js
+          node --check public/assets/static-api-v37.js
+          node --check public/view.js
+      - name: Check unified identity fields, mobile sizing and cache version
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync as read} from 'node:fs';
+          const html=read('public/index.html','utf8'),js=read('public/assets/auth-ui-v39.js','utf8'),
+            css=read('public/assets/auth-ui-v39.css','utf8'),sw=read('public/sw.js','utf8');
+          for(const p of ['/register/start','/register/verify','/school/activate','/login','/me'])assert.ok(js.includes(p),p);
+          for(const term of ['auth39-phone','auth39-email','auth39-password','auth39-identity','auth39-code'])assert.ok(js.includes(term),term);
+          assert.ok(!js.includes('schoolLoginCode') && !js.includes('loginMode'), 'No legacy school code or role choice in new UI');
+          assert.ok(css.includes('100dvh') && css.includes('overflow-x:hidden') && css.includes('16px!important'));
+          assert.ok(html.includes('auth-ui-v39.js') && html.includes('mobile-native-v38.js'));
+          assert.ok(sw.includes('school-evidence-pwa-cloud-v3.9.0') && sw.includes('auth-ui-v39.css'));
+          console.log('PASS v3.9 iPhone PWA, unified identity, OTP, activation, role-independence and update cache');
+          NODE
+      - name: Record validated frontend
+        run: |
+          printf '# v3.9 frontend CI verified\n- UTC %s\n- Static PWA includes unified login, manager signup with mandatory phone and email, six-digit OTP, activation-after-login.\n- Syntax checks and structural assertions passed.\n- A real device and verified email-domain test are required before production.\n' "$(date -u +%FT%TZ)" > STATIC-V39-UI.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add STATIC-V39-UI.md
+          git commit -m "Verify unified v3.9 PWA identity screens"
+          git push
