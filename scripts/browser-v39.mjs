@@ -133,6 +133,19 @@ try{
  await page.locator('#auth39-resetVerify').waitFor({state:'visible'});
  await page.locator('#auth39-resetVerifyCancel').click();
  await page.locator('#auth39-resetVerify').waitFor({state:'hidden'});
+ // Regression: click the actual report button rather than manually showing its modal.
+ const launchReport=page.locator('button[onclick="openOfficialReportModal()"]');
+ assert.equal(await launchReport.count(),1,'There must be one actual A4 report launcher');
+ console.log('REPORT_LAUNCHER_STATE',JSON.stringify(await launchReport.evaluate(button=>({
+  visible:getComputedStyle(button).visibility,
+  display:getComputedStyle(button).display,
+  rect:button.getBoundingClientRect().toJSON(),
+  atPoint:document.elementFromPoint(button.getBoundingClientRect().left+button.getBoundingClientRect().width/2,button.getBoundingClientRect().top+button.getBoundingClientRect().height/2)?.outerHTML.slice(0,170)
+ }))));
+ await launchReport.click({timeout:6000});
+ await page.locator('#officialReportModal').waitFor({state:'visible',timeout:6000});
+ await page.locator('#officialReportModal .school-native-back').click();
+ await page.locator('#officialReportModal').waitFor({state:'hidden',timeout:5000});
  // Reproduce report inside its two screen containers, not as a detached hidden modal.
  const report=page.locator('#officialReportModal');
  assert.equal(await report.count(),1);
