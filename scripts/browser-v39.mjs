@@ -133,6 +133,18 @@ try{
  await page.locator('#auth39-resetVerify').waitFor({state:'visible'});
  await page.locator('#auth39-resetVerifyCancel').click();
  await page.locator('#auth39-resetVerify').waitFor({state:'hidden'});
+ // Inspect the existing official-report shell and controls to guard its toolbar.
+ const reportInfo=await page.evaluate(()=>{
+  const report=document.querySelector('#officialReportModal');
+  if(!report)return {missing:true};
+  const buttons=[...report.querySelectorAll('button')].slice(0,24).map(el=>({
+   text:el.textContent.trim().slice(0,75),className:el.className,
+   onclick:el.getAttribute('onclick'),icons:el.querySelectorAll('svg,i').length,
+   parent:el.parentElement?.className?.toString().slice(0,110)
+  }));
+  return {className:report.className,children:[...report.children].map(el=>({tag:el.tagName,className:el.className,childCount:el.children.length})),buttons};
+ });
+ console.log('REPORT_AUDIT '+JSON.stringify(reportInfo));
  // The mobile school-profile back action must actually dismiss the full-screen modal.
  const profile=page.locator('#schoolProfileModal');
  assert.equal(await profile.count(),1);
