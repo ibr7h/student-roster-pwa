@@ -17,6 +17,13 @@ try{
   const marker=" if(req.method==='POST'&&url.pathname==='/api/activate'){";
   if(s.includes(marker)&&!s.includes('التفعيل متاح بعد تسجيل الدخول فقط.'))
    s=s.replace(marker," if(req.method==='POST'&&url.pathname==='/api/activate')throw fail('التفعيل متاح بعد تسجيل الدخول فقط.',410);\n if(false&&req.method==='POST'&&url.pathname==='/api/activate'){");
+  // Existing v3.9 packages require the same readiness enforcement as fresh builds.
+  const oldAuthImport="import {start as signupStart,resend as signupResend,verify as signupVerify,activate as signupActivate} from './auth-v39.mjs';";
+  const readyImport="import {start as signupStart,resend as signupResend,verify as signupVerify,activate as signupActivate,mailSettingsReady} from './auth-v39.mjs';";
+  if(s.includes(oldAuthImport))s=s.replace(oldAuthImport,readyImport);
+  const oldReady="!!(process.env.SCHOOL_OTP_HMAC_SECRET?.length>=32&&process.env.SCHOOL_RESEND_API_KEY&&process.env.SCHOOL_OTP_FROM)";
+  if(s.includes(oldReady))s=s.replace(oldReady,'mailSettingsReady()');
+  if(!s.includes('emailReady:mailSettingsReady()'))throw Error('Preview OTP readiness guard absent');
   fs.writeFileSync(f('backend/server.mjs'),s);
   fs.copyFileSync('scripts/auth-v39.mjs',f('backend/auth-v39.mjs'));
   fs.copyFileSync('scripts/auth-v39.test.mjs',f('backend/auth-v39.test.mjs'));
