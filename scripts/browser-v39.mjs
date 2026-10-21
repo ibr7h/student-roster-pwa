@@ -145,6 +145,16 @@ try{
   return {className:report.className,children:[...report.children].map(el=>({tag:el.tagName,className:el.className,childCount:el.children.length})),buttons};
  });
  console.log('REPORT_AUDIT '+JSON.stringify(reportInfo));
+ // The report screen must preserve the app's navigation and built-in icons.
+ const report=page.locator('#officialReportModal');
+ await report.evaluate(e=>e.classList.remove('hidden'));
+ await page.waitForFunction(()=>document.body.classList.contains('school-report-open'));
+ assert.equal(await page.locator('#appHeader').evaluate(e=>getComputedStyle(e).visibility),'visible');
+ assert.equal(await page.locator('.mobile-bottom-nav').evaluate(e=>getComputedStyle(e).visibility),'visible');
+ assert.ok(await report.locator('button svg,button i').count()>=2);
+ await report.locator('.school-native-back').click();
+ await report.waitFor({state:'hidden'});
+ assert.equal(await page.evaluate(()=>document.body.classList.contains('school-report-open')),false);
  // The mobile school-profile back action must actually dismiss the full-screen modal.
  const profile=page.locator('#schoolProfileModal');
  assert.equal(await profile.count(),1);
