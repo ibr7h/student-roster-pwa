@@ -17,8 +17,15 @@ const registered=new Map();const visible=new Set();let onPop=false;
 function closePage(id){
  const item=registered.get(id);if(!item)return;
  const fn=window[item.fn];
- if(typeof fn==='function')fn();
- else item.el.classList.add('hidden');
+ // Some legacy close handlers are scoped or only update application state.
+ // Never leave a full-screen dialog trapping the user after a back/cancel tap.
+ if(typeof fn==='function'){
+  try{fn()}catch(error){console.error('School screen close failed',error)}
+ }
+ if(!item.el.classList.contains('hidden')&&getComputedStyle(item.el).display!=='none'){
+  item.el.classList.add('hidden');
+ }
+ refresh();
 }
 function refresh(){
  const active=[];
@@ -28,7 +35,7 @@ function refresh(){
    active.push(id);
    if(!visible.has(id)){
     visible.add(id);
-    if(mobile()&&!onPop){history.pushState({...history.state,schoolMobilePage:id},'','#'+id);}
+    if(mobile()&&!onPop){history.pushState({...history.state,schoolMobilePage:id},'');}
     if(mobile())requestAnimationFrame(()=>item.back.focus({preventScroll:true}));
    }
   }else if(visible.delete(id)&&mobile()&&!onPop&&history.state?.schoolMobilePage===id){
@@ -50,9 +57,17 @@ function setup(){
   const header=document.createElement('div');header.className='school-native-bar';
   const back=document.createElement('button');back.type='button';back.className='school-native-back';
   back.setAttribute('aria-label','الرجوع من '+title);
-  back.textContent='‹ رجوع';back.addEventListener('click',()=>closePage(id));
+  back.textContent='‹ رجوع';back.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();closePage(id)});
   const label=document.createElement('span');label.className='school-native-title';label.textContent=title;
   header.append(back,label);el.insertBefore(header,el.firstChild);
+  // Make the legacy X/close affordance use the same reliable navigation path.
+  el.addEventListener('click',event=>{
+   const control=event.target.closest?.('button,[role="button"]');
+   if(!control||control===back)return;
+   const handler=control.getAttribute('onclick')||'';
+   if(!handler.includes(fn+'('))return;
+   event.preventDefault();event.stopImmediatePropagation();closePage(id);
+  },true);
   registered.set(id,{el,fn,back});
   new MutationObserver(refresh).observe(el,{attributes:true,attributeFilter:['class','style']});
  }
