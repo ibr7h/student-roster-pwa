@@ -42,6 +42,32 @@ try{
   assert.equal(horizontal,false,'No horizontal overflow with focused form');
   await page.getByRole('button',{name:/العودة للدخول/}).click();
   await page.locator('#auth39-login').waitFor({state:'visible'});
+  // Test the nested official report at WebKit mobile viewport sizes.
+  await page.evaluate(()=>{
+   document.getElementById('loginScreenOverlay').classList.add('hidden');
+   for(const id of ['evidenceWorkspace','evidenceModal','officialReportModal']){
+    document.getElementById(id).classList.remove('hidden');
+   }
+  });
+  const report=page.locator('#officialReportModal');
+  await report.waitFor({state:'visible',timeout:5000});
+  await page.waitForFunction(()=>document.body.classList.contains('school-report-open'),null,{timeout:5000});
+  const chrome=await page.evaluate(()=>{
+   const el=id=>document.getElementById(id);
+   const report=el('officialReportModal');
+   const header=el('appHeader'),nav=document.querySelector('.mobile-bottom-nav');
+   const bounds=node=>node.getBoundingClientRect();
+   return {header:getComputedStyle(header).visibility,nav:getComputedStyle(nav).visibility,
+    icons:report.querySelectorAll('button svg,button i').length,back:bounds(report.querySelector('.school-native-back')).height>0,
+    horizontal:document.documentElement.scrollWidth>innerWidth+2};
+  });
+  assert.equal(chrome.header,'visible','Report must preserve WebKit header');
+  assert.equal(chrome.nav,'visible','Report must preserve WebKit tab navigation');
+  assert.ok(chrome.icons>=2,'Report action icons must exist in WebKit');
+  assert.ok(chrome.back,'Report back control must be visible in WebKit');
+  assert.equal(chrome.horizontal,false,'Report must not create horizontal scroll');
+  await report.locator('.school-native-back').click();
+  await report.waitFor({state:'hidden',timeout:5000});
   assert.equal(errors.length,0,errors.join('; '));
   console.log('PASS WebKit mobile layout and account navigation '+width+'px');
   await context.close();
