@@ -5,6 +5,10 @@ on:
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/browser-v39.mjs
+      - scripts/mobile-native-v38.js
+      - scripts/mobile-native-v38.css
+      - scripts/auth-ui-v39.js
+      - scripts/auth-ui-v39.css
       - .github/workflows/browser-v39.yml
 permissions:
   contents: write
