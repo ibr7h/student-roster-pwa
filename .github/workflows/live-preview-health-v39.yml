@@ -1,0 +1,21 @@
+name: Verify v3.9 deployed API health
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/live-preview-health-v39.mjs
+      - .github/workflows/live-preview-health-v39.yml
+permissions:
+  contents: read
+jobs:
+  live-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read-only public API status test
+        run: node scripts/live-preview-health-v39.mjs
