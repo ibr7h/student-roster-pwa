@@ -115,6 +115,10 @@ try{
  fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/reset-v39.mjs',f('backend/reset-v39.mjs'));
  const schema=f('backend/schema.sql'),old=fs.readFileSync(schema,'utf8');
+ // Apply additive schema change on both new and already packaged v3.9 deployments.
+ if(!old.includes('ALTER TABLE school_signup_challenges ADD COLUMN IF NOT EXISTS is_decoy')){
+  fs.appendFileSync(schema,"\nALTER TABLE school_signup_challenges ADD COLUMN IF NOT EXISTS is_decoy BOOLEAN NOT NULL DEFAULT FALSE;\n");
+ }
  if(!old.includes('CREATE TABLE IF NOT EXISTS member_email_challenges')){
   fs.appendFileSync(schema,
    "\nCREATE TABLE IF NOT EXISTS member_email_challenges (id TEXT PRIMARY KEY,member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,school_id TEXT NOT NULL REFERENCES schools(id) ON DELETE CASCADE,email TEXT NOT NULL,otp_hmac TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts BETWEEN 0 AND 10),expires_at TIMESTAMPTZ NOT NULL,consumed_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());\nCREATE INDEX IF NOT EXISTS member_email_challenges_recent_idx ON member_email_challenges(member_id,created_at DESC);\n");
