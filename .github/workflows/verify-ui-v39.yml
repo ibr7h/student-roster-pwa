@@ -8,6 +8,7 @@ on:
       - scripts/auth-ui-v39.css
       - scripts/apply-auth-ui-v39.mjs
       - scripts/static-frontend-v37.mjs
+      - scripts/evidence-workspace-v36.js
       - .github/workflows/verify-ui-v39.yml
 permissions:
   contents: read
@@ -29,6 +30,7 @@ jobs:
           tar -xf school-backend.tar
           node patch-release.mjs
           node scripts/static-frontend-v37.mjs
+          grep -q 'host.contains(report)' public/assets/evidence-workspace.js
           node --check public/assets/auth-ui-v39.js
           node --check public/assets/mobile-native-v38.js
           node --check public/assets/static-api-v37.js
