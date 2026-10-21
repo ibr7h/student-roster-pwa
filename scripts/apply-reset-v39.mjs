@@ -98,6 +98,11 @@ try{
   ].join('\n');
   server=server.replace(anchor,anchor+'\n'+routes);
  }
+ // Run the same proxy-aware, persistent limiter for legacy email-link endpoints.
+ // These routes are added after the initial limiter patch, so normalize again here.
+ server=server.replaceAll('durableThrottle(pool,req.socket.remoteAddress,','durableThrottle(pool,clientAddress(req),');
+ if(server.includes('durableThrottle(pool,req.socket.remoteAddress,'))throw Error('Unprotected reverse-proxy identity in durable limiter');
+ fs.writeFileSync(f('backend/server.mjs'),server);
  fs.copyFileSync('scripts/link-email-v39.mjs',f('backend/link-email-v39.mjs'));
  fs.copyFileSync('scripts/link-email-v39.test.mjs',f('backend/link-email-v39.test.mjs'));
 
