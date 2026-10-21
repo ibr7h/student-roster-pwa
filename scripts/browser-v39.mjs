@@ -98,6 +98,19 @@ try{
  assert.equal(await linkButton.evaluate(e=>e.hidden),false,'Old manager must be offered verified email linking');
  await linkButton.evaluate(el=>el.click());
  await page.locator('#auth39-emailLink').waitFor({state:'visible'});
+ // Both Back and Cancel must leave the screen without trapping the manager.
+ await page.locator('#auth39-emailBack').click();
+ await page.locator('#auth39-emailLink').waitFor({state:'hidden'});
+ await linkButton.evaluate(el=>el.click());
+ await page.locator('#auth39-emailCancel').click();
+ await page.locator('#auth39-emailLink').waitFor({state:'hidden'});
+ // Changing password on an old account requires email verification first.
+ const passwordButton=page.locator('#auth39-change-password-action');
+ assert.equal(await passwordButton.evaluate(el=>el.hidden),false);
+ await passwordButton.evaluate(el=>el.click());
+ await page.locator('#auth39-emailLink').waitFor({state:'visible'});
+ await page.locator('#auth39-emailCancel').click();
+ await linkButton.evaluate(el=>el.click());
  await page.locator('#auth39-emailToLink').fill('legacy.manager@example.edu');
  await page.locator('#auth39-emailPassword').fill('LegacyExamplePassword#1234');
  await page.locator('#auth39-emailLinkForm button[type=submit]').click();
@@ -108,6 +121,25 @@ try{
  assert.equal(await linkButton.evaluate(e=>e.hidden),true,'Email-link action must disappear after verification');
  assert.ok(reqLog.some(x=>x.path==='/api/profile/email/start'&&x.body.email==='legacy.manager@example.edu'));
  assert.ok(reqLog.some(x=>x.path==='/api/profile/email/verify'&&x.body.code==='123456'));
+ // A verified manager can change password through the existing OTP recovery protocol.
+ await passwordButton.evaluate(el=>el.click());
+ await page.locator('#auth39-reset').waitFor({state:'visible'});
+ assert.equal(await page.locator('#auth39-resetTitle').textContent(),'تغيير كلمة المرور');
+ assert.equal(await page.locator('#auth39-resetEmail').inputValue(),'legacy.manager@example.edu');
+ await page.locator('#auth39-resetCancel').click();
+ await page.locator('#auth39-reset').waitFor({state:'hidden'});
+ await passwordButton.evaluate(el=>el.click());
+ await page.locator('#auth39-resetStartForm button[type=submit]').click();
+ await page.locator('#auth39-resetVerify').waitFor({state:'visible'});
+ await page.locator('#auth39-resetVerifyCancel').click();
+ await page.locator('#auth39-resetVerify').waitFor({state:'hidden'});
+ // The mobile school-profile back action must actually dismiss the full-screen modal.
+ const profile=page.locator('#schoolProfileModal');
+ assert.equal(await profile.count(),1);
+ await profile.evaluate(el=>el.classList.remove('hidden'));
+ await page.locator('#schoolProfileModal .school-native-back').click();
+ await profile.waitFor({state:'hidden'});
+ assert.equal(await page.evaluate(()=>document.body.classList.contains('school-screen-open')),false);
 
  const manifestResponse=await page.request.get(base+'/manifest.webmanifest');
  const manifest=await manifestResponse.json();assert.equal(manifest.display,'standalone');
