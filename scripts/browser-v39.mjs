@@ -153,6 +153,7 @@ try{
  assert.equal(await page.locator('.mobile-bottom-nav').evaluate(e=>getComputedStyle(e).visibility),'visible');
  assert.ok(await report.locator('button svg,button i').count()>=2);
  console.log('REPORT_BACK_VISIBLE',await report.locator('.school-native-back').isVisible());
+ console.log('REPORT_DEBUG',await report.evaluate(e=>({display:getComputedStyle(e).display,rect:e.getBoundingClientRect().toJSON(),parent:e.parentElement?.id,bar:e.querySelector('.school-native-back').getBoundingClientRect().toJSON(),parentDisplay:getComputedStyle(e.parentElement).display,head:document.getElementById('appHeader')?.getBoundingClientRect().toJSON()})));
  assert.ok(await report.locator('.school-native-back').isVisible(),'Report back button must be accessible');
  await report.locator('.school-native-back').click();
  await report.waitFor({state:'hidden'});
