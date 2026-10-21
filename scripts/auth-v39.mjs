@@ -26,17 +26,14 @@ export async function start(pool,body,send=sendMail){
  config();const b=fields(body);
  await pool.query("DELETE FROM school_signup_challenges WHERE id IN (SELECT id FROM school_signup_challenges WHERE expires_at<NOW()-interval '7 days' LIMIT 200)");
  const c=await pool.query("SELECT EXISTS(SELECT 1 FROM schools WHERE school->>'code'=$1) AS school, EXISTS(SELECT 1 FROM members WHERE lower(username)=$2 OR lower(email)=$3) AS member",[b.ministry,b.username,b.email]);
- // Respond without disclosing whether a ministry number, username or email exists.
- // A synthetic challenge is never stored, never emailed and cannot be verified.
- if(c.rows[0].school||c.rows[0].member){
-  await hashPassword(b.password); // Avoid a large, obvious timing distinction.
-  return {challengeId:randomUUID(),expiresInSeconds:600,resendAfterSeconds:60};
- }
+ // The response is indistinguishable for existing and new identities.
+ // Decoy challenges are recorded but can never create accounts or send mail.
+ const decoy=!!(c.rows[0].school||c.rows[0].member);
  const attempts=await pool.query("SELECT count(*)::int AS n FROM school_signup_challenges WHERE created_at>NOW()-interval '15 minutes' AND (lower(email)=$1 OR phone_e164=$2)",[b.email,b.phone]);
  if(attempts.rows[0].n>=3)throw fail('تجاوزت محاولات التسجيل. انتظر قليلًا.',429);
  const passwordHash=await hashPassword(b.password),id=randomUUID(),otp=String(randomInt(100000,1000000));
- await pool.query("INSERT INTO school_signup_challenges (id,school_name,school_type,ministry_code,manager_name,email,phone_e164,username,password_hash,otp_hmac,expires_at,resend_after) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW()+interval '10 minutes',NOW()+interval '60 seconds')",[id,b.schoolName,b.schoolType,b.ministry,b.name,b.email,b.phone,b.username,passwordHash,digest(id,b.email,otp,process.env.SCHOOL_OTP_HMAC_SECRET)]);
- try{await send(b.email,otp)}catch(e){await pool.query('DELETE FROM school_signup_challenges WHERE id=$1',[id]).catch(()=>{});throw e}
+ await pool.query("INSERT INTO school_signup_challenges (id,school_name,school_type,ministry_code,manager_name,email,phone_e164,username,password_hash,otp_hmac,expires_at,resend_after,is_decoy) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW()+interval '10 minutes',NOW()+interval '60 seconds',$11)",[id,b.schoolName,b.schoolType,b.ministry,b.name,b.email,b.phone,b.username,passwordHash,digest(id,b.email,otp,process.env.SCHOOL_OTP_HMAC_SECRET),decoy]);
+ if(!decoy){try{await send(b.email,otp)}catch(e){await pool.query('DELETE FROM school_signup_challenges WHERE id=$1',[id]).catch(()=>{});throw e}}
  return {challengeId:id,expiresInSeconds:600,resendAfterSeconds:60};
 }
 export async function resend(pool,body,send=sendMail){
@@ -45,7 +42,7 @@ export async function resend(pool,body,send=sendMail){
  try{await c.query('BEGIN');const row=(await c.query('SELECT * FROM school_signup_challenges WHERE id=$1 FOR UPDATE',[body.challengeId])).rows[0];
   if(!row||row.consumed_at||row.attempts>=5||new Date(row.expires_at)<=new Date())throw fail('انتهت صلاحية الرمز. ابدأ التسجيل مجددًا.',410);
   if(new Date(row.resend_after)>new Date())throw fail('انتظر 60 ثانية قبل إعادة الإرسال.',429);
-  const otp=String(randomInt(100000,1000000));await send(row.email,otp);
+  const otp=String(randomInt(100000,1000000));if(!row.is_decoy)await send(row.email,otp);
   await c.query("UPDATE school_signup_challenges SET otp_hmac=$1,expires_at=NOW()+interval '10 minutes',resend_after=NOW()+interval '60 seconds',attempts=0 WHERE id=$2",[digest(row.id,row.email,otp,process.env.SCHOOL_OTP_HMAC_SECRET),row.id]);
   await c.query('COMMIT');return {ok:true,expiresInSeconds:600,resendAfterSeconds:60};
  }catch(e){await c.query('ROLLBACK');throw e}finally{c.release()}
@@ -57,7 +54,7 @@ export async function verify(pool,body){
   await c.query('BEGIN');
   const row=(await c.query('SELECT * FROM school_signup_challenges WHERE id=$1 FOR UPDATE',[body.challengeId])).rows[0];
   if(!row||row.consumed_at||row.attempts>=5||new Date(row.expires_at)<=new Date())throw fail('الرمز منتهي أو مستخدم.',410);
-  if(!codeIsValid(row,body.code,process.env.SCHOOL_OTP_HMAC_SECRET)){
+  if(!codeIsValid(row,body.code,process.env.SCHOOL_OTP_HMAC_SECRET)||row.is_decoy){
    await c.query('UPDATE school_signup_challenges SET attempts=attempts+1 WHERE id=$1',[row.id]);
    await c.query('COMMIT');committed=true;throw fail('رمز التحقق غير صحيح.',400);
   }
