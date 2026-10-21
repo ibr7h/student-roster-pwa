@@ -64,7 +64,7 @@ try{
  for(const [family,limits] of Object.entries(guarded)){
   const matcher=new RegExp("throttle\\(req\\.socket\\.remoteAddress,'"+family+"',\\d+\\);","g");
   server=server.replace(matcher,"await durableThrottle(pool,req.socket.remoteAddress,'"+family+"',"+JSON.stringify(limits)+");");
-  if(!server.includes("await durableThrottle(pool,req.socket.remoteAddress,'"+family+"'"))throw Error('Throttled route missing: '+family);
+  if(!server.includes("await durableThrottle(pool,req.socket.remoteAddress,'"+family+"'")&&!server.includes("await durableThrottle(pool,clientAddress(req),'"+family+"'"))throw Error('Throttled route missing: '+family);
  }
  // Package trusted-edge client identification alongside the durable limiter.
  const clientIpImport="import {clientAddress} from './client-ip-v39.mjs';";
