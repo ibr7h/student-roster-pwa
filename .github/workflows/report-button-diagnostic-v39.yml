@@ -1,0 +1,25 @@
+name: Diagnose v3.9 report button
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/report-button-diagnostic-v39.mjs
+      - .github/workflows/report-button-diagnostic-v39.yml
+permissions:
+  contents: read
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build static preview assets
+        run: |
+          unzip -q -o site.zip -d public
+          node scripts/static-frontend-v37.mjs
+      - name: Locate the actual report button event and call sites
+        run: node scripts/report-button-diagnostic-v39.mjs
