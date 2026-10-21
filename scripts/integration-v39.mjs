@@ -65,12 +65,18 @@ try{
  await assert.rejects(()=>verify(pool,{challengeId:signup.challengeId,code:otp}),e=>e.status===410);
  const row=(await pool.query('SELECT s.id,s.activation_status,s.license_until,m.id member_id,m.email_verified_at,m.phone_e164 FROM schools s JOIN members m ON m.school_id=s.id WHERE m.username=$1',[memberName])).rows[0];
  assert.equal(row.activation_status,'pending_activation');assert.ok(new Date(row.license_until)<=new Date('1971-01-01'));
- await assert.rejects(()=>start(pool,{...payload,schoolName:'Another Test School',ministryCode:'8754312222',email:'other.school@example.edu'},async()=>{}),e=>e.status===409);
+ const duplicate=await start(pool,{...payload,schoolName:'Another Test School',ministryCode:'8754312222',email:'other.school@example.edu'},async()=>{throw Error('Do not send OTP for duplicate username')});
+ assert.match(duplicate.challengeId,/^[0-9a-f-]{36}$/);
+ assert.equal((await pool.query('SELECT count(*)::int AS n FROM school_signup_challenges WHERE id=$1',[duplicate.challengeId])).rows[0].n,0);
+ await assert.rejects(()=>verify(pool,{challengeId:duplicate.challengeId,code:'123456'}),e=>e.status===410);
+ const duplicateSchool=await start(pool,{...payload,username:'different.manager',email:'another.school@example.edu'},async()=>{throw Error('Do not send OTP for duplicate school')});
+ assert.match(duplicateSchool.challengeId,/^[0-9a-f-]{36}$/);
+ assert.equal((await pool.query('SELECT count(*)::int AS n FROM school_signup_challenges WHERE id=$1',[duplicateSchool.challengeId])).rows[0].n,0);
  const staleBody={...payload,schoolName:'Expired School',ministryCode:'8754312223',email:'expired.school@example.edu',username:'expired.manager'};
  const expired=await start(pool,staleBody,async()=>{});
  await pool.query("UPDATE school_signup_challenges SET expires_at=NOW()-interval '1 minute' WHERE id=$1",[expired.challengeId]);
  await assert.rejects(()=>verify(pool,{challengeId:expired.challengeId,code:'123456'}),e=>e.status===410);
- say('Global duplicate identity and expired code are rejected before creating school accounts');
+ say('Duplicate account and school registration cannot reveal existence or send an OTP; expired codes are rejected');
 
  assert.ok(row.email_verified_at);assert.equal(row.phone_e164,'+966551234567');say('Email confirmation creates verified unlicensed school once');
  const serial=generateSerial(),serialId=randomUUID();
