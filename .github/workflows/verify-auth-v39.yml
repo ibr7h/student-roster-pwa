@@ -17,6 +17,9 @@ on:
       - scripts/link-email-v39.test.mjs
       - migrations/20261020-v3.9-auth.sql
       - .github/workflows/verify-auth-v39.yml
+concurrency:
+  group: school-v39-backend-package
+  cancel-in-progress: false
 permissions:
   contents: write
 jobs:
