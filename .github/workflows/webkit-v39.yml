@@ -1,0 +1,37 @@
+name: WebKit iPhone-sized PWA smoke
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/webkit-smoke-v39.mjs
+      - scripts/auth-ui-v39.js
+      - scripts/auth-ui-v39.css
+      - scripts/mobile-native-v38.js
+      - scripts/mobile-native-v38.css
+      - scripts/apply-auth-ui-v39.mjs
+      - .github/workflows/webkit-v39.yml
+permissions:
+  contents: read
+jobs:
+  webkit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assemble exact v3.9 static preview
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+      - name: Install WebKit runtime
+        run: |
+          npm install --no-save --no-audit --no-fund playwright-core@1.58.2
+          npx playwright-core install --with-deps webkit
+      - name: Check Arabic PWA keyboard and 320/390 WebKit layout
+        run: node scripts/webkit-smoke-v39.mjs
