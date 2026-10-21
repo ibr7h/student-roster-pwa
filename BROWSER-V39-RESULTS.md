@@ -1,6 +1,6 @@
 # v3.9 mobile browser check
 
-UTC: 2026-10-21T02:05:14Z
+UTC: 2026-10-21T02:16:14Z
 
 - Chromium emulated mobile, 320px and 390px viewports
 - Login, school registration (including email and mandatory phone), code confirmation, login without school code, post-login activation, password recovery
