@@ -8,11 +8,13 @@
     display:flex!important;flex-direction:column!important;align-items:stretch!important;
     width:100%!important;max-width:100%!important;height:100dvh!important;max-height:100dvh!important;
     margin:0!important;padding:0!important;border:none!important;border-radius:0!important;
-    background:#f6f8fc!important;backdrop-filter:none!important;
+    background:#f6f8fc!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
     z-index:var(--school-screen-layer,105)!important;overflow:hidden!important;
-    overscroll-behavior:contain;animation:schoolScreenEnter .18s ease-out both;
+    overscroll-behavior:contain;animation:none!important;
   }
   .school-native-screen.hidden{display:none!important;}
+  /* Opaque safe-area cover prevents iOS translucent status-bar shading. */
+  .school-native-screen:not(.hidden)::before{content:'';position:absolute;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:#f6f8fc;z-index:8;pointer-events:none;}
   .school-native-bar{
     flex:0 0 auto;display:flex;align-items:center;gap:12px;
     min-height:calc(58px + env(safe-area-inset-top,0px));
