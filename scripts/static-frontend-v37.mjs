@@ -57,6 +57,16 @@ if(checks.some(s=>!s.includes('static-api-v37.js')) || !checks[0].includes('wind
 // Overwrite the emitted asset with the reviewed branch copy on every preview build.
 if(!fs.existsSync(root+'assets/evidence-workspace.js'))throw Error('Evidence workspace asset not found in compiled PWA');
 fs.copyFileSync('scripts/evidence-workspace-v36.js',root+'assets/evidence-workspace.js');
+// The backend bundle can contain a stale copy of scripts/evidence-workspace-v36.js.
+// Patch the *emitted asset* so the A4 modal is never nested under a hidden workspace.
+const workspaceAsset=root+'assets/evidence-workspace.js';
+let workspaceCode=fs.readFileSync(workspaceAsset,'utf8');
+if(!workspaceCode.includes('host.contains(report)')){
+ const anchor=' nav.append(back,title);host.append(nav,panel);main.append(host);';
+ if(!workspaceCode.includes(anchor))throw Error('Cannot locate report workspace injection point');
+ workspaceCode=workspaceCode.replace(anchor,anchor+"\n const report=document.getElementById('officialReportModal');\n if(report&&host.contains(report))document.body.appendChild(report);");
+ fs.writeFileSync(workspaceAsset,workspaceCode);
+}
 console.log('Static PWA v3.7 ready; all interfaces use direct authenticated API requests.');
 
 // Mobile v3.8: full-screen in-app pages and bottom sheets; no browser prompts.
