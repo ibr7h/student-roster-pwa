@@ -11,6 +11,8 @@ on:
       - scripts/apply-reset-v39.mjs
       - scripts/rate-limit-v39.mjs
       - scripts/rate-limit-v39.test.mjs
+      - scripts/client-ip-v39.mjs
+      - scripts/client-ip-v39.test.mjs
       - scripts/link-email-v39.mjs
       - scripts/link-email-v39.test.mjs
       - migrations/20261020-v3.9-auth.sql
