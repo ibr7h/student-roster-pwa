@@ -139,6 +139,8 @@ try{
  assert.equal(await report.count(),1);
  assert.equal(await report.evaluate(e=>e.parentElement.id),'evidenceModal');
  assert.ok(await report.locator('button svg,button i').count()>=2,'Report action icons must be included');
+ console.log('REPORT_OPEN_FUNCTION',await page.evaluate(()=>String(window.openOfficialReportModal).slice(0,2000)));
+ console.log('REPORT_ANCESTRY',await report.evaluate(e=>{const a=[];for(let p=e;p&&a.length<6;p=p.parentElement)a.push({id:p.id,display:getComputedStyle(p).display,hidden:p.classList.contains('hidden')});return a}));
  // The mobile school-profile back action must actually dismiss the full-screen modal.
  const profile=page.locator('#schoolProfileModal');
  assert.equal(await profile.count(),1);
