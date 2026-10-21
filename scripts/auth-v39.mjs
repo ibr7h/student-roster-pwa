@@ -12,7 +12,7 @@ export function codeIsValid(row,code,secret){if(!/^\d{6}$/.test(code||''))return
 export function mailSettingsReady(env=process.env){
  const from=String(env.SCHOOL_OTP_FROM||'').trim().toLowerCase();
  if((env.SCHOOL_OTP_HMAC_SECRET||'').length<32||!env.SCHOOL_RESEND_API_KEY)return false;
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(from)||/@(?:dhahabk\\.com|mail\\.dhahabk\\.com)$/i.test(from))return false;
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(from)||/@(?:dhahabk\.com|mail\.dhahabk\.com)$/i.test(from))return false;
  if(from.endsWith('@resend.dev')){
   if(from!=='onboarding@resend.dev'||env.SCHOOL_OTP_TEST_MODE!=='true')return false;
   const permitted=String(env.SCHOOL_OTP_TEST_RECIPIENT||'').trim().toLowerCase();
