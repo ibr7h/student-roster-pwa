@@ -147,6 +147,7 @@ try{
  console.log('REPORT_AUDIT '+JSON.stringify(reportInfo));
  // The report screen must preserve the app's navigation and built-in icons.
  const report=page.locator('#officialReportModal');
+ await page.locator('#evidenceModal').evaluate(e=>e.classList.remove('hidden'));
  await report.evaluate(e=>e.classList.remove('hidden'));
  await page.waitForFunction(()=>document.body.classList.contains('school-report-open'));
  assert.equal(await page.locator('#appHeader').evaluate(e=>getComputedStyle(e).visibility),'visible');
