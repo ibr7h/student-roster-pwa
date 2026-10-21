@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS school_signup_challenges (
   consumed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+-- Safe additive privacy hardening for masked duplicate registrations.
+ALTER TABLE school_signup_challenges ADD COLUMN IF NOT EXISTS is_decoy BOOLEAN NOT NULL DEFAULT FALSE;
 CREATE INDEX IF NOT EXISTS school_signup_challenges_expires_idx
   ON school_signup_challenges (expires_at);
 CREATE INDEX IF NOT EXISTS school_signup_challenges_email_lookup_idx
