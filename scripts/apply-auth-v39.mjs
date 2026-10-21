@@ -32,7 +32,7 @@ try{
   if(!s.includes(before))throw Error('Missing v3.9 server marker: '+before.slice(0,100));
   s=s.replace(before,after);
  }
- patch("import {Pool} from 'pg';","import {Pool} from 'pg';\nimport {start as signupStart,resend as signupResend,verify as signupVerify,activate as signupActivate} from './auth-v39.mjs';");
+ patch("import {Pool} from 'pg';","import {Pool} from 'pg';\nimport {start as signupStart,resend as signupResend,verify as signupVerify,activate as signupActivate,mailSettingsReady} from './auth-v39.mjs';");
  patch("const mapUser=m=>({id:m.id,schoolId:m.school_id,schoolCode:m.login_code,name:m.name,role:m.role,isAdmin:!!m.is_admin,allowedSections:m.is_admin?SECTIONS:allowedSections(m.allowed_sections),license:licenseState(m)});",
   "const mapUser=m=>({id:m.id,schoolId:m.school_id,name:m.name,role:m.role,isAdmin:!!m.is_admin,allowedSections:m.is_admin?SECTIONS:allowedSections(m.allowed_sections),activationRequired:m.activation_status==='pending_activation',license:licenseState(m)});");
  patch("sc.login_code,sc.license_until,sc.suspended_at,o.name AS owner_name",
@@ -54,7 +54,7 @@ try{
  "  throttle(req.socket.remoteAddress,'school-registration-verify',12);",
  "  return send(res,201,await signupVerify(pool,await readJson(req,5000)));",
  " }",
- " if(req.method==='GET'&&url.pathname==='/api/register/status')return send(res,200,{emailReady:!!(process.env.SCHOOL_OTP_HMAC_SECRET?.length>=32&&process.env.SCHOOL_RESEND_API_KEY&&process.env.SCHOOL_OTP_FROM)});",
+ " if(req.method==='GET'&&url.pathname==='/api/register/status')return send(res,200,{emailReady:mailSettingsReady()});",
  " if(req.method==='POST'&&url.pathname==='/api/login'){",
  "  throttle(req.socket.remoteAddress,'school-login',15);const b=await readJson(req,10000);",
  "  const identity=shortText(b.username||b.email,254).toLowerCase();",
