@@ -30,7 +30,7 @@ function closePage(id){
 function refresh(){
  const active=[];
  for(const [id,item] of registered){
-  const e=item.el, isVisible=!e.classList.contains('hidden')&&getComputedStyle(e).display!=='none';
+  const e=item.el, isVisible=!e.classList.contains('hidden')&&getComputedStyle(e).display!=='none'&&e.getClientRects().length>0;
   if(isVisible){
    active.push(id);
    if(!visible.has(id)){
