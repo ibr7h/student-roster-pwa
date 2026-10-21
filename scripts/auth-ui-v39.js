@@ -9,7 +9,7 @@ shell.innerHTML=[
 '<form id="auth39-loginForm"><label for="auth39-identity">البريد الإلكتروني أو اسم المستخدم</label><input id="auth39-identity" name="username" autocomplete="username" spellcheck="false" autocapitalize="none" required placeholder="البريد أو اسم المستخدم">',
 '<label for="auth39-password">كلمة المرور</label><input id="auth39-password" name="password" type="password" autocomplete="current-password" required placeholder="كلمة المرور">',
 '<button class="auth39-primary" type="submit" id="auth39-loginSubmit">دخول المنصة</button></form>',
-'<div class="auth39-links"><button type="button" data-auth-page="register">إنشاء حساب مدرسة</button><button type="button" data-auth-page="reset">نسيت كلمة المرور؟</button></div><div class="auth39-links"><a href="./owner.html">إدارة المنصة</a></div></section>',
+'<div class="auth39-links"><button type="button" data-auth-page="register">إنشاء حساب مدرسة</button><button type="button" data-auth-page="reset">نسيت كلمة المرور؟</button></div><div class="auth39-links"><a href="./owner.html">إدارة المنصة</a></div><button id="auth39-retryConnection" type="button" class="auth39-secondary" hidden>إعادة الاتصال بالخادم</button></section>',
 '<section id="auth39-register" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ العودة للدخول</button><h1>تسجيل مدرسة جديدة</h1><p class="auth39-intro">سيتم إرسال رمز تحقق إلى بريد مدير المدرسة قبل إنشاء الحساب.</p>',
 '<form id="auth39-registerForm">',
 '<label for="auth39-schoolName">اسم المدرسة</label><input id="auth39-schoolName" name="schoolName" maxlength="130" required>',
@@ -83,14 +83,32 @@ window.handleLoginSubmit=()=>safe(async()=>{
  const data=await cloudRequest('/login',{method:'POST',body:JSON.stringify({username,password})});
  await loggedIn(data.user);
 });
+let checkingConnection=false;
 window.cloudStart=async()=>{
+ if(checkingConnection)return;
+ checkingConnection=true;
+ el('retryConnection').hidden=true;
  try{
-  await cloudRequest('/health');
+  // Render free instances may wake slowly. Only retry the initial health check.
+  let healthError;
+  for(let attempt=0;attempt<3;attempt++){
+   try{await cloudRequest('/health');healthError=null;break}
+   catch(e){
+    healthError=e;
+    if(attempt<2)await new Promise(resolve=>setTimeout(resolve,(attempt+1)*2500));
+   }
+  }
+  if(healthError)throw healthError;
   const me=await cloudRequest('/me').catch(e=>/401|تسجيل|غير مصرح/.test(e.message)?null:Promise.reject(e));
   if(me?.user){await loggedIn(me.user);return}
   state.currentUser=null;state.team=[];state.evidences={};show('login');
- }catch(e){show('login');message('خادم المنصة يستيقظ أو لا يستجيب حاليًا؛ حاول بعد لحظات.',true)}
+ }catch(e){
+  show('login');
+  message('تعذر الاتصال بالمنصة الآن. تحقق من الاتصال واضغط «إعادة الاتصال» للمحاولة مجددًا.',true);
+  el('retryConnection').hidden=false;
+ }finally{checkingConnection=false}
 };
+el('retryConnection').addEventListener('click',()=>window.cloudStart());
 el('loginForm').addEventListener('submit',e=>{e.preventDefault();window.handleLoginSubmit()});
 shell.querySelectorAll('[data-auth-page]').forEach(b=>b.addEventListener('click',()=>{
  if(b.dataset.authPage==='login'&&state?.currentUser){closeAuthenticatedFlow();return}
