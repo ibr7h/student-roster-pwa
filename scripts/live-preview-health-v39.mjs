@@ -37,3 +37,21 @@ assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-auth-privacy-
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
 console.log('PASS live PWA cache and privacy signup copy');
+
+async function unauthenticated(path){
+ const r=await fetch(base+path,{method:'GET',headers:{Accept:'application/json'},signal:AbortSignal.timeout(20000)});
+ assert.ok([401,403,404].includes(r.status),path+' returned '+r.status+' without authentication');
+ return r.status;
+}
+// These requests intentionally do not include accounts, passwords, session cookies or write methods.
+for(const route of ['/api/me','/api/data','/api/members','/api/platform/me','/api/evidences']){
+ await unauthenticated(route);
+}
+const hostileOrigin='https://untrusted-school-client.invalid';
+const preflight=await fetch(base+'/api/me',{method:'OPTIONS',headers:{Origin:hostileOrigin,'Access-Control-Request-Method':'GET','Access-Control-Request-Headers':'authorization'},signal:AbortSignal.timeout(20000)});
+assert.notEqual(preflight.headers.get('access-control-allow-origin'),hostileOrigin,'Untrusted site gained cross-origin access');
+assert.notEqual(preflight.headers.get('access-control-allow-origin'),'*','Never grant credentialed endpoints wildcard origin');
+const trustedOrigin='https://school-evidence-v39-preview.onrender.com';
+const trusted=await fetch(base+'/api/me',{method:'OPTIONS',headers:{Origin:trustedOrigin,'Access-Control-Request-Method':'GET','Access-Control-Request-Headers':'authorization'},signal:AbortSignal.timeout(20000)});
+assert.equal(trusted.headers.get('access-control-allow-origin'),trustedOrigin,'Official preview origin must be allowed');
+console.log('PASS live unauthorized API routes and strict CORS (read-only)');
