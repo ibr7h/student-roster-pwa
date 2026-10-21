@@ -43,6 +43,20 @@ function refresh(){
   }
  }
  document.body.classList.toggle('school-screen-open',mobile()&&active.length>0);
+ // The report remains part of the application, not a screen that hides all app navigation.
+ const reportOpen=mobile()&&active.includes('officialReportModal');
+ document.body.classList.toggle('school-report-open',reportOpen);
+ if(reportOpen){
+  const topRect=document.getElementById('appHeader')?.getBoundingClientRect();
+  const bottomRect=document.querySelector('.mobile-bottom-nav')?.getBoundingClientRect();
+  const top=topRect?.height>0?Math.max(0,Math.ceil(topRect.bottom)):0;
+  const bottom=bottomRect?.height>0?Math.max(0,Math.ceil(window.innerHeight-bottomRect.top)):0;
+  document.body.style.setProperty('--school-report-top',top+'px');
+  document.body.style.setProperty('--school-report-bottom',bottom+'px');
+ }else{
+  document.body.style.removeProperty('--school-report-top');
+  document.body.style.removeProperty('--school-report-bottom');
+ }
  active.forEach((id,i)=>{const e=registered.get(id).el,next=String(105+i);if(e.style.getPropertyValue('--school-screen-layer')!==next)e.style.setProperty('--school-screen-layer',next)});
 }
 function setup(){
