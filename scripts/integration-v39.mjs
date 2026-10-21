@@ -56,6 +56,9 @@ try{
  await assert.rejects(()=>resend(pool,{challengeId:signup.challengeId},async()=>{}),e=>e.status===429);
  await pool.query("UPDATE school_signup_challenges SET resend_after=NOW()-interval '1 second' WHERE id=$1",[signup.challengeId]);
  const prior=otp;
+ const originalDigest=(await pool.query('SELECT otp_hmac FROM school_signup_challenges WHERE id=$1',[signup.challengeId])).rows[0].otp_hmac;
+ await assert.rejects(()=>resend(pool,{challengeId:signup.challengeId},async()=>{throw Error('mail unavailable')}),/mail unavailable/);
+ assert.equal((await pool.query('SELECT otp_hmac FROM school_signup_challenges WHERE id=$1',[signup.challengeId])).rows[0].otp_hmac,originalDigest);
  await resend(pool,{challengeId:signup.challengeId},async(addr,code)=>{assert.equal(addr,email);otp=code});
  const fresh=(await pool.query('SELECT attempts,otp_hmac FROM school_signup_challenges WHERE id=$1',[signup.challengeId])).rows[0];
  assert.equal(fresh.attempts,0);say('Resend enforces cooldown, refreshes the code and resets attempt count');
