@@ -150,11 +150,20 @@
    overflow:hidden!important;
  }
  body.school-report-open #officialReportModal.school-native-screen:not(.hidden){
+   justify-content:flex-start!important;
+   align-items:stretch!important;
    position:fixed!important;
    inset:var(--school-report-top,0px) 0 var(--school-report-bottom,0px) 0!important;
    width:100%!important;
    height:auto!important;
    max-height:none!important;
    overflow:hidden!important;
+ }
+ body.school-report-open #officialReportModal.school-native-screen > .school-native-bar{
+   height:auto!important;
+   min-height:58px!important;
+   max-height:calc(58px + env(safe-area-inset-top,0px))!important;
+   flex:0 0 auto!important;
+   justify-content:flex-start!important;
  }
 }
