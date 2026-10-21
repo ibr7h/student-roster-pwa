@@ -29,6 +29,7 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'domcontentloaded'});
   await page.locator('#auth39-login').waitFor({state:'visible',timeout:15000});
+  assert.equal(await page.locator('#auth39-retryConnection').count(),1,'Explicit reconnect action must exist for sleeping backend');
   const layout=await page.evaluate(()=>{
    const shell=document.getElementById('authV39Shell'),outer=document.getElementById('loginScreenOverlay');
    return {width:innerWidth,root:document.documentElement.scrollWidth,shell:shell.getBoundingClientRect().width,outer:outer.getBoundingClientRect().width,font:parseFloat(getComputedStyle(document.getElementById('auth39-identity')).fontSize)};
