@@ -11,7 +11,7 @@ on:
       - scripts/auth-ui-v39.css
       - .github/workflows/browser-v39.yml
 permissions:
-  contents: write
+  contents: read
 jobs:
   iphone:
     runs-on: ubuntu-latest
@@ -39,8 +39,9 @@ jobs:
       - name: Record verified UI navigation
         run: |
           printf '# v3.9 mobile browser check\n\nUTC: %s\n\n- Chromium emulated mobile, 320px and 390px viewports\n- Login, school registration (including email and mandatory phone), code confirmation, login without school code, post-login activation, password recovery\n- Standalone PWA manifest and minimum 16px auth input text\n- Responses were intercepted with test fixtures; this is **not** evidence of real mail delivery or live Neon login\n- Safari hardware acceptance remains required\n' "$(date -u +%FT%TZ)" > BROWSER-V39-RESULTS.md
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add BROWSER-V39-RESULTS.md
-          git commit -m "Verify v3.9 iPhone-scale browser account navigation"
-          git push
+      - name: Attach immutable CI report
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-v39-browser-report
+          path: BROWSER-V39-RESULTS.md
+          retention-days: 30
