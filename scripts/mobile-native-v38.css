@@ -136,3 +136,25 @@
    opacity:1!important;
  }
 }
+/* v3.9 nested modal positioning */
+@media(max-width:767px){
+ /* Keep nested report/preview screens fixed to the viewport: the generic
+    direct-child content rule otherwise changes their positioning to relative. */
+ .school-native-screen > .school-native-screen:not(.hidden){
+   position:fixed!important;
+   inset:0!important;
+   flex:none!important;
+   width:100%!important;
+   height:100dvh!important;
+   max-height:100dvh!important;
+   overflow:hidden!important;
+ }
+ body.school-report-open #officialReportModal.school-native-screen:not(.hidden){
+   position:fixed!important;
+   inset:var(--school-report-top,0px) 0 var(--school-report-bottom,0px) 0!important;
+   width:100%!important;
+   height:auto!important;
+   max-height:none!important;
+   overflow:hidden!important;
+ }
+}
