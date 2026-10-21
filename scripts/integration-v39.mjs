@@ -159,6 +159,9 @@ try{
  assert.equal((await req('/api/login',{method:'POST',body:{username:memberName,password}})).status,401);
  assert.equal((await req('/api/login',{method:'POST',body:{username:memberName,password:'NewPassword#ForSchool123'}})).status,200);
  say('Password reset uses expiring code and revokes previous sessions');
+ const checkedLicense=(await pool.query('SELECT license_until FROM schools WHERE id=$1',[oldSchoolId])).rows[0].license_until;
+ assert.equal(String(checkedLicense),String(originalLicense),'Existing school license must remain unchanged after new registration and recovery');
+ say('Preexisting school license preserved after migration and new-school workflow');
  console.log('SUCCESS all full-flow isolated v3.9 API integration assertions passed');
 }finally{
  if(server){server.kill('SIGTERM');await sleep(300)}
