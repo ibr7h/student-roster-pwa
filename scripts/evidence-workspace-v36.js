@@ -10,6 +10,10 @@ function init(){
  const back=document.createElement('button');back.type='button';back.className='evidence-back';back.textContent='← العودة إلى البنود';back.addEventListener('click',()=>window.closeModal());
  const title=document.createElement('span');title.className='evidence-page-label';title.textContent='الملفات والشواهد';
  nav.append(back,title);host.append(nav,panel);main.append(host);
+ // The A4 report is launched from the dashboard header, not from an evidence item.
+ // It must not inherit the hidden state of the relocated evidence workspace.
+ const report=document.getElementById('officialReportModal');
+ if(report&&host.contains(report))document.body.appendChild(report);
  panel.className='hidden evidence-page-panel';
  panel.firstElementChild.className='evidence-page-card';
  const list=document.getElementById('modalEvidencesList');
