@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {email,phone,username,digest,codeIsValid,fields} from './auth-v39.mjs';
+import {email,phone,username,digest,codeIsValid,fields,mailSettingsReady,sendMail} from './auth-v39.mjs';
 import {randomUUID} from 'node:crypto';
 test('global account identifiers normalized',()=>{assert.equal(email('  SOME.Name@School.edu.SA '),'some.name@school.edu.sa');assert.equal(username(' School.Admin '),'school.admin');assert.throws(()=>username('مدير'));assert.throws(()=>email('not-an-email'));});
 test('mandatory phone E.164 and Saudi local normalization',()=>{assert.equal(phone('0551234567'),'+966551234567');assert.equal(phone('+966551234567'),'+966551234567');assert.throws(()=>phone('005'));});
@@ -24,4 +24,34 @@ test('signed user school role and activation never supplied by signup payload',(
  const validated=fields(b);
  assert.equal('is_admin' in validated,false);
  assert.equal('activation_status' in validated,false);
+});
+
+test('Resend sandbox fails closed unless a single verified-test recipient is configured',async()=>{
+ const names=['SCHOOL_RESEND_API_KEY','SCHOOL_OTP_HMAC_SECRET','SCHOOL_OTP_FROM','SCHOOL_OTP_TEST_MODE','SCHOOL_OTP_TEST_RECIPIENT'];
+ const saved=Object.fromEntries(names.map(n=>[n,process.env[n]]));
+ try{
+  process.env.SCHOOL_RESEND_API_KEY='ci-only-placeholder';
+  process.env.SCHOOL_OTP_HMAC_SECRET='a'.repeat(48);
+  process.env.SCHOOL_OTP_FROM='onboarding@resend.dev';
+  process.env.SCHOOL_OTP_TEST_MODE='true';
+  delete process.env.SCHOOL_OTP_TEST_RECIPIENT;
+  assert.equal(mailSettingsReady(),false);
+  process.env.SCHOOL_OTP_TEST_RECIPIENT='sandbox.owner@example.test';
+  assert.equal(mailSettingsReady(),true);
+  let sent=false;
+  await assert.rejects(()=>sendMail('stranger@example.test','123456',async()=>{sent=true;return {ok:true}}),e=>e.status===503);
+  assert.equal(sent,false);
+  await sendMail('SANDBOX.OWNER@example.test','123456',async(url,request)=>{
+   assert.match(url,/api.resend.com/);
+   const body=JSON.parse(request.body);
+   assert.equal(body.from,'onboarding@resend.dev');
+   assert.deepEqual(body.to,['SANDBOX.OWNER@example.test']);
+   sent=true;return {ok:true};
+  });
+  assert.equal(sent,true);
+  process.env.SCHOOL_OTP_FROM='verification@mail.dhahabk.com';
+  assert.equal(mailSettingsReady(),false);
+ }finally{
+  for(const name of names){if(saved[name]===undefined)delete process.env[name];else process.env[name]=saved[name]}
+ }
 });
