@@ -23,7 +23,7 @@ shell.innerHTML=[
 '<label for="auth39-confirmPassword">تأكيد كلمة المرور</label><input id="auth39-confirmPassword" name="confirmPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password" required>',
 '<button id="auth39-registerSubmit" class="auth39-primary" type="submit">متابعة والتحقق من البريد</button>',
 '</form></section>',
-'<section id="auth39-verify" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="register">‹ تعديل بيانات التسجيل</button><div class="auth39-step-icon">✉</div><h1>تأكيد البريد الإلكتروني</h1><p class="auth39-intro">أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك. تنتهي صلاحيته بعد 10 دقائق.</p>',
+'<section id="auth39-verify" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="register">‹ تعديل بيانات التسجيل</button><div class="auth39-step-icon">✉</div><h1>تأكيد البريد الإلكتروني</h1><p class="auth39-intro">إذا كانت بيانات التسجيل متاحة وصحيحة، سيصلك رمز من 6 أرقام على بريدك. تحقق من البريد غير المرغوب فيه، أو ارجع لتصحيح البيانات. صلاحية الرمز 10 دقائق.</p>',
 '<form id="auth39-verifyForm"><label for="auth39-code">رمز التحقق</label><input id="auth39-code" name="code" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" dir="ltr" required>',
 '<button class="auth39-primary" type="submit">تأكيد البريد وإنشاء الحساب</button></form>',
 '<button id="auth39-resend" class="auth39-secondary" type="button" disabled>إعادة إرسال الرمز</button><span id="auth39-countdown" class="auth39-muted"></span></section>',
