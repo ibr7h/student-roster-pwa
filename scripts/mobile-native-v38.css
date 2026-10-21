@@ -110,3 +110,29 @@
  .school-native-cancel{background:#e2e8f0;color:#1e293b;}
  .school-native-accept{background:#123b75;color:white;}
 }
+
+/* v3.9 report regression: keep existing app menus/icons accessible while the
+   official report occupies the content area between the app bars. */
+@media(max-width:767px){
+ body.school-report-open #appHeader,
+ body.school-report-open .mobile-bottom-nav{
+   visibility:visible!important;
+   pointer-events:auto!important;
+   z-index:150!important;
+ }
+ body.school-report-open #appHeader{position:relative!important;}
+ #officialReportModal.school-native-screen:not(.hidden){
+   top:var(--school-report-top,0px)!important;
+   bottom:var(--school-report-bottom,0px)!important;
+   height:auto!important;
+   max-height:none!important;
+ }
+ #officialReportModal.school-native-screen .school-native-bar{
+   flex-shrink:0!important;
+ }
+ #officialReportModal.school-native-screen button svg,
+ #officialReportModal.school-native-screen button i{
+   visibility:visible!important;
+   opacity:1!important;
+ }
+}
