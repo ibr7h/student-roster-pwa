@@ -9,10 +9,23 @@ export function phone(x){let s=typeof x==='string'?x.replace(/[\s()-]/g,''):'';i
 export function username(x){const s=norm(x);if(!/^[a-z0-9._-]{3,64}$/.test(s))throw fail('اسم المستخدم غير صالح.');return s;}
 export function digest(id,addr,otp,secret){if(typeof secret!=='string'||secret.length<32)throw fail('التحقق بالبريد غير مهيأ.',503);return createHmac('sha256',secret).update(id+'\0'+addr+'\0'+otp).digest('hex');}
 export function codeIsValid(row,code,secret){if(!/^\d{6}$/.test(code||''))return false;const a=Buffer.from(digest(row.id,row.email,code,secret),'hex'),b=Buffer.from(row.otp_hmac||'','hex');return a.length===b.length&&timingSafeEqual(a,b);}
-export function config(){if((process.env.SCHOOL_OTP_HMAC_SECRET||'').length<32||!process.env.SCHOOL_RESEND_API_KEY||!process.env.SCHOOL_OTP_FROM)throw fail('خدمة البريد الخاصة بالشواهد لم تُجهّز بعد.',503);}
+export function mailSettingsReady(env=process.env){
+ const from=String(env.SCHOOL_OTP_FROM||'').trim().toLowerCase();
+ if((env.SCHOOL_OTP_HMAC_SECRET||'').length<32||!env.SCHOOL_RESEND_API_KEY)return false;
+ if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(from)||/@(?:dhahabk\\.com|mail\\.dhahabk\\.com)$/i.test(from))return false;
+ if(from.endsWith('@resend.dev')){
+  if(from!=='onboarding@resend.dev'||env.SCHOOL_OTP_TEST_MODE!=='true')return false;
+  const permitted=String(env.SCHOOL_OTP_TEST_RECIPIENT||'').trim().toLowerCase();
+  if(!permitted||!permitted.includes('@')||permitted.includes(' ')||permitted.length>254)return false;
+ }
+ return true;
+}
+export function config(){if(!mailSettingsReady())throw fail('خدمة البريد الخاصة بالشواهد لم تُجهّز بعد.',503);}
 export async function sendMail(address,otp,fetcher=fetch){
- const sender=process.env.SCHOOL_OTP_FROM;
- if(!sender||!/^.+@[^@]+\.[^@]+$/.test(sender)||/@(?:dhahabk\.com|mail\.dhahabk\.com)$/i.test(sender))throw fail('عنوان البريد الخاص بالشواهد غير صالح.',503);
+ const sender=String(process.env.SCHOOL_OTP_FROM||'').trim();
+ if(!mailSettingsReady())throw fail('خدمة البريد الخاصة بالشواهد لم تُجهّز بعد.',503);
+ if(sender.toLowerCase()==='onboarding@resend.dev'&&norm(address)!==norm(process.env.SCHOOL_OTP_TEST_RECIPIENT))
+  throw fail('إرسال البريد التجريبي متاح لحساب الاختبار المعتمد فقط.',503);
  let r;try{r=await fetcher('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+process.env.SCHOOL_RESEND_API_KEY,'Content-Type':'application/json','Idempotency-Key':randomUUID()},body:JSON.stringify({from:sender,to:[address],subject:'رمز التحقق — منصة شواهد التقويم',text:'رمز التحقق: '+otp+'\nصالح لمدة 10 دقائق. لا تشارك الرمز.'}),signal:AbortSignal.timeout(12000)})}catch{throw fail('تعذّر إرسال البريد الآن. حاول لاحقًا.',503)}
  if(!r.ok)throw fail('تعذّر إرسال البريد الآن. حاول لاحقًا.',503);
 }
