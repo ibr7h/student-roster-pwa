@@ -33,9 +33,10 @@ async function fetchText(path){
  throw new Error('PWA request failed '+path+': '+String(last));
 }
 const serviceWorker=await fetchText('/sw.js');
-assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-auth-privacy-20261021-r3'),'PWA cache not updated on live preview');
+assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-reconnect-20261021-r4'),'PWA cache not updated on live preview');
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
+assert.ok(authScript.includes('auth39-retryConnection'),'Updated login retry action not deployed');
 console.log('PASS live PWA cache and privacy signup copy');
 
 async function unauthenticated(path){
