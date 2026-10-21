@@ -7,6 +7,8 @@ on:
       - scripts/integration-v39.mjs
       - scripts/evidence-wire-v39.mjs
       - scripts/link-email-v39.mjs
+      - scripts/apply-reset-v39.mjs
+      - scripts/client-ip-v39.mjs
       - backend-package.b64
       - .github/workflows/integration-v39.yml
 permissions:
