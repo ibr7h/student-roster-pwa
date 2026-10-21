@@ -45,6 +45,9 @@ try{
 
  const memberName='newschoolmanager',email='integration.manager@example.edu',password='ExampleSchoolPassword#123456';
  const payload={schoolName:'مدرسة التكامل التجريبية',schoolType:'boys',ministryCode:'8754312221',name:'مدير الاختبار',email,phone:'0551234567',username:memberName,password,confirmPassword:password};
+ const failedMail={...payload,username:'failedmailer',ministryCode:'8754312999',email:'unavailable@example.edu',phone:'0551234599'};
+ await assert.rejects(()=>start(pool,failedMail,async()=>{throw Error('mail unavailable')}),/mail unavailable/);
+ assert.equal((await pool.query('SELECT count(*)::int n FROM school_signup_challenges WHERE username=$1',[failedMail.username])).rows[0].n,0);
  let otp;
  const signup=await start(pool,payload,async(addr,code)=>{assert.equal(addr,email);otp=code});
  assert.ok(/^[0-9a-f-]{36}$/.test(signup.challengeId)&&/^\d{6}$/.test(otp));
