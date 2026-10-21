@@ -133,14 +133,38 @@ try{
  await page.locator('#auth39-resetVerify').waitFor({state:'visible'});
  await page.locator('#auth39-resetVerifyCancel').click();
  await page.locator('#auth39-resetVerify').waitFor({state:'hidden'});
- // Report markup is nested under the evidence workspace; never treat a detached
- // hidden report as a visible dialog when checking navigation behavior.
+ // Reproduce report inside its two screen containers, not as a detached hidden modal.
  const report=page.locator('#officialReportModal');
  assert.equal(await report.count(),1);
- assert.equal(await report.evaluate(e=>e.parentElement.id),'evidenceModal');
- assert.ok(await report.locator('button svg,button i').count()>=2,'Report action icons must be included');
- console.log('REPORT_OPEN_FUNCTION',await page.evaluate(()=>String(window.openOfficialReportModal).slice(0,2000)));
- console.log('REPORT_ANCESTRY',await report.evaluate(e=>{const a=[];for(let p=e;p&&a.length<6;p=p.parentElement)a.push({id:p.id,display:getComputedStyle(p).display,hidden:p.classList.contains('hidden')});return a}));
+ assert.equal(await report.evaluate(el=>el.parentElement.id),'evidenceModal');
+ await page.evaluate(()=>{
+  for(const id of ['evidenceWorkspace','evidenceModal','officialReportModal']){
+   document.getElementById(id).classList.remove('hidden');
+  }
+ });
+ await report.waitFor({state:'visible',timeout:5000});
+ await page.waitForFunction(()=>document.body.classList.contains('school-report-open'),null,{timeout:5000});
+ const checks=await page.evaluate(()=>{
+  const header=document.getElementById('appHeader');
+  const nav=document.querySelector('.mobile-bottom-nav');
+  const report=document.getElementById('officialReportModal');
+  const back=report.querySelector('.school-native-back');
+  const rect=x=>x.getBoundingClientRect();
+  return {
+   header:getComputedStyle(header).visibility,
+   nav:getComputedStyle(nav).visibility,
+   backVisible:rect(back).height>0,
+   actionCount:report.querySelectorAll('button svg,button i').length,
+   bounds:{header:rect(header).bottom,top:rect(report).top,bottom:rect(report).bottom,nav:rect(nav).top}
+  };
+ });
+ console.log('REPORT_VISIBLE_CHECK',JSON.stringify(checks));
+ assert.equal(checks.header,'visible');
+ assert.equal(checks.nav,'visible');
+ assert.ok(checks.backVisible,'Report back control must be visible');
+ assert.ok(checks.actionCount>=2,'Report action icons must exist');
+ await page.locator('#officialReportModal .school-native-back').click();
+ await report.waitFor({state:'hidden',timeout:5000});
  // The mobile school-profile back action must actually dismiss the full-screen modal.
  const profile=page.locator('#schoolProfileModal');
  assert.equal(await profile.count(),1);
