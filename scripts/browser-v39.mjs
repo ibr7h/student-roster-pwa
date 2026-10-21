@@ -159,6 +159,8 @@ try{
   };
  });
  console.log('REPORT_VISIBLE_CHECK',JSON.stringify(checks));
+ console.log('REPORT_BACK_RECT',await page.locator('#officialReportModal .school-native-back').evaluate(e=>({button:e.getBoundingClientRect().toJSON(),bar:e.parentElement.getBoundingClientRect().toJSON(),atPoint:document.elementFromPoint(e.getBoundingClientRect().x+15,e.getBoundingClientRect().y+15)?.id||null})));
+
  assert.equal(checks.header,'visible');
  assert.equal(checks.nav,'visible');
  assert.ok(checks.backVisible,'Report back control must be visible');
