@@ -1,5 +1,5 @@
 # v3.9 frontend CI verified
-- UTC 2026-10-21T01:46:37Z
+- UTC 2026-10-21T01:47:21Z
 - Static PWA includes unified login, manager signup with mandatory phone and email, six-digit OTP, activation-after-login.
 - Syntax checks and structural assertions passed.
 - A real device and verified email-domain test are required before production.
