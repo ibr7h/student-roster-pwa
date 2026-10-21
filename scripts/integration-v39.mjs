@@ -29,6 +29,7 @@ try{
  await pool.query("INSERT INTO schools(id,login_code,school,license_until) VALUES($1,$2,$3,NOW()+interval '1 year')",[oldSchoolId,'SCH-LEGACY-CI',{name:'Existing school without email',code:'6754312221',schoolType:'boys'}]);
  await pool.query("INSERT INTO members(id,school_id,username,name,role,is_admin,allowed_sections,password_hash) VALUES($1,$2,$3,$4,$5,true,$6,$7)",[oldManagerId,oldSchoolId,'legacy.manager','Legacy Manager','مدير المدرسة',SECTIONS,await hashPassword('LegacyExamplePassword#1234')]);
 
+ const originalLicense=(await pool.query('SELECT license_until FROM schools WHERE id=$1',[oldSchoolId])).rows[0].license_until;
  const legacyUser={kind:'school',id:oldManagerId,schoolId:oldSchoolId,isAdmin:true};
  let mailLinkCode;
  await assert.rejects(()=>startEmailLink(pool,{...legacyUser,isAdmin:false},{email:'existing.manager@example.edu',password:'LegacyExamplePassword#1234'},async()=>{}),e=>e.status===403);
