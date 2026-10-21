@@ -53,6 +53,10 @@ sw=sw.replace("'./assets/mobile.js'","'./assets/mobile.js','./assets/static-api-
 fs.writeFileSync(root+'sw.js',sw);
 const checks=['index.html','owner.html','activate.html','view.html'].map(x=>fs.readFileSync(root+x,'utf8'));
 if(checks.some(s=>!s.includes('static-api-v37.js')) || !checks[0].includes('window.SchoolBridge.request'))throw Error('Missing static API integration');
+// The packaged patch-release contains an older evidence workspace script.
+// Overwrite the emitted asset with the reviewed branch copy on every preview build.
+if(!fs.existsSync(root+'assets/evidence-workspace.js'))throw Error('Evidence workspace asset not found in compiled PWA');
+fs.copyFileSync('scripts/evidence-workspace-v36.js',root+'assets/evidence-workspace.js');
 console.log('Static PWA v3.7 ready; all interfaces use direct authenticated API requests.');
 
 // Mobile v3.8: full-screen in-app pages and bottom sheets; no browser prompts.
