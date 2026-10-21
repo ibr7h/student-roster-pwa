@@ -44,12 +44,9 @@ try{
   await page.getByRole('button',{name:/العودة للدخول/}).click();
   await page.locator('#auth39-login').waitFor({state:'visible'});
   // Test the nested official report at WebKit mobile viewport sizes.
-  await page.evaluate(()=>{
-   document.getElementById('loginScreenOverlay').classList.add('hidden');
-   for(const id of ['evidenceWorkspace','evidenceModal','officialReportModal']){
-    document.getElementById(id).classList.remove('hidden');
-   }
-  });
+  await page.evaluate(()=>document.getElementById('loginScreenOverlay').classList.add('hidden'));
+  assert.equal(await page.locator('#officialReportModal').evaluate(el=>el.parentElement.tagName),'BODY');
+  await page.locator('button[onclick="openOfficialReportModal()"]').evaluate(el=>el.click());
   const report=page.locator('#officialReportModal');
   await report.waitFor({state:'visible',timeout:5000});
   await page.waitForFunction(()=>document.body.classList.contains('school-report-open'),null,{timeout:5000});
