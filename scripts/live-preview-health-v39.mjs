@@ -17,6 +17,7 @@ const health=await check('/api/health');
 assert.equal(health.ok,true,'API health must report ok');
 const status=await check('/api/register/status');
 assert.equal(typeof status.emailReady,'boolean','OTP configuration indicator must be boolean');
+assert.equal(status.emailReady,true);
 assert.deepEqual(Object.keys(status).sort(),['emailReady'],'Public registration status must not reveal sender, test mailbox or API credentials');
 console.log('PASS public API health; email configured:',status.emailReady);
 if(status.emailReady)console.log('NOTE configured does not prove OTP mail delivery');
