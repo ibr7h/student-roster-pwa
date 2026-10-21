@@ -66,6 +66,15 @@ try{
   server=server.replace(matcher,"await durableThrottle(pool,req.socket.remoteAddress,'"+family+"',"+JSON.stringify(limits)+");");
   if(!server.includes("await durableThrottle(pool,req.socket.remoteAddress,'"+family+"'"))throw Error('Throttled route missing: '+family);
  }
+ // Package trusted-edge client identification alongside the durable limiter.
+ const clientIpImport="import {clientAddress} from './client-ip-v39.mjs';";
+ if(!server.includes(clientIpImport)){
+  server=server.replace("import {Pool} from 'pg';","import {Pool} from 'pg';\n"+clientIpImport);
+ }
+ server=server.replaceAll('durableThrottle(pool,req.socket.remoteAddress,','durableThrottle(pool,clientAddress(req),');
+ if(server.includes('durableThrottle(pool,req.socket.remoteAddress,'))throw Error('Rate limiter still uses shared reverse-proxy address');
+ fs.copyFileSync('scripts/client-ip-v39.mjs',f('backend/client-ip-v39.mjs'));
+ fs.copyFileSync('scripts/client-ip-v39.test.mjs',f('backend/client-ip-v39.test.mjs'));
  fs.copyFileSync('scripts/rate-limit-v39.mjs',f('backend/rate-limit-v39.mjs'));
  fs.copyFileSync('scripts/rate-limit-v39.test.mjs',f('backend/rate-limit-v39.test.mjs'));
 
