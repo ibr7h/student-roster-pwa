@@ -1,4 +1,5 @@
 name: Verify v3.9 iPhone browser registration and login
+# Also tests owner login, cold-start reconnect, and encrypted Google OAuth JSON import using synthetic fixtures.
 on:
   push:
     branches:
