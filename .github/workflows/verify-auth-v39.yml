@@ -9,6 +9,8 @@ on:
       - scripts/apply-auth-v39.mjs
       - scripts/reset-v39.mjs
       - scripts/apply-reset-v39.mjs
+      - scripts/change-password-v39.mjs
+      - scripts/change-password-v39.test.mjs
       - scripts/rate-limit-v39.mjs
       - scripts/rate-limit-v39.test.mjs
       - scripts/client-ip-v39.mjs
