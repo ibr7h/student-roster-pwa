@@ -77,6 +77,25 @@ try{
   });
   console.log('ICON_WEBKIT_METRICS',JSON.stringify({width,iconMetrics}));
   await page.locator('#mobileMenuToggle').click();
+  // A toolbar icon can have an SVG child and still render as a zero-sized shape.
+  // Assert visible controls have a measurable vector and retain their icon color.
+  const displayedIcons=await page.evaluate(()=>{
+   const controls=[...document.querySelectorAll('#headerTools > button,#headerTools > label')];
+   return controls.filter(el=>el.getClientRects().length>0).flatMap(control=>{
+    const icon=control.querySelector('i.school-vector-ready');
+    if(!icon)return [];
+    const svg=icon.querySelector('svg.school-vector-icon');
+    const dimensions=node=>{const r=node?.getBoundingClientRect();return r?[r.width,r.height]:[0,0]};
+    return [{name:icon.className,box:dimensions(icon),svgBox:dimensions(svg),color:getComputedStyle(icon).color,svgCount:icon.querySelectorAll('svg.school-vector-icon').length}];
+   });
+  });
+  console.log('ICON_VISIBLE_WEBKIT',JSON.stringify({width,displayedIcons}));
+  assert.ok(displayedIcons.length>=5,'Expected several visible toolbar icons');
+  for(const icon of displayedIcons){
+   assert.ok(icon.box[0]>=16&&icon.box[1]>=16,'Invisible/undersized icon container: '+JSON.stringify(icon));
+   assert.ok(icon.svgBox[0]>=16&&icon.svgBox[1]>=16,'SVG glyph collapses on iPhone: '+JSON.stringify(icon));
+   assert.equal(icon.svgCount,1,'Duplicate icon SVG rendered: '+icon.name);
+  }
   if(width===390){
    const pic=await page.locator('button[onclick="openOfficialReportModal()"]').screenshot();
    console.log('ICON_SCREENSHOT_BASE64',pic.toString('base64'));
