@@ -1,5 +1,6 @@
 import fs from 'node:fs';
-const file='backend/server.mjs';
+const root=process.env.SCHOOL_BACKEND_ROOT||'.';
+const file=root+'/backend/server.mjs';
 let source=fs.readFileSync(file,'utf8');
 const routeMarker=" if(req.method==='GET'&&url.pathname==='/api/platform/schools'){";
 const routeCode=`
@@ -20,6 +21,6 @@ if(!source.includes('googleConfigStatus(pool)')){
  source=source.replace(routeMarker,routeCode+routeMarker);
  fs.writeFileSync(file,source);
 }
-fs.copyFileSync('scripts/owner-google-v39.mjs','backend/owner-google-v39.mjs');
+fs.copyFileSync('scripts/owner-google-v39.mjs',root+'/backend/owner-google-v39.mjs');
 if(!source.includes("requireOwner(user);return send(res,200,await googleConfigStatus(pool))")||!source.includes("requireOwner(user);\n  throttle(req.socket.remoteAddress,'owner-google-config',5)"))throw Error('Owner-only Google route authorization missing');
 console.log('Installed encrypted owner-only Drive JSON API, requiring a Render vault key.');
