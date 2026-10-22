@@ -65,17 +65,6 @@ try{
   assert.equal(await page.locator('#appHeader [data-school-release]').textContent(),'الإصدار v3.9.0-r9');
   assert.equal(await page.locator('#officialReportModal').evaluate(el=>el.parentElement.tagName),'BODY');
 
-  const iconMetrics=await page.evaluate(()=>{
-   const nodes=[...document.querySelectorAll('i.fa-solid,i.fa-regular,i.fa-brands')];
-   const sample=nodes.slice(0,20).map(icon=>{
-    const svg=icon.querySelector('svg.school-vector-icon');
-    const rect=icon.getBoundingClientRect();
-    const vb=svg?.viewBox.baseVal;
-    return {name:[...icon.classList].find(x=>x.startsWith('fa-')&&x!=='fa-solid'),ready:icon.classList.contains('school-vector-ready'),svg:!!svg,display:getComputedStyle(icon).display,color:getComputedStyle(icon).color,size:[rect.width,rect.height],viewBox:vb?[vb.x,vb.y,vb.width,vb.height]:null};
-   });
-   return {total:nodes.length,ready:nodes.filter(x=>x.classList.contains('school-vector-ready')).length,withSvg:nodes.filter(x=>x.querySelector('svg.school-vector-icon')).length,sample};
-  });
-  console.log('ICON_WEBKIT_METRICS',JSON.stringify({width,iconMetrics}));
   await page.locator('#mobileMenuToggle').click();
   // A toolbar icon can have an SVG child and still render as a zero-sized shape.
   // Assert visible controls have a measurable vector and retain their icon color.
@@ -89,17 +78,12 @@ try{
     return [{name:icon.className,box:dimensions(icon),svgBox:dimensions(svg),color:getComputedStyle(icon).color,svgCount:icon.querySelectorAll('svg.school-vector-icon').length}];
    });
   });
-  console.log('ICON_VISIBLE_WEBKIT',JSON.stringify({width,displayedIcons}));
+  console.log('PASS visible toolbar SVG icon dimensions '+width+'px');
   assert.ok(displayedIcons.length>=5,'Expected several visible toolbar icons');
   for(const icon of displayedIcons){
    assert.ok(icon.box[0]>=16&&icon.box[1]>=16,'Invisible/undersized icon container: '+JSON.stringify(icon));
    assert.ok(icon.svgBox[0]>=16&&icon.svgBox[1]>=16,'SVG glyph collapses on iPhone: '+JSON.stringify(icon));
    assert.equal(icon.svgCount,1,'Duplicate icon SVG rendered: '+icon.name);
-  }
-  if(width===390){
-   const pic=await page.locator('button[onclick="openOfficialReportModal()"]').screenshot();
-   console.log('ICON_SCREENSHOT_BASE64',pic.toString('base64'));
-   const menu=await page.screenshot({clip:{x:0,y:58,width:390,height:600}});console.log('ICON_MENU_SCREENSHOT_BASE64',menu.toString('base64'));
   }
   await page.locator('button[onclick="openOfficialReportModal()"]').click({timeout:7000});
   const report=page.locator('#officialReportModal');
