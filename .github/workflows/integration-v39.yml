@@ -8,6 +8,8 @@ on:
       - scripts/evidence-wire-v39.mjs
       - scripts/link-email-v39.mjs
       - scripts/apply-reset-v39.mjs
+      - scripts/change-password-v39.mjs
+      - scripts/change-password-v39.test.mjs
       - scripts/client-ip-v39.mjs
       - backend-package.b64
       - .github/workflows/integration-v39.yml
