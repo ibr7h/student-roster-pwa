@@ -98,6 +98,25 @@ try{
   ].join('\n');
   server=server.replace(anchor,anchor+'\n'+routes);
  }
+ // Password changes for logged-in school accounts require the CURRENT password.
+ // They do not depend on email-link status, while forgotten-password recovery still does.
+ if(!server.includes('/api/profile/password/change')){
+  const poolImport="import {Pool} from 'pg';";
+  if(!server.includes(poolImport))throw Error('Password-change import marker missing');
+  server=server.replace(poolImport,poolImport+"\nimport {changePassword} from './change-password-v39.mjs';");
+  const routeAnchor="if(req.method==='POST'&&url.pathname==='/api/school/activate')return send(res,200,await signupActivate(pool,user,await readJson(req,10000)));";
+  if(!server.includes(routeAnchor))throw Error('Authenticated password-change route marker missing');
+  const lines=[
+   " if(req.method==='POST'&&url.pathname==='/api/profile/password/change'){",
+   "  await durableThrottle(pool,clientAddress(req),'password-change',{limit:8,windowSeconds:900});",
+   "  return send(res,200,await changePassword(pool,user,await readJson(req,5000)));",
+   " }"
+  ].join('\n');
+  server=server.replace(routeAnchor,routeAnchor+'\n'+lines);
+ }
+ if(!server.includes("await changePassword(pool,user,await readJson(req,5000))"))throw Error('Authenticated password change route missing');
+ fs.copyFileSync('scripts/change-password-v39.mjs',f('backend/change-password-v39.mjs'));
+ fs.copyFileSync('scripts/change-password-v39.test.mjs',f('backend/change-password-v39.test.mjs'));
  // Run the same proxy-aware, persistent limiter for legacy email-link endpoints.
  // These routes are added after the initial limiter patch, so normalize again here.
  server=server.replaceAll('durableThrottle(pool,req.socket.remoteAddress,','durableThrottle(pool,clientAddress(req),');
