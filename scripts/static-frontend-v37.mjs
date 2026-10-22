@@ -76,3 +76,5 @@ await import('./apply-mobile-v38.mjs');
 await import('./apply-auth-ui-v39.mjs');
 // A4 report must open before synchronous page/QR generation, including on iPhone.
 await import('./harden-report-v39.mjs');
+// Owner administration only: import a Google Cloud OAuth JSON into encrypted API storage.
+await import('./owner-google-frontend-v39.mjs');
