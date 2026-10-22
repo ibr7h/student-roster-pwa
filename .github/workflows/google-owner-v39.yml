@@ -1,0 +1,39 @@
+name: Package secure owner Google OAuth configuration
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/google-settings-v39.mjs
+      - scripts/google-settings-v39.test.mjs
+      - scripts/pack-google-settings-v39.mjs
+      - .github/workflows/google-owner-v39.yml
+permissions:
+  contents: write
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test secure OAuth JSON parsing and encrypted storage
+        run: node --test scripts/google-settings-v39.test.mjs
+      - name: Assemble backend owner-only Google settings API
+        run: |
+          node scripts/pack-google-settings-v39.mjs
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-google-test.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -tf school-google-test.tar | grep -q 'backend/google-settings-v39.mjs'
+      - name: Save backend archive for Render preview builds
+        run: |
+          git config user.name "school-v39-ci"
+          git config user.email "school-v39-ci@users.noreply.github.com"
+          git add backend-package.b64
+          if ! git diff --cached --quiet; then
+            git commit -m "Build encrypted Google Drive OAuth owner settings into preview API archive"
+            git push origin HEAD:feature/school-v3.9-unified-auth-20261020
+          fi
