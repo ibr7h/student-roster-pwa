@@ -1,13 +1,6 @@
 name: Package v3.9 owner Google Drive API for preview
 on:
-  push:
-    branches:
-      - feature/school-v3.9-unified-auth-20261020
-    paths:
-      - scripts/owner-google-v39.mjs
-      - scripts/owner-google-v39.test.mjs
-      - scripts/owner-google-backend-patch-v39.mjs
-      - .github/workflows/owner-google-bundle.yml
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:
