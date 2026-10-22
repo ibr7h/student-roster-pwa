@@ -5,6 +5,8 @@ on:
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/auth-ui-v39.js
+      - scripts/release-ui-v39.js
+      - scripts/release-ui-v39.css
       - scripts/auth-ui-v39.css
       - scripts/apply-auth-ui-v39.mjs
       - scripts/static-frontend-v37.mjs
@@ -33,6 +35,7 @@ jobs:
           node scripts/static-frontend-v37.mjs
           grep -q 'host.contains(report)' public/assets/evidence-workspace.js
           node --check public/assets/auth-ui-v39.js
+          node --check public/assets/release-ui-v39.js
           node --check public/assets/mobile-native-v38.js
           node --check public/assets/static-api-v37.js
           node --check public/view.js
@@ -49,6 +52,12 @@ jobs:
           assert.ok(css.includes('100dvh') && css.includes('overflow-x:hidden') && css.includes('16px!important'));
           assert.ok(html.includes('auth-ui-v39.js') && html.includes('mobile-native-v38.js'));
           assert.ok(sw.includes('school-evidence-pwa-cloud-v3.9.0') && sw.includes('auth-ui-v39.css'));
+          const release=JSON.parse(read('public/release.json','utf8'));
+          assert.equal(release.version,'v3.9.0-r8');
+          assert.ok(html.includes('release-ui-v39.js') && html.includes('release-ui-v39.css'));
+          assert.ok(sw.includes('release-ui-v39.js') && sw.includes("pathname==='/release.json'"));
+          assert.ok(read('public/assets/release-ui-v39.js','utf8').includes("CURRENT='v3.9.0-r8'"));
+
           console.log('PASS v3.9 iPhone PWA, unified identity, OTP, activation, role-independence and update cache');
           NODE
       - name: Record validated frontend
