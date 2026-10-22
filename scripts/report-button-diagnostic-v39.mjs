@@ -16,3 +16,15 @@ const fun=html.match(/(?:function\s+\w*(?:Report|ReportModal)[\w]*\s*\([^)]*\)|(
 console.log('REPORT_FUNCTIONS',JSON.stringify([...new Set(fun)].slice(0,90)));
 const buttonAt=html.indexOf('onclick="openOfficialReportModal()"');
 console.log('REPORT_HEADER_CONTEXT',html.slice(Math.max(0,buttonAt-2700),buttonAt+430).replace(/\\s+/g,' '));
+
+const fnStart=html.indexOf('function openOfficialReportModal()');
+const fnEnd=html.indexOf('function renderFormalReportPreview()',fnStart);
+if(fnStart<0||fnEnd<0)throw Error('Official report functions not found');
+console.log('REPORT_OPEN_FUNCTION',html.slice(fnStart,fnEnd).replace(/\s+/g,' '));
+const nextFunction=html.indexOf('\n    function ',fnEnd+32);
+console.log('REPORT_RENDER_PREVIEW',html.slice(fnEnd,nextFunction>fnEnd?Math.min(nextFunction,fnEnd+18000):fnEnd+18000));
+console.log('REPORT_HTML_BASICS',JSON.stringify({
+ reportTag:html.slice(html.indexOf('id="officialReportModal"'),html.indexOf('id="officialReportModal"')+350),
+ duplicateIds:(html.match(/id="officialReportModal"/g)||[]).length,
+ scripts:[...html.matchAll(/<script[^>]*src=["']([^"']+)/g)].map(x=>x[1]).slice(-20)
+}));
