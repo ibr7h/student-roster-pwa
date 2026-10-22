@@ -208,6 +208,48 @@ try{
  await page.locator('#auth39-resetConfirm').fill('FreshSchoolPassword!2026');
  await page.locator('#auth39-resetVerifyForm button[type=submit]').click();
  await page.locator('#auth39-login').waitFor({state:'visible'});
+
+ // Platform owner console: connection retry and optional OAuth JSON import.
+ const ownerPage=await ctx.newPage();
+ let ownerAuthorized=false,ownerGoogleStored=false;const ownerPosts=[];
+ ownerPage.on('pageerror',e=>exceptions.push('owner: '+e.message));
+ await ownerPage.route(origin+'/api/**',async route=>{
+  const request=route.request(),p=new URL(request.url()).pathname,method=request.method();
+  const response=(status,data)=>route.fulfill({status,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(data)});
+  if(method==='OPTIONS')return route.fulfill({status:204,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Content-Type,Authorization'}});
+  if(p==='/api/health')return response(200,{ok:true,version:'3.9.0'});
+  if(p==='/api/platform/status')return response(200,{setupRequired:false});
+  if(p==='/api/platform/me')return ownerAuthorized?response(200,{owner:{name:'Testing owner'}}):response(401,{error:'غير مصرح'});
+  if(p==='/api/platform/login'){ownerAuthorized=true;return response(200,{owner:{name:'Testing owner'},sessionToken:'o'.repeat(43)})}
+  if(p==='/api/platform/schools')return response(200,{schools:[]});
+  if(p==='/api/platform/serials')return response(200,{serials:[]});
+  if(p==='/api/platform/google-drive/config'){
+   if(!ownerAuthorized)return response(401,{error:'غير مصرح'});
+   if(method==='POST'){
+    const raw=JSON.parse(request.postData()||'{}');ownerPosts.push(raw);
+    ownerGoogleStored=true;return response(200,{configured:true,projectId:'shawahed-school',clientIdSuffix:'usercontent.com',redirectConfigured:false});
+   }
+   return response(200,{configured:ownerGoogleStored,serverVaultReady:true,projectId:ownerGoogleStored?'shawahed-school':undefined});
+  }
+  return response(404,{error:'Unmocked owner API '+p});
+ });
+ await ownerPage.goto(base+'/owner.html',{waitUntil:'domcontentloaded'});
+ await ownerPage.locator('#loginUsername').waitFor({state:'visible'});
+ assert.equal(await ownerPage.locator('.owner-drive-retry').isVisible(),true,'Owner must have a reconnect button');
+ await ownerPage.locator('.owner-drive-retry').click();
+ await ownerPage.locator('#loginUsername').fill('ci-owner');
+ await ownerPage.locator('#loginPassword').fill('ExampleOnlyPassword#1234');
+ await ownerPage.locator('#loginForm button[type=submit]').click();
+ await ownerPage.locator('#ownerGoogleDriveSettings').waitFor({state:'visible'});
+ const example={web:{project_id:'shawahed-school',client_id:'839613940331-e1356j8bkt407nqndv7kpll0q9ll1s77.apps.googleusercontent.com',client_secret:'CI_SYNTHETIC_ONLY_NOT_REAL',redirect_uris:[]}};
+ await ownerPage.locator('#ownerGoogleJson').setInputFiles({name:'oauth-test.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(example))});
+ await ownerPage.locator('.owner-drive-summary').waitFor({state:'visible'});
+ await ownerPage.locator('.owner-drive-save').click();
+ await ownerPage.waitForFunction(()=>document.querySelector('.owner-drive-status')?.textContent.includes('تم حفظ إعداد Google Drive'),null,{timeout:8000});
+ assert.equal(ownerPosts.length,1,'Owner must send JSON once to authorized API only');
+ assert.equal(ownerPosts[0].web.project_id,'shawahed-school');
+ assert.ok(!(await ownerPage.locator('body').innerText()).includes(example.web.client_secret),'Never display imported secret in owner UI');
+ await ownerPage.close();
  assert.deepEqual(exceptions,[],'Browser errors: '+exceptions.join('; '));
  console.log('SUCCESS iPhone 390/320 responsive login, unified identity, mobile registration, OTP, activation, password reset, legacy account email confirmation, and standalone PWA manifest');
 }finally{
