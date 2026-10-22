@@ -2,6 +2,11 @@ import fs from 'node:fs';
 const owner='public/owner.html';
 let page=fs.readFileSync(owner,'utf8');
 if(!page.includes("window.SchoolBridge.request(path,opts)"))throw Error('Owner app must call authenticated preview API before adding settings');
+const networkFailure="catch(e){notice('تعذر الاتصال بالخادم: '+e.message,true);}}";
+if(!page.includes("owner-google-network-retry") && page.includes(networkFailure)){
+ page=page.replace(networkFailure,"catch(e){notice('تعذر الاتصال بالخادم: '+e.message,true);$('login').classList.remove('hidden');$('setup').classList.add('hidden');$('dashboard').classList.add('hidden');}}");
+ page=page.replace('</body>','<!-- owner-google-network-retry --></body>');
+}
 if(!page.includes('ownerGoogleDriveSettings')){
  if(!page.includes('</head>')||!page.includes('</body>'))throw Error('Owner HTML markers missing');
  page=page.replace('</head>','<link rel="stylesheet" href="./assets/owner-google-ui-v39.css"></head>');
