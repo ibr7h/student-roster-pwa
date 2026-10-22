@@ -30,3 +30,13 @@ console.log('REPORT_HTML_BASICS',JSON.stringify({
 }));
 
 const sw=fs.readFileSync('public/sw.js','utf8');console.log('PWA_SW_SOURCE',sw.slice(0,10500));
+
+for(const asset of ['public/assets/icon-vectors.js','public/assets/styles.css','public/assets/mobile.css','public/assets/school-themes.css']){
+ const src=fs.readFileSync(asset,'utf8');
+ console.log('ICON_ASSET',asset,'length',src.length,'head',src.slice(0,asset.endsWith('icon-vectors.js')?16000:1000));
+ const matches=[...src.matchAll(/(?:font-awesome|fa-solid|@font-face|font-family:|fa-icon|data-icon|fa-regular|fa-\w+|svg)/gi)];
+ console.log('ICON_ASSET_MATCH_COUNT',asset,matches.length,'firstMatches',matches.slice(0,70).map(x=>x[0]));
+}
+const icons=[...html.matchAll(/class=["']([^"']*\bfa-(?:solid|regular|brands)\b[^"']*)["']/g)].map(x=>x[1]);
+const faNames=[...new Set(icons.flatMap(x=>x.split(/\s+/)).filter(x=>x.startsWith('fa-')&&!['fa-solid','fa-regular','fa-brands'].includes(x)))];
+console.log('ICON_CLASSES',JSON.stringify({iconTags:icons.length,unique:faNames.length,all:faNames.sort()}));
