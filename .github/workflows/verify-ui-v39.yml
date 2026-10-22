@@ -8,6 +8,7 @@ on:
       - scripts/auth-ui-v39.css
       - scripts/apply-auth-ui-v39.mjs
       - scripts/static-frontend-v37.mjs
+      - scripts/harden-report-v39.mjs
       - scripts/evidence-workspace-v36.js
       - .github/workflows/verify-ui-v39.yml
 permissions:
