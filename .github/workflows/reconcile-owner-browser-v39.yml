@@ -1,0 +1,34 @@
+name: Reconcile v3.9 owner browser regression
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/reconcile-owner-browser-v39.mjs
+      - .github/workflows/reconcile-owner-browser-v39.yml
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Align mocked owner endpoints with secured API
+        run: |
+          node scripts/reconcile-owner-browser-v39.mjs
+          node --check scripts/browser-v39.mjs
+      - name: Persist corrected test fixture only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/browser-v39.mjs
+          if ! git diff --cached --quiet; then
+            git commit -m "Align owner Google JSON browser fixture with secured endpoint"
+            git push origin HEAD:feature/school-v3.9-unified-auth-20261020
+          fi
