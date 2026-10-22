@@ -167,3 +167,48 @@
    justify-content:flex-start!important;
  }
 }
+
+/* Stable icon dimensions for SVG vectors on Safari/WebKit and installed PWA. */
+i.school-vector-ready:not(.hidden) {
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  vertical-align:middle;
+  width:1em;
+  height:1em;
+  min-width:1em;
+  min-height:1em;
+  flex:0 0 auto;
+  line-height:1;
+  overflow:visible;
+}
+i.school-vector-ready > svg.school-vector-icon {
+  box-sizing:border-box;
+  display:block;
+  width:100%!important;
+  height:100%!important;
+  min-width:0;
+  min-height:0;
+  max-width:none!important;
+  max-height:none!important;
+  flex:0 0 auto;
+  overflow:visible;
+  fill:currentColor;
+  transform:none!important;
+  shape-rendering:geometricPrecision;
+}
+i.school-vector-ready > svg.school-vector-icon path {
+  fill:currentColor;
+}
+@media(max-width:767px){
+ body.mobile-menu-open #headerTools > button > i.school-vector-ready,
+ body.mobile-menu-open #headerTools > label > i.school-vector-ready {
+   font-size:22px!important;
+   color:#123b75!important;
+ }
+ #officialReportModal .school-native-bar i.school-vector-ready,
+ #officialReportModal button i.school-vector-ready {
+   flex-shrink:0;
+ }
+}
