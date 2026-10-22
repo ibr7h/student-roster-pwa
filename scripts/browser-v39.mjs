@@ -41,6 +41,7 @@ try{
   if(p==='/api/profile/email/verify')return res(200,{verified:true});
   if(p==='/api/password/reset/start')return res(202,{ok:true,challengeId:'b2345678-abcd-4def-8899-123456789012'});
   if(p==='/api/password/reset/verify')return res(200,{ok:true});
+  if(p==='/api/profile/password/change')return res(200,{ok:true,needsLogin:true});
   return res(404,{error:'Route not mocked '+p});
  });
  const page=await ctx.newPage();
@@ -104,12 +105,14 @@ try{
  await linkButton.evaluate(el=>el.click());
  await page.locator('#auth39-emailCancel').click();
  await page.locator('#auth39-emailLink').waitFor({state:'hidden'});
- // Changing password on an old account requires email verification first.
+ // Changing a known password must not require email verification for legacy accounts.
  const passwordButton=page.locator('#auth39-change-password-action');
  assert.equal(await passwordButton.evaluate(el=>el.hidden),false);
  await passwordButton.evaluate(el=>el.click());
- await page.locator('#auth39-emailLink').waitFor({state:'visible'});
- await page.locator('#auth39-emailCancel').click();
+ await page.locator('#auth39-change').waitFor({state:'visible'});
+ assert.equal(await page.locator('#auth39-emailLink').isVisible(),false);
+ await page.locator('#auth39-changeCancel').click();
+ await page.locator('#auth39-change').waitFor({state:'hidden'});
  await linkButton.evaluate(el=>el.click());
  await page.locator('#auth39-emailToLink').fill('legacy.manager@example.edu');
  await page.locator('#auth39-emailPassword').fill('LegacyExamplePassword#1234');
@@ -121,18 +124,11 @@ try{
  assert.equal(await linkButton.evaluate(e=>e.hidden),true,'Email-link action must disappear after verification');
  assert.ok(reqLog.some(x=>x.path==='/api/profile/email/start'&&x.body.email==='legacy.manager@example.edu'));
  assert.ok(reqLog.some(x=>x.path==='/api/profile/email/verify'&&x.body.code==='123456'));
- // A verified manager can change password through the existing OTP recovery protocol.
+ // Both verified and legacy accounts open the same authenticated change screen.
  await passwordButton.evaluate(el=>el.click());
- await page.locator('#auth39-reset').waitFor({state:'visible'});
- assert.equal(await page.locator('#auth39-resetTitle').textContent(),'تغيير كلمة المرور');
- assert.equal(await page.locator('#auth39-resetEmail').inputValue(),'legacy.manager@example.edu');
- await page.locator('#auth39-resetCancel').click();
- await page.locator('#auth39-reset').waitFor({state:'hidden'});
- await passwordButton.evaluate(el=>el.click());
- await page.locator('#auth39-resetStartForm button[type=submit]').click();
- await page.locator('#auth39-resetVerify').waitFor({state:'visible'});
- await page.locator('#auth39-resetVerifyCancel').click();
- await page.locator('#auth39-resetVerify').waitFor({state:'hidden'});
+ await page.locator('#auth39-change').waitFor({state:'visible'});
+ await page.locator('#auth39-changeBack').click();
+ await page.locator('#auth39-change').waitFor({state:'hidden'});
  // Regression: click the actual report button rather than manually showing its modal.
  const launchReport=page.locator('button[onclick="openOfficialReportModal()"]');
  assert.equal(await launchReport.count(),1,'There must be one actual A4 report launcher');
@@ -184,6 +180,18 @@ try{
  await profile.waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>document.body.classList.contains('school-screen-open')),false);
 
+ // Change password using the current secret; successful change returns to sign-in.
+ await passwordButton.evaluate(el=>el.click());
+ await page.locator('#auth39-change').waitFor({state:'visible'});
+ await page.locator('#auth39-currentPassword').fill('LegacyExamplePassword#1234');
+ await page.locator('#auth39-nextPassword').fill('NextStrongSchoolPassword!2026');
+ await page.locator('#auth39-nextConfirm').fill('NextStrongSchoolPassword!2026');
+ await page.locator('#auth39-changeForm button[type=submit]').click();
+ await page.locator('#auth39-login').waitFor({state:'visible'});
+ const changeRequest=reqLog.find(x=>x.path==='/api/profile/password/change');
+ assert.equal(changeRequest.body.currentPassword,'LegacyExamplePassword#1234');
+ assert.equal(changeRequest.body.newPassword,'NextStrongSchoolPassword!2026');
+ assert.equal(await page.locator('#auth39-emailLink').isVisible(),false);
  const manifestResponse=await page.request.get(base+'/manifest.webmanifest');
  const manifest=await manifestResponse.json();assert.equal(manifest.display,'standalone');
  active=false;
