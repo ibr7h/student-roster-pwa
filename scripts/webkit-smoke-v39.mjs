@@ -77,6 +77,18 @@ try{
   assert.equal(chrome.horizontal,false,'Report must not create horizontal scroll');
   await report.locator('.school-native-back').click();
   await report.waitFor({state:'hidden',timeout:5000});
+  // A renderer exception must not make the report button appear unresponsive.
+  await page.evaluate(()=>{
+   window.__reportCiRenderer=window.renderFormalReportPreview;
+   window.renderFormalReportPreview=()=>{throw new Error('Simulated invalid report data')};
+  });
+  await page.locator('#mobileMenuToggle').click();
+  await page.locator('button[onclick="openOfficialReportModal()"]').click();
+  await report.waitFor({state:'visible',timeout:5000});
+  await page.getByRole('button',{name:'إعادة محاولة التقرير'}).waitFor({state:'visible',timeout:12000});
+  await page.evaluate(()=>{window.renderFormalReportPreview=window.__reportCiRenderer});
+  await report.locator('.school-native-back').click();
+  await report.waitFor({state:'hidden',timeout:5000});
   assert.equal(errors.length,0,errors.join('; '));
   console.log('PASS WebKit mobile layout and account navigation '+width+'px');
   await context.close();
