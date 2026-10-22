@@ -1,3 +1,4 @@
+# Re-verify deployed API health after Google OAuth schema FK type repair.
 name: Verify v3.9 deployed API health
 on:
   push:
