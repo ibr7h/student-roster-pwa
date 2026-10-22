@@ -61,6 +61,23 @@ function refresh(){
  active.forEach((id,i)=>{const e=registered.get(id).el,next=String(105+i);if(e.style.getPropertyValue('--school-screen-layer')!==next)e.style.setProperty('--school-screen-layer',next)});
 }
 function setup(){
+ // Clicking A4 from the full-screen tools menu must close that menu before
+ // the inline report opener runs. Otherwise the toolbar obscures the modal.
+ const reportLauncher=document.querySelector('button[onclick="openOfficialReportModal()"]');
+ if(reportLauncher&&!reportLauncher.dataset.schoolReportMenuGuard){
+  reportLauncher.dataset.schoolReportMenuGuard='1';
+  reportLauncher.addEventListener('click',()=>{
+   if(mobile()&&document.body.classList.contains('mobile-menu-open')){
+    const toggle=document.getElementById('mobileMenuToggle');
+    if(toggle)toggle.click();
+    // Guard against legacy menu state implementations that leave the class set.
+    if(document.body.classList.contains('mobile-menu-open')){
+     document.body.classList.remove('mobile-menu-open');
+     toggle?.setAttribute('aria-expanded','false');
+    }
+   }
+  },true);
+ }
  for(const [id,title,fn] of pages){
   const el=document.getElementById(id);
   // An inline evidence workspace must stay inline, not be transformed into a screen.
