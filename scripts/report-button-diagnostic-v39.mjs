@@ -14,3 +14,5 @@ for(const word of words){
 }
 const fun=html.match(/(?:function\s+\w*(?:Report|ReportModal)[\w]*\s*\([^)]*\)|(?:window\.)?\w*(?:Report|ReportModal)\s*=\s*(?:async\s*)?(?:function\s*)?\([^)]*\))/gi)||[];
 console.log('REPORT_FUNCTIONS',JSON.stringify([...new Set(fun)].slice(0,90)));
+const buttonAt=html.indexOf('onclick="openOfficialReportModal()"');
+console.log('REPORT_HEADER_CONTEXT',html.slice(Math.max(0,buttonAt-2700),buttonAt+430).replace(/\\s+/g,' '));
