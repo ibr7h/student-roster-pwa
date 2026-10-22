@@ -80,6 +80,7 @@ try{
   if(width===390){
    const pic=await page.locator('button[onclick="openOfficialReportModal()"]').screenshot();
    console.log('ICON_SCREENSHOT_BASE64',pic.toString('base64'));
+   const menu=await page.screenshot({clip:{x:0,y:58,width:390,height:600}});console.log('ICON_MENU_SCREENSHOT_BASE64',menu.toString('base64'));
   }
   await page.locator('button[onclick="openOfficialReportModal()"]').click({timeout:7000});
   const report=page.locator('#officialReportModal');
