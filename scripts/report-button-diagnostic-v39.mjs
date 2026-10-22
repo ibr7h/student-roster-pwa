@@ -40,3 +40,5 @@ for(const asset of ['public/assets/icon-vectors.js','public/assets/styles.css','
 const icons=[...html.matchAll(/class=["']([^"']*\bfa-(?:solid|regular|brands)\b[^"']*)["']/g)].map(x=>x[1]);
 const faNames=[...new Set(icons.flatMap(x=>x.split(/\s+/)).filter(x=>x.startsWith('fa-')&&!['fa-solid','fa-regular','fa-brands'].includes(x)))];
 console.log('ICON_CLASSES',JSON.stringify({iconTags:icons.length,unique:faNames.length,all:faNames.sort()}));
+
+const vector=fs.readFileSync('public/assets/icon-vectors.js','utf8');console.log('ICON_RENDER_IMPLEMENTATION',vector.slice(-9200));
