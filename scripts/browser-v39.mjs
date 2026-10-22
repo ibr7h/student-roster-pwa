@@ -223,13 +223,13 @@ try{
   if(p==='/api/platform/login'){ownerAuthorized=true;return response(200,{owner:{name:'Testing owner'},sessionToken:'o'.repeat(43)})}
   if(p==='/api/platform/schools')return response(200,{schools:[]});
   if(p==='/api/platform/serials')return response(200,{serials:[]});
-  if(p==='/api/platform/google-drive/config'){
+  if(p==='/api/platform/google-drive'){
    if(!ownerAuthorized)return response(401,{error:'غير مصرح'});
    if(method==='POST'){
     const raw=JSON.parse(request.postData()||'{}');ownerPosts.push(raw);
-    ownerGoogleStored=true;return response(200,{configured:true,projectId:'shawahed-school',clientIdSuffix:'usercontent.com',redirectConfigured:false});
+    ownerGoogleStored=true;return response(200,{configured:true,clientId:'839613940331-e1356j8bkt407nqndv7kpll0q9ll1s77.apps.googleusercontent.com',linkingEnabled:false});
    }
-   return response(200,{configured:ownerGoogleStored,serverVaultReady:true,projectId:ownerGoogleStored?'shawahed-school':undefined});
+   return response(200,{configured:ownerGoogleStored,clientId:ownerGoogleStored?'839613940331-e1356j8bkt407nqndv7kpll0q9ll1s77.apps.googleusercontent.com':null,linkingEnabled:false});
   }
   return response(404,{error:'Unmocked owner API '+p});
  });
@@ -245,9 +245,9 @@ try{
  await ownerPage.locator('#ownerGoogleJson').setInputFiles({name:'oauth-test.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(example))});
  await ownerPage.locator('.owner-drive-summary').waitFor({state:'visible'});
  await ownerPage.locator('.owner-drive-save').click();
- await ownerPage.waitForFunction(()=>document.querySelector('.owner-drive-status')?.textContent.includes('تم حفظ إعداد Google Drive'),null,{timeout:8000});
+ await ownerPage.waitForFunction(()=>document.querySelector('.owner-drive-status')?.textContent.includes('تم حفظ بيانات OAuth'),null,{timeout:8000});
  assert.equal(ownerPosts.length,1,'Owner must send JSON once to authorized API only');
- assert.equal(ownerPosts[0].web.project_id,'shawahed-school');
+ assert.equal(ownerPosts[0].googleClient.web.project_id,'shawahed-school');
  assert.ok(!(await ownerPage.locator('body').innerText()).includes(example.web.client_secret),'Never display imported secret in owner UI');
  await ownerPage.close();
  assert.deepEqual(exceptions,[],'Browser errors: '+exceptions.join('; '));
