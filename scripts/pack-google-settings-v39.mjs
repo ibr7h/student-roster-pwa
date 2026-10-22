@@ -30,8 +30,14 @@ try{
  }
  writeFileSync(serverFile,server);
  const schema=readFileSync(schemaFile,'utf8');
+ // The existing platform_owners.id is TEXT; PostgreSQL cannot create a UUID FK to it.
+ // Audit provenance stays in activity_log with its native owner_id type.
+ if(schema.includes('updated_by uuid REFERENCES platform_owners(id)')){
+  writeFileSync(schemaFile,schema.replaceAll('updated_by uuid REFERENCES platform_owners(id)','updated_by text NOT NULL'));
+ }
+
  if(!schema.includes('CREATE TABLE IF NOT EXISTS platform_google_oauth')){
-  appendFileSync(schemaFile,'\n-- Per-platform credentials: AES-256-GCM ciphertext, never plaintext.\nCREATE TABLE IF NOT EXISTS platform_google_oauth (id smallint PRIMARY KEY DEFAULT 1 CHECK (id=1), client_id text NOT NULL, secret_enc text NOT NULL, updated_by uuid REFERENCES platform_owners(id), updated_at timestamptz NOT NULL DEFAULT now());\n');
+  appendFileSync(schemaFile,'\n-- Per-platform credentials: AES-256-GCM ciphertext, never plaintext.\nCREATE TABLE IF NOT EXISTS platform_google_oauth (id smallint PRIMARY KEY DEFAULT 1 CHECK (id=1), client_id text NOT NULL, secret_enc text NOT NULL, updated_by text NOT NULL, updated_at timestamptz NOT NULL DEFAULT now());\n');
  }
  copyFileSync('scripts/google-settings-v39.mjs',path.join(pkg,'backend/google-settings-v39.mjs'));
  copyFileSync('scripts/google-settings-v39.test.mjs',path.join(pkg,'backend/google-settings-v39.test.mjs'));
