@@ -50,6 +50,7 @@ try{
   await page.locator('button[onclick="openOfficialReportModal()"]').click({timeout:7000});
   const report=page.locator('#officialReportModal');
   await report.waitFor({state:'visible',timeout:5000});
+  await page.locator('#formalPrintableDocument .a4-page').first().waitFor({state:'attached',timeout:12000});
   await page.waitForFunction(()=>document.body.classList.contains('school-report-open'),null,{timeout:5000});
   await page.waitForFunction(()=>!document.body.classList.contains('mobile-menu-open'),null,{timeout:5000});
   const reportOnTop=await page.evaluate(()=>{
