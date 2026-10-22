@@ -1,6 +1,6 @@
 /* School Evidence v3.9 preview release identity. Public UI only; no credentials. */
 (()=>{'use strict';
-const CURRENT='v3.9.0-r8';
+const CURRENT='v3.9.0-r9';
 const badgeText='الإصدار '+CURRENT;
 let latest=CURRENT;
 let checking=false,updating=false;
