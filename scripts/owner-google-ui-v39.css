@@ -1,0 +1,13 @@
+.owner-drive-panel{margin:22px 0;padding:20px;border:1px solid #d5ddeb;border-radius:15px;background:#f8fafc;color:#10243a;direction:rtl}
+.owner-drive-panel h2{font-size:19px;font-weight:800;margin:0 0 10px}
+.owner-drive-panel p{font-size:13px;line-height:1.8}
+.owner-drive-form{display:flex;flex-direction:column;gap:9px;align-items:flex-start}
+.owner-drive-form label{font-weight:800}
+.owner-drive-form input{box-sizing:border-box;max-width:100%;padding:12px;background:white;border:1px solid #cbd5e1;border-radius:10px;font-size:16px}
+.owner-drive-save,.owner-drive-retry{border:1px solid #183e6d;border-radius:12px;min-height:44px;padding:10px 16px;cursor:pointer;background:#183e6d;color:white;font-weight:800}
+.owner-drive-save:disabled,.owner-drive-retry:disabled{opacity:.6;cursor:default}
+.owner-drive-retry{background:#fff;color:#183e6d;margin:12px 0;display:block}
+.owner-drive-status{padding:10px;border-radius:9px;background:#e9f0f9}
+.owner-drive-summary{margin:0}
+.owner-drive-help{color:#64748b}
+@media(max-width:680px){.owner-drive-panel{padding:14px;margin:14px 0}.owner-drive-save,.owner-drive-retry{width:100%}}
