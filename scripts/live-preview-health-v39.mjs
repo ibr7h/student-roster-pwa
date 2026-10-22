@@ -64,7 +64,7 @@ async function unauthenticated(path){
  return r.status;
 }
 // These requests intentionally do not include accounts, passwords, session cookies or write methods.
-for(const route of ['/api/me','/api/data','/api/members','/api/platform/me','/api/platform/google-drive/config','/api/evidences']){
+for(const route of ['/api/me','/api/data','/api/members','/api/platform/me','/api/platform/google-drive','/api/evidences']){
  await unauthenticated(route);
 }
 const hostileOrigin='https://untrusted-school-client.invalid';
