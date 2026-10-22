@@ -5,6 +5,7 @@ on:
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/report-button-diagnostic-v39.mjs
+      - scripts/diagnose-owner-v39.mjs
       - .github/workflows/report-button-diagnostic-v39.yml
 permissions:
   contents: read
@@ -26,3 +27,5 @@ jobs:
           node scripts/static-frontend-v37.mjs
       - name: Locate the actual report button event and call sites
         run: node scripts/report-button-diagnostic-v39.mjs
+      - name: Examine owner auth and API routing
+        run: node scripts/diagnose-owner-v39.mjs
