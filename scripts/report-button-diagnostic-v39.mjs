@@ -29,3 +29,14 @@ console.log('REPORT_HTML_BASICS',JSON.stringify({
  scripts:[...html.matchAll(/<script[^>]*src=["']([^"']+)/g)].map(x=>x[1]).slice(-20)
 }));
 
+
+const owner=fs.readFileSync('public/owner.html','utf8');
+for(const term of ["async function api(path,opts={})","async function init()","platform/login","platform/me","platform/schools","DOMContentLoaded","function login"]){
+ const i=owner.indexOf(term);console.log('OWNER_DIAGNOSTIC',term,i,i<0?'':owner.slice(Math.max(0,i-300),i+2700));
+}
+console.log('OWNER_REQUEST_PATHS',[...new Set([...owner.matchAll(/api\(['"`]([^'"`]+)/g)].map(x=>x[1]))]);
+console.log('OWNER_SCRIPT_ASSETS',[...owner.matchAll(/<script[^>]*src=["']([^"']+)/g)].map(x=>x[1]));
+const server=fs.readFileSync('backend/server.mjs','utf8');
+for(const term of ["/api/platform/login","/api/platform/me","/api/platform/schools","async function auth(","function checkOrigin(","function isStaticOrigin(","const SCHOOL_STATIC_ORIGIN","const SETUP_TOKEN","if(req.method==='GET'"]){
+ const i=server.indexOf(term);console.log('SERVER_DIAGNOSTIC',term,i,i<0?'':server.slice(Math.max(0,i-520),i+1000));
+}
