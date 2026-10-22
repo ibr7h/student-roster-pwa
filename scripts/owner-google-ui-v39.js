@@ -37,10 +37,10 @@ function create(){
  async function load(){
   if(dashboard.classList.contains('hidden'))return;
   try{
-   const v=await window.SchoolBridge.request('/platform/google-drive/config');
+   const v=await window.SchoolBridge.request('/platform/google-drive');
    if(v.configured){
-    status.textContent='تم حفظ إعدادات مشروع '+v.projectId+'. معرّف العميل ينتهي بـ '+v.clientIdSuffix+'. '+(v.redirectConfigured?'مسار Redirect مسجل في JSON.':'يجب إضافة عنوان Redirect في Google Cloud.') ;
-   }else status.textContent=v.serverVaultReady?'لم يتم إعداد Google Drive.':'لم يتم إعداد Google Drive. مفتاح تشفير الإعدادات غير مهيأ على خادم المعاينة.';
+    status.textContent='تم حفظ إعدادات OAuth. معرّف العميل: '+v.clientId+'. ربط المدارس لم يُفعّل بعد؛ يحتاج OAuth callback واختبارات أمنية.';
+   }else status.textContent='لم يتم إعداد Google Drive بعد. ارفع ملف OAuth Web JSON الخاص بمشروع الشواهد.';
   }catch(error){status.textContent='تعذر قراءة إعداد Google Drive: '+error.message}
  }
  const observer=new MutationObserver(()=>{if(!dashboard.classList.contains('hidden')&&!loaded){loaded=true;load()}else if(dashboard.classList.contains('hidden'))loaded=false});
@@ -69,8 +69,8 @@ function create(){
   let payload;
   try{
    payload=JSON.parse(await file.text());
-   const reply=await window.SchoolBridge.request('/platform/google-drive/config',{method:'POST',body:JSON.stringify(payload)});
-   status.textContent='تم حفظ إعداد Google Drive بأمان: '+reply.projectId+'. '+(reply.redirectConfigured?'':'ما زال عنوان Redirect بحاجة إلى ضبط.');
+   const reply=await window.SchoolBridge.request('/platform/google-drive',{method:'POST',body:JSON.stringify({googleClient:payload})});
+   status.textContent='تم حفظ بيانات OAuth وتشفير السر على الخادم. معرّف العميل: '+reply.clientId+'. ربط المدارس لم يُفعّل بعد.';
    input.value='';summary.textContent='تم استيراد الملف، ولن تظهر قيمه السرية هنا.';
   }catch(error){status.textContent='لم تُحفظ الإعدادات: '+error.message}
   finally{payload=undefined;save.disabled=false}
