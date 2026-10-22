@@ -28,3 +28,5 @@ console.log('REPORT_HTML_BASICS',JSON.stringify({
  duplicateIds:(html.match(/id="officialReportModal"/g)||[]).length,
  scripts:[...html.matchAll(/<script[^>]*src=["']([^"']+)/g)].map(x=>x[1]).slice(-20)
 }));
+
+const sw=fs.readFileSync('public/sw.js','utf8');console.log('PWA_SW_SOURCE',sw.slice(0,10500));
