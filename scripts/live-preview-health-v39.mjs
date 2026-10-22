@@ -36,13 +36,15 @@ async function fetchText(path){
  throw new Error('PWA request failed '+path+': '+String(last));
 }
 const serviceWorker=await fetchText('/sw.js');
-assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-report-password-20261022-r6'),'PWA cache not updated on live preview');
+assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-report-async-20261022-r7'),'PWA cache not updated on live preview');
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
 assert.ok(authScript.includes('auth39-retryConnection'),'Updated login retry action not deployed');
 assert.ok(authScript.includes('/profile/password/change')&&authScript.includes('auth39-currentPassword'),'Password change must use current secret, not force email verification');
 const mobileScript=await fetchText('/assets/mobile-native-v38.js');
 assert.ok(mobileScript.includes('schoolReportMenuGuard'),'Mobile report must dismiss tools menu before showing report');
+const documentHtml=await fetchText('/index.html');
+assert.ok(documentHtml.includes('جارٍ إعداد التقرير المدرسي')&&documentHtml.includes('إعادة محاولة التقرير'),'Published A4 launch must paint before rendering and show retry on failure');
 const reportScript=await fetchText('/assets/evidence-workspace.js');
 assert.ok(reportScript.includes('host.contains(report)')&&reportScript.includes('document.body.appendChild(report)'),'The published report is still nested inside the hidden evidence workspace');
 console.log('PASS live PWA cache and privacy signup copy');
