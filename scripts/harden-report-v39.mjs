@@ -2,8 +2,8 @@
 import fs from 'node:fs';
 const path='public/index.html';
 let html=fs.readFileSync(path,'utf8');
-const original="function openOfficialReportModal() { renderFormalReportPreview(); document.getElementById('officialReportModal').classList.remove('hidden'); }";
-if(!html.includes(original))throw Error('Expected original report launcher not found; abort build rather than silently shipping stale code');
+const original=/function\s+openOfficialReportModal\s*\(\s*\)\s*\{\s*renderFormalReportPreview\s*\(\s*\)\s*;\s*document\.getElementById\(\s*['"]officialReportModal['"]\s*\)\.classList\.remove\(\s*['"]hidden['"]\s*\)\s*;\s*\}/;
+if(!original.test(html))throw Error('Expected original report launcher not found; abort build rather than silently shipping stale code');
 const updated=`function openOfficialReportModal() {
   const modal=document.getElementById('officialReportModal');
   if(!modal){console.error('A4 report element missing');return;}
