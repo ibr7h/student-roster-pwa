@@ -1,0 +1,53 @@
+name: Package v3.9 owner Google Drive API for preview
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/owner-google-v39.mjs
+      - scripts/owner-google-v39.test.mjs
+      - scripts/owner-google-backend-patch-v39.mjs
+      - .github/workflows/owner-google-bundle.yml
+permissions:
+  contents: write
+concurrency:
+  group: school-v39-owner-google-api
+  cancel-in-progress: true
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run vault and JSON validation unit tests
+        run: node --test scripts/owner-google-v39.test.mjs
+      - name: Patch only isolated backend archive and verify auth checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const f=require('node:fs'),z=require('node:zlib');f.writeFileSync('school-old.tar',z.brotliDecompressSync(Buffer.from(f.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          mkdir -p .school-owner-api-tmp
+          tar -xf school-old.tar -C .school-owner-api-tmp
+          SCHOOL_BACKEND_ROOT=.school-owner-api-tmp node scripts/owner-google-backend-patch-v39.mjs
+          node --check .school-owner-api-tmp/backend/server.mjs
+          node --check .school-owner-api-tmp/backend/owner-google-v39.mjs
+          grep -Fq 'requireOwner(user);return send(res,200,await googleConfigStatus(pool))' .school-owner-api-tmp/backend/server.mjs
+          grep -Fq "requireOwner(user);" .school-owner-api-tmp/backend/server.mjs
+          tar -cf school-new.tar -C .school-owner-api-tmp .
+          node -e "const f=require('node:fs'),z=require('node:zlib');f.writeFileSync('backend-package.b64',z.brotliCompressSync(f.readFileSync('school-new.tar'),{params:{[z.constants.BROTLI_PARAM_QUALITY]:10}}).toString('base64'))"
+          rm -rf .school-owner-api-tmp school-old.tar school-new.tar
+      - name: Publish tested code-only bundle on preview branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend-package.b64
+          if git diff --cached --quiet; then echo 'No backend bundle changes'; exit 0; fi
+          git commit -m "Package encrypted owner-only Google Drive OAuth configuration endpoint"
+          git push origin HEAD:feature/school-v3.9-unified-auth-20261020
