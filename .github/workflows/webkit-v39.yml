@@ -9,6 +9,7 @@ on:
       - scripts/auth-ui-v39.css
       - scripts/evidence-workspace-v36.js
       - scripts/static-frontend-v37.mjs
+      - scripts/harden-report-v39.mjs
       - scripts/mobile-native-v38.js
       - scripts/mobile-native-v38.css
       - scripts/apply-auth-ui-v39.mjs
