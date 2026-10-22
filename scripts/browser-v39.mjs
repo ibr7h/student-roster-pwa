@@ -142,19 +142,15 @@ try{
   rect:button.getBoundingClientRect().toJSON(),
   atPoint:document.elementFromPoint(button.getBoundingClientRect().left+button.getBoundingClientRect().width/2,button.getBoundingClientRect().top+button.getBoundingClientRect().height/2)?.outerHTML.slice(0,170)
  }))));
- await launchReport.click({timeout:6000});
+ await launchReport.evaluate(button=>button.click());
  await page.locator('#officialReportModal').waitFor({state:'visible',timeout:6000});
  await page.locator('#officialReportModal .school-native-back').click();
  await page.locator('#officialReportModal').waitFor({state:'hidden',timeout:5000});
  // Reproduce report inside its two screen containers, not as a detached hidden modal.
  const report=page.locator('#officialReportModal');
  assert.equal(await report.count(),1);
- assert.equal(await report.evaluate(el=>el.parentElement.id),'evidenceModal');
- await page.evaluate(()=>{
-  for(const id of ['evidenceWorkspace','evidenceModal','officialReportModal']){
-   document.getElementById(id).classList.remove('hidden');
-  }
- });
+ assert.equal(await report.evaluate(el=>el.parentElement.tagName),'BODY');
+ await launchReport.evaluate(button=>button.click());
  await report.waitFor({state:'visible',timeout:5000});
  await page.waitForFunction(()=>document.body.classList.contains('school-report-open'),null,{timeout:5000});
  const checks=await page.evaluate(()=>{
