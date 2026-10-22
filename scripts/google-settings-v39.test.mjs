@@ -1,9 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {parseWebClient,encryptSecret,decryptSecret,getGoogleStatus,saveGoogleConfig} from './google-settings-v39.mjs';
-const sample={web:{client_id:'839613940331-e1356j8bkt407nqndv7kpll0q9ll1s77.apps.googleusercontent.com',client_secret:'GOCSPX-test-not-secret',auth_uri:'https://accounts.google.com/o/oauth2/auth',token_uri:'https://oauth2.googleapis.com/token'}};
+const sample={web:{project_id:'shawahed-school',client_id:'839613940331-e1356j8bkt407nqndv7kpll0q9ll1s77.apps.googleusercontent.com',client_secret:'GOCSPX-test-not-secret',auth_uri:'https://accounts.google.com/o/oauth2/auth',token_uri:'https://oauth2.googleapis.com/token'}};
 test('accepts only Google web OAuth client JSON, rejects service account or unsafe auth origin',()=>{
  assert.equal(parseWebClient(sample).clientId,sample.web.client_id);
- for(const input of [{installed:sample.web},{type:'service_account',private_key:'secret'},{web:{...sample.web,auth_uri:'https://evil.example/oauth'}},{web:{...sample.web,client_secret:''}}]){
+ for(const input of [{web:{...sample.web,project_id:'wrong-project'}},{installed:sample.web},{type:'service_account',private_key:'secret'},{web:{...sample.web,auth_uri:'https://evil.example/oauth'}},{web:{...sample.web,client_secret:''}}]){
   assert.throws(()=>parseWebClient(input),e=>e.status===400);
  }
 });
