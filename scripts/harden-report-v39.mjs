@@ -48,7 +48,13 @@ const updated=`function openOfficialReportModal() {
 html=html.replace(original,updated);
 const renderStart=html.indexOf('function renderFormalReportPreview() {');
 if(renderStart<0)throw Error('Report renderer missing');
-let prefix=html.slice(0,renderStart),render=html.slice(renderStart);
+const lastQR=html.indexOf("docContainer.querySelectorAll('[data-report-qr]').forEach(el => {",renderStart);
+if(lastQR<0)throw Error('Report final QR block not found');
+const endQR=html.indexOf('\n      });',lastQR);
+const renderEnd=html.indexOf('\n    }',endQR);
+if(renderEnd<0||renderEnd-lastQR>500)throw Error('Unable to safely delimit report renderer');
+const prefix=html.slice(0,renderStart),suffix=html.slice(renderEnd+6);
+let render=html.slice(renderStart,renderEnd+6);
 const heading="const includeCovers = document.getElementById('repOptIncludeCovers')?.checked ?? true;";
 if(!render.includes(heading))throw Error('Report settings marker missing');
 render=render.replace(heading,"const safeSchool=state.school||{};\n      const safeTeam=Array.isArray(state.team)?state.team:[];\n      "+heading);
@@ -76,7 +82,7 @@ const qrPatch=`const qrNodes=[...docContainer.querySelectorAll('[data-report-qr]
       };
       if(qrNodes.length)setTimeout(work,0);`;
 render=render.slice(0,qrStart)+qrPatch+render.slice(qrEnd+'\n      });'.length);
-html=prefix+render;
+html=prefix+render+suffix;
 fs.writeFileSync(path,html);
 if(!html.includes('جارٍ إعداد التقرير المدرسي')||!html.includes('QR غير متاح')||!html.includes('safeTeam.filter('))throw Error('Report hardening verification failed');
 console.log('Hardened A4 opening, safe data arrays, progressive QR and recoverable error screen');
