@@ -9,7 +9,8 @@ function key(){
 function bad(message='ملف بيانات OAuth غير صالح.'){throw Object.assign(new Error(message),{status:400})}
 export function parseWebClient(source){
  const b=source?.web;
- if(!b||typeof b!=='object'||source.installed||source.type==='service_account')bad('يجب رفع ملف JSON من OAuth Client بنوع Web application، وليس Service Account.');
+ if(!b||typeof b!=='object'||Array.isArray(b)||Object.keys(source||{}).length!==1||source.installed||source.type==='service_account')bad('يجب رفع ملف JSON من OAuth Client بنوع Web application، وليس Service Account.');
+ if(b.project_id!=='shawahed-school')bad('ملف OAuth يعود إلى مشروع مختلف؛ المطلوب shawahed-school.');
  if(typeof b.client_id!=='string'||!GOOGLE_ID.test(b.client_id)||typeof b.client_secret!=='string'||b.client_secret.length<8||b.client_secret.length>512)bad();
  if(b.auth_uri&&b.auth_uri!=='https://accounts.google.com/o/oauth2/auth')bad('عنوان Google OAuth غير متوقع.');
  if(b.token_uri&&b.token_uri!=='https://oauth2.googleapis.com/token')bad('عنوان Google Token غير متوقع.');
