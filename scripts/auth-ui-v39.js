@@ -32,6 +32,7 @@ shell.innerHTML=[
 '<button class="auth39-primary" type="submit">تفعيل المدرسة وفتح لوحة التحكم</button></form><button type="button" id="auth39-logout" class="auth39-secondary">تسجيل الخروج</button></section>',
 '<section id="auth39-reset" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ الرجوع</button><h1 id="auth39-resetTitle">استعادة كلمة المرور</h1><p class="auth39-intro">أدخل بريدك المؤكد لإرسال رمز استعادة من 6 أرقام.</p><form id="auth39-resetStartForm"><label for="auth39-resetEmail">البريد الإلكتروني</label><input id="auth39-resetEmail" type="email" inputmode="email" autocomplete="email" required><button class="auth39-primary" type="submit">إرسال رمز الاستعادة</button></form><button type="button" class="auth39-secondary" id="auth39-resetCancel">إلغاء</button></section>',
 '<section id="auth39-resetVerify" class="auth39-page" hidden><button class="auth39-back" type="button" data-auth-page="login">‹ العودة للدخول</button><h1>تعيين كلمة مرور جديدة</h1><p class="auth39-intro">إذا كان البريد مرتبطًا بحساب مؤكد فستصلك رسالة بالرمز. لا تشاركه.</p><form id="auth39-resetVerifyForm"><label for="auth39-resetCode">رمز الاستعادة</label><input id="auth39-resetCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required><label for="auth39-resetPassword">كلمة المرور الجديدة (12 حرفًا فأكثر)</label><input id="auth39-resetPassword" type="password" minlength="12" autocomplete="new-password" required><label for="auth39-resetConfirm">تأكيد كلمة المرور</label><input id="auth39-resetConfirm" type="password" minlength="12" autocomplete="new-password" required><button class="auth39-primary" type="submit">تغيير كلمة المرور</button></form><button type="button" class="auth39-secondary" id="auth39-resetVerifyCancel">إلغاء</button></section>',
+'<section id="auth39-change" class="auth39-page" hidden><button class="auth39-back" type="button" id="auth39-changeBack">‹ العودة للمنصة</button><h1>تغيير كلمة المرور</h1><p class="auth39-intro">أدخل كلمة المرور الحالية ثم كلمة مرور جديدة. لا يتطلب هذا الإجراء توثيق البريد الإلكتروني.</p><form id="auth39-changeForm"><label for="auth39-currentPassword">كلمة المرور الحالية</label><input id="auth39-currentPassword" type="password" autocomplete="current-password" required><label for="auth39-nextPassword">كلمة المرور الجديدة (12 حرفًا على الأقل)</label><input id="auth39-nextPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><label for="auth39-nextConfirm">تأكيد كلمة المرور الجديدة</label><input id="auth39-nextConfirm" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><button type="submit" class="auth39-primary">حفظ كلمة المرور الجديدة</button></form><button type="button" id="auth39-changeCancel" class="auth39-secondary">إلغاء والعودة للمنصة</button></section>',
 '<section id="auth39-emailLink" class="auth39-page" hidden><button class="auth39-back" type="button" id="auth39-emailBack">‹ الرجوع للمنصة</button><h1>توثيق بريد حساب المدير</h1><p class="auth39-intro">للحسابات القديمة فقط: أكّد هويتك بكلمة المرور الحالية، ثم أكّد ملكية البريد برمز يُرسل إليه. لا يتغير الترخيص أو بيانات المدرسة.</p><form id="auth39-emailLinkForm"><label for="auth39-emailToLink">البريد الإلكتروني للمدير</label><input id="auth39-emailToLink" type="email" inputmode="email" autocomplete="email" required><label for="auth39-emailPassword">كلمة المرور الحالية</label><input id="auth39-emailPassword" type="password" autocomplete="current-password" required><button type="submit" class="auth39-primary">إرسال رمز التحقق للبريد</button></form><button type="button" class="auth39-secondary" id="auth39-emailCancel">إلغاء والرجوع للمنصة</button></section>',
 '<section id="auth39-emailVerify" class="auth39-page" hidden><button class="auth39-back" type="button" id="auth39-emailVerifyBack">‹ الرجوع</button><h1>تأكيد البريد</h1><p class="auth39-intro">أدخل الرمز المكوّن من ستة أرقام الذي وصلك. بعد التأكيد يمكنك استخدام بريدك لاستعادة كلمة المرور.</p><form id="auth39-emailVerifyForm"><label for="auth39-emailCode">رمز التحقق</label><input id="auth39-emailCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" required><button class="auth39-primary" type="submit">توثيق البريد</button></form><button type="button" class="auth39-secondary" id="auth39-emailVerifyCancel">إلغاء والرجوع للمنصة</button></section>',
 '<p id="auth39-message" role="status" aria-live="polite" class="auth39-message" hidden></p>',
@@ -53,7 +54,7 @@ function message(text='',error=false){
  const p=el('message');p.textContent=text;p.hidden=!text;p.classList.toggle('auth39-error',!!error);
 }
 function show(page){
- for(const name of ['login','register','verify','activation','reset','resetVerify','emailLink','emailVerify'])el(name).hidden=name!==page;
+ for(const name of ['login','register','verify','activation','reset','resetVerify','change','emailLink','emailVerify'])el(name).hidden=name!==page;
  message('');
  overlay.classList.remove('hidden');
  overlay.scrollTop=0;
@@ -171,16 +172,20 @@ document.getElementById('headerTools')?.append(passwordButton);
 function refreshPasswordAction(){passwordButton.hidden=!state?.currentUser}
 passwordButton.addEventListener('click',()=>{
  if(!state?.currentUser)return;
- if(!state.currentUser.emailVerified && state.currentUser.isAdmin){
-  show('emailLink');message('يلزم توثيق بريد المدير أولًا لتغيير كلمة المرور.');return
- }
- changingPassword=true;
- el('resetTitle').textContent='تغيير كلمة المرور';
- el('resetEmail').value=state.currentUser.email||'';
- el('resetEmail').readOnly=!!state.currentUser.email;
- show('reset');
- message('سيُرسل رمز تحقق إلى بريدك المؤكد. لن تتغير كلمة المرور قبل تأكيد الرمز.');
+ el('changeForm').reset();
+ show('change');
 });
+el('changeForm').addEventListener('submit',event=>{event.preventDefault();safe(async()=>{
+ if(!state?.currentUser)throw Error('سجّل الدخول أولًا.');
+ const currentPassword=el('currentPassword').value,newPassword=el('nextPassword').value,confirmPassword=el('nextConfirm').value;
+ if(newPassword!==confirmPassword)throw Error('كلمتا المرور غير متطابقتين.');
+ await cloudRequest('/profile/password/change',{method:'POST',body:JSON.stringify({currentPassword,newPassword,confirmPassword})});
+ window.SchoolBridge?.clear?.();
+ state.currentUser=null;refreshEmailLinkAction();refreshPasswordAction();
+ el('changeForm').reset();show('login');message('تم تغيير كلمة المرور وإغلاق الجلسات القديمة. سجّل الدخول بكلمة المرور الجديدة.');
+})});
+el('changeBack').addEventListener('click',closeAuthenticatedFlow);
+el('changeCancel').addEventListener('click',closeAuthenticatedFlow);
 emailButton.addEventListener('click',()=>{if(!state?.currentUser?.isAdmin||state?.currentUser?.emailVerified)return;show('emailLink')});
 el('resetCancel').addEventListener('click',()=>state?.currentUser?closeAuthenticatedFlow():show('login'));
 el('resetVerifyCancel').addEventListener('click',()=>state?.currentUser?closeAuthenticatedFlow():show('login'));
@@ -201,7 +206,7 @@ el('emailVerifyForm').addEventListener('submit',e=>{e.preventDefault();safe(asyn
 
 window.addEventListener('keydown',event=>{
  if(event.key!=='Escape'||overlay.classList.contains('hidden')||!state?.currentUser)return;
- const securityPage=['emailLink','emailVerify','reset','resetVerify'].find(name=>!el(name).hidden);
+ const securityPage=['emailLink','emailVerify','reset','resetVerify','change'].find(name=>!el(name).hidden);
  if(securityPage){event.preventDefault();closeAuthenticatedFlow()}
 });
 el('logout').addEventListener('click',()=>logoutSession());
