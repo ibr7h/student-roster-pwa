@@ -174,6 +174,18 @@ try{
  assert.equal((await req('/api/login',{method:'POST',body:{username:memberName,password}})).status,401);
  assert.equal((await req('/api/login',{method:'POST',body:{username:memberName,password:'NewPassword#ForSchool123'}})).status,200);
  say('Password reset uses expiring code and revokes previous sessions');
+ // Existing managers can rotate their password without having to verify email first.
+ const changePayload={currentPassword:'LegacyExamplePassword#1234',newPassword:'ReplacedSchoolPassword!2026',confirmPassword:'ReplacedSchoolPassword!2026'};
+ assert.equal((await req('/api/profile/password/change',{method:'POST',body:changePayload})).status,403);
+ assert.equal((await req('/api/profile/password/change',{method:'POST',token:legacy.data.sessionToken,body:{...changePayload,currentPassword:'wrong'}})).status,401);
+ assert.equal((await req('/api/me',{token:legacy.data.sessionToken})).status,200);
+ const changed=await req('/api/profile/password/change',{method:'POST',token:legacy.data.sessionToken,body:changePayload});
+ assert.equal(changed.status,200,JSON.stringify(changed.data));
+ assert.equal(changed.data.needsLogin,true);
+ assert.equal((await req('/api/me',{token:legacy.data.sessionToken})).status,401);
+ assert.equal((await req('/api/login',{method:'POST',body:{username:'legacy.manager',password:'LegacyExamplePassword#1234'}})).status,401);
+ assert.equal((await req('/api/login',{method:'POST',body:{username:'legacy.manager',password:changePayload.newPassword}})).status,200);
+ say('Legacy manager changes password independently of email verification; old sessions revoked');
  const checkedLicense=(await pool.query('SELECT license_until FROM schools WHERE id=$1',[oldSchoolId])).rows[0].license_until;
  assert.equal(String(checkedLicense),String(originalLicense),'Existing school license must remain unchanged after new registration and recovery');
  say('Preexisting school license preserved after migration and new-school workflow');
