@@ -7,6 +7,9 @@ on:
       - scripts/browser-v39.mjs
       - scripts/evidence-workspace-v36.js
       - scripts/static-frontend-v37.mjs
+      - scripts/owner-google-frontend-v39.mjs
+      - scripts/owner-google-ui-v39.js
+      - scripts/owner-google-ui-v39.css
       - scripts/harden-report-v39.mjs
       - scripts/mobile-native-v38.js
       - scripts/mobile-native-v38.css
