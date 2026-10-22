@@ -36,10 +36,12 @@ async function fetchText(path){
  throw new Error('PWA request failed '+path+': '+String(last));
 }
 const serviceWorker=await fetchText('/sw.js');
-assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-reconnect-20261021-r4'),'PWA cache not updated on live preview');
+assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-report-fix-20261022-r5'),'PWA cache not updated on live preview');
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
 assert.ok(authScript.includes('auth39-retryConnection'),'Updated login retry action not deployed');
+const reportScript=await fetchText('/assets/evidence-workspace.js');
+assert.ok(reportScript.includes('host.contains(report)')&&reportScript.includes('document.body.appendChild(report)'),'The published report is still nested inside the hidden evidence workspace');
 console.log('PASS live PWA cache and privacy signup copy');
 
 async function unauthenticated(path){
