@@ -11,6 +11,8 @@ on:
       - scripts/mobile-native-v38.js
       - scripts/mobile-native-v38.css
       - scripts/auth-ui-v39.js
+      - scripts/release-ui-v39.js
+      - scripts/release-ui-v39.css
       - scripts/auth-ui-v39.css
       - .github/workflows/browser-v39.yml
 permissions:
