@@ -46,7 +46,8 @@ try{
   // Test the nested official report at WebKit mobile viewport sizes.
   await page.evaluate(()=>document.getElementById('loginScreenOverlay').classList.add('hidden'));
   assert.equal(await page.locator('#officialReportModal').evaluate(el=>el.parentElement.tagName),'BODY');
-  await page.locator('button[onclick="openOfficialReportModal()"]').evaluate(el=>el.click());
+  await page.locator('#mobileMenuToggle').click();
+  await page.locator('button[onclick="openOfficialReportModal()"]').click({timeout:7000});
   const report=page.locator('#officialReportModal');
   await report.waitFor({state:'visible',timeout:5000});
   await page.waitForFunction(()=>document.body.classList.contains('school-report-open'),null,{timeout:5000});
