@@ -30,6 +30,18 @@ try{
   await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'domcontentloaded'});
   await page.locator('#auth39-login').waitFor({state:'visible',timeout:15000});
   assert.equal(await page.locator('#auth39-retryConnection').count(),1,'Explicit reconnect action must exist for sleeping backend');
+  // A human-visible build number is essential for diagnosing old installed PWA caches.
+  const loginRelease=page.locator('#authV39Shell [data-school-release]');
+  await loginRelease.waitFor({state:'visible',timeout:5000});
+  assert.equal(await loginRelease.textContent(),'الإصدار v3.9.0-r8');
+  const releaseResponse=await page.request.get('http://127.0.0.1:'+server.address().port+'/release.json');
+  assert.equal((await releaseResponse.json()).version,'v3.9.0-r8');
+  const checkButton=page.locator('#authV39Shell .school-release-check');
+  assert.equal(await checkButton.isVisible(),true);
+  await page.waitForResponse(resp=>resp.url().includes('/release.json'),{timeout:7000}).catch(()=>{});
+  await checkButton.click();
+  await page.waitForFunction(()=>document.querySelector('#authV39Shell .school-release-status')?.textContent.includes('أنت تستخدم أحدث إصدار'),null,{timeout:7000});
+
   const layout=await page.evaluate(()=>{
    const shell=document.getElementById('authV39Shell'),outer=document.getElementById('loginScreenOverlay');
    return {width:innerWidth,root:document.documentElement.scrollWidth,shell:shell.getBoundingClientRect().width,outer:outer.getBoundingClientRect().width,font:parseFloat(getComputedStyle(document.getElementById('auth39-identity')).fontSize)};
@@ -45,6 +57,7 @@ try{
   await page.locator('#auth39-login').waitFor({state:'visible'});
   // Test the nested official report at WebKit mobile viewport sizes.
   await page.evaluate(()=>document.getElementById('loginScreenOverlay').classList.add('hidden'));
+  assert.equal(await page.locator('#appHeader [data-school-release]').textContent(),'الإصدار v3.9.0-r8');
   assert.equal(await page.locator('#officialReportModal').evaluate(el=>el.parentElement.tagName),'BODY');
   await page.locator('#mobileMenuToggle').click();
   await page.locator('button[onclick="openOfficialReportModal()"]').click({timeout:7000});
