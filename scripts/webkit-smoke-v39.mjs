@@ -38,7 +38,7 @@ try{
   assert.equal((await releaseResponse.json()).version,'v3.9.0-r8');
   const checkButton=page.locator('#authV39Shell .school-release-check');
   assert.equal(await checkButton.isVisible(),true);
-  await page.waitForResponse(resp=>resp.url().includes('/release.json'),{timeout:7000}).catch(()=>{});
+  await page.waitForTimeout(300);
   await checkButton.click();
   await page.waitForFunction(()=>document.querySelector('#authV39Shell .school-release-status')?.textContent.includes('أنت تستخدم أحدث إصدار'),null,{timeout:7000});
 
