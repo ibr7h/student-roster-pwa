@@ -41,6 +41,11 @@ try{
   await page.waitForTimeout(300);
   await checkButton.click();
   await page.waitForFunction(()=>document.querySelector('#authV39Shell .school-release-status')?.textContent.includes('أنت تستخدم أحدث إصدار'),null,{timeout:7000});
+  // Emulate a newer public release only; do not install a service worker in CI.
+  await page.route('**/release.json?check=*',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:'v3.9.0-r9',channel:'preview'})}));
+  await checkButton.click();
+  await page.waitForFunction(()=>document.querySelector('#authV39Shell .school-release-check')?.textContent.includes('تثبيت التحديث v3.9.0-r9'),null,{timeout:7000});
+
 
   const layout=await page.evaluate(()=>{
    const shell=document.getElementById('authV39Shell'),outer=document.getElementById('loginScreenOverlay');
