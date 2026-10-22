@@ -14,7 +14,7 @@ try{
  if(!server.includes("import {Pool} from 'pg';"))throw Error('Expected pg import missing');
  if(!server.includes("'/api/platform/google-drive'")){
   server=server.replace("import {Pool} from 'pg';","import {Pool} from 'pg';\nimport {getGoogleStatus,saveGoogleConfig} from './google-settings-v39.mjs';");
-  const anchor="  if(req.method==='GET'&&url.pathname==='/api/platform/me'){";
+  const anchor=/^[ \\t]*if\\(req\\.method==='GET'&&url\\.pathname==='\\/api\\/platform\\/me'\\)\\{/m;
   const routes=[
    "  if(req.method==='GET'&&url.pathname==='/api/platform/google-drive'){",
    "   requireOwner(user);return send(res,200,await getGoogleStatus(pool));",
@@ -25,8 +25,8 @@ try{
    "   return send(res,200,await saveGoogleConfig(pool,(await readJson(req,65536)).googleClient,user.id));",
    "  }"
   ].join('\n');
-  if(!server.includes(anchor))throw Error('Authenticated route insertion marker missing');
-  server=server.replace(anchor,routes+'\n'+anchor);
+  if(!anchor.test(server))throw Error('Authenticated route insertion marker missing');
+  server=server.replace(anchor,matched=>routes+'\n'+matched);
  }
  writeFileSync(serverFile,server);
  const schema=readFileSync(schemaFile,'utf8');
