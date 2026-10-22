@@ -42,3 +42,11 @@ const faNames=[...new Set(icons.flatMap(x=>x.split(/\s+/)).filter(x=>x.startsWit
 console.log('ICON_CLASSES',JSON.stringify({iconTags:icons.length,unique:faNames.length,all:faNames.sort()}));
 
 const vector=fs.readFileSync('public/assets/icon-vectors.js','utf8');console.log('ICON_RENDER_IMPLEMENTATION',vector.slice(-9200));
+
+const vectorSource=fs.readFileSync('public/assets/icon-vectors.js','utf8');
+const mapStart=vectorSource.indexOf('const PATHS=')+'const PATHS='.length,mapEnd=vectorSource.indexOf(';',mapStart);
+if(mapStart<12||mapEnd<mapStart)throw Error('Vector glyph map not found');
+const available=JSON.parse(vectorSource.slice(mapStart,mapEnd));
+console.log('ICON_DIFFERENCE',JSON.stringify({available:Object.keys(available).length,missingMarkup:faNames.filter(n=>!Object.hasOwn(available,n)),iconKeys:Object.keys(available)}));
+const dynamic=[...html.matchAll(/fa-[a-z0-9-]+/g)].map(m=>m[0]);
+console.log('ICON_DYNAMIC_MISSING',JSON.stringify([...new Set(dynamic.filter(n=>n.startsWith('fa-')&&!Object.hasOwn(available,n) && !['fa-solid','fa-regular','fa-brands','fa-spin','fa-xs','fa-sm','fa-lg','fa-xl','fa-2x','fa-fw','fa-3x'].includes(n)))].slice(0,100)));
