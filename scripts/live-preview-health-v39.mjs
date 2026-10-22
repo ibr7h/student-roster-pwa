@@ -50,6 +50,10 @@ assert.equal(releaseData.version,'v3.9.0-r10','Published release manifest must m
 const releaseScript=await fetchText('/assets/release-ui-v39.js');
 assert.ok(releaseScript.includes("CURRENT='v3.9.0-r10'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
 assert.ok(documentHtml.includes('release-ui-v39.js'),'Visible PWA version script not attached to live page');
+const ownerHtml=await fetchText('/owner.html');
+assert.ok(ownerHtml.includes('owner-google-ui-v39.js'),'Owner settings UI must be present in deployed preview');
+const ownerScript=await fetchText('/assets/owner-google-ui-v39.js');
+assert.ok(ownerScript.includes('ownerGoogleJson')&&ownerScript.includes('إعادة الاتصال بالخادم'),'Owner import and reconnect UI must be deployed');
 const reportScript=await fetchText('/assets/evidence-workspace.js');
 assert.ok(reportScript.includes('host.contains(report)')&&reportScript.includes('document.body.appendChild(report)'),'The published report is still nested inside the hidden evidence workspace');
 console.log('PASS live PWA cache and privacy signup copy');
@@ -60,7 +64,7 @@ async function unauthenticated(path){
  return r.status;
 }
 // These requests intentionally do not include accounts, passwords, session cookies or write methods.
-for(const route of ['/api/me','/api/data','/api/members','/api/platform/me','/api/evidences']){
+for(const route of ['/api/me','/api/data','/api/members','/api/platform/me','/api/platform/google-drive/config','/api/evidences']){
  await unauthenticated(route);
 }
 const hostileOrigin='https://untrusted-school-client.invalid';
