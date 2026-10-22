@@ -64,6 +64,18 @@ try{
   await page.evaluate(()=>document.getElementById('loginScreenOverlay').classList.add('hidden'));
   assert.equal(await page.locator('#appHeader [data-school-release]').textContent(),'الإصدار v3.9.0-r8');
   assert.equal(await page.locator('#officialReportModal').evaluate(el=>el.parentElement.tagName),'BODY');
+
+  const iconMetrics=await page.evaluate(()=>{
+   const nodes=[...document.querySelectorAll('i.fa-solid,i.fa-regular,i.fa-brands')];
+   const sample=nodes.slice(0,20).map(icon=>{
+    const svg=icon.querySelector('svg.school-vector-icon');
+    const rect=icon.getBoundingClientRect();
+    const vb=svg?.viewBox.baseVal;
+    return {name:[...icon.classList].find(x=>x.startsWith('fa-')&&x!=='fa-solid'),ready:icon.classList.contains('school-vector-ready'),svg:!!svg,display:getComputedStyle(icon).display,color:getComputedStyle(icon).color,size:[rect.width,rect.height],viewBox:vb?[vb.x,vb.y,vb.width,vb.height]:null};
+   });
+   return {total:nodes.length,ready:nodes.filter(x=>x.classList.contains('school-vector-ready')).length,withSvg:nodes.filter(x=>x.querySelector('svg.school-vector-icon')).length,sample};
+  });
+  console.log('ICON_WEBKIT_METRICS',JSON.stringify({width,iconMetrics}));
   await page.locator('#mobileMenuToggle').click();
   await page.locator('button[onclick="openOfficialReportModal()"]').click({timeout:7000});
   const report=page.locator('#officialReportModal');
