@@ -74,3 +74,5 @@ await import('./apply-mobile-v38.mjs');
 
 // v3.9: shared school-account login, email verification and authenticated school activation.
 await import('./apply-auth-ui-v39.mjs');
+// A4 report must open before synchronous page/QR generation, including on iPhone.
+await import('./harden-report-v39.mjs');
