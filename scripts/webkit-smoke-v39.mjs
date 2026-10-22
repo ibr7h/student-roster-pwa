@@ -51,6 +51,15 @@ try{
   const report=page.locator('#officialReportModal');
   await report.waitFor({state:'visible',timeout:5000});
   await page.waitForFunction(()=>document.body.classList.contains('school-report-open'),null,{timeout:5000});
+  await page.waitForFunction(()=>!document.body.classList.contains('mobile-menu-open'),null,{timeout:5000});
+  const reportOnTop=await page.evaluate(()=>{
+   const report=document.getElementById('officialReportModal');
+   const rect=report.getBoundingClientRect();
+   const front=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
+   return report.contains(front);
+  });
+  assert.equal(reportOnTop,true,'A4 report must be above the closed mobile tools menu, not hidden behind it');
+
   const chrome=await page.evaluate(()=>{
    const el=id=>document.getElementById(id);
    const report=el('officialReportModal');
