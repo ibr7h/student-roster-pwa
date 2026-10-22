@@ -77,6 +77,10 @@ try{
   });
   console.log('ICON_WEBKIT_METRICS',JSON.stringify({width,iconMetrics}));
   await page.locator('#mobileMenuToggle').click();
+  if(width===390){
+   const pic=await page.locator('button[onclick="openOfficialReportModal()"]').screenshot();
+   console.log('ICON_SCREENSHOT_BASE64',pic.toString('base64'));
+  }
   await page.locator('button[onclick="openOfficialReportModal()"]').click({timeout:7000});
   const report=page.locator('#officialReportModal');
   await report.waitFor({state:'visible',timeout:5000});
