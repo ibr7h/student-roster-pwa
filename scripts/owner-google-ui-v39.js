@@ -8,16 +8,35 @@ function create(){
  const retry=el('button','owner-drive-retry','إعادة الاتصال بالخادم');
  retry.type='button';
  retry.addEventListener('click',async()=>{
-  retry.disabled=true;retry.textContent='جارٍ إعادة الاتصال...';
+  if(retry.disabled)return;
+  retry.disabled=true;
+  let error;
   try{
-   const controller=new AbortController();
-   const response=await fetch(window.SCHOOL_API_ORIGIN+'/api/health',{cache:'no-store',credentials:'omit',signal:controller.signal});
-   if(!response.ok)throw Error('HTTP '+response.status);
+   // Render may need to start an instance. Probe the exact project API and
+   // preserve user-entered login credentials while connectivity is checked.
+   for(let attempt=1;attempt<=3;attempt++){
+    retry.textContent='جارٍ فحص الاتصال ('+attempt+'/3)';
+    try{
+     const response=await fetch(window.SCHOOL_API_ORIGIN+'/api/platform/status?ownerCheck='+Date.now(),{
+      cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(15000)
+     });
+     if(!response.ok)throw Error('HTTP '+response.status);
+     error=null;break;
+    }catch(e){error=e;if(attempt<3)await new Promise(resolve=>setTimeout(resolve,1200))}
+   }
+   if(error)throw error;
+   if(typeof window.init!=='function')throw Error('لم يتم تحميل أدوات لوحة المالك.');
+   notice.className='ok';notice.textContent='اتصال الخادم متاح. جارٍ تحديث لوحة المالك...';
    await window.init();
-  }catch(error){notice.className='err';notice.textContent='تعذر الوصول إلى API. تحقق من الإنترنت ثم أعد المحاولة. '+String(error?.message||'').slice(0,90)}
-  finally{retry.disabled=false;retry.textContent='إعادة الاتصال بالخادم'}
+  }catch(e){
+   notice.className='err';
+   notice.textContent='لم ينجح الاتصال بخادم الشواهد. افتح المنصة في Safari وتحقق من الإنترنت، ثم أعد المحاولة. ('+(e?.name==='TimeoutError'?'انتهت مهلة الاتصال':'فشل الاتصال')+')';
+  }finally{retry.disabled=false;retry.textContent='إعادة الاتصال بالخادم'}
  });
  notice.insertAdjacentElement('afterend',retry);
+ const stamp=el('small','owner-drive-build','إصدار لوحة المالك: owner-r11');
+ stamp.setAttribute('aria-label','إصدار لوحة مالك المنصة owner-r11');
+ retry.insertAdjacentElement('afterend',stamp);
 
  const panel=el('section','owner-drive-panel');
  panel.id='ownerGoogleDriveSettings';
