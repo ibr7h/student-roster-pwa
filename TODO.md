@@ -1,3 +1,14 @@
+## 2026-10-23 — Owner console connectivity and Google OAuth import (v3.9.0-r11)
+- [x] Confirmed preview uses isolated Neon test branch and API server is database-ready after fixing `platform_google_oauth_updated_by_fkey`.
+- [x] Existing owner-only Google OAuth JSON importer uses encrypted PostgreSQL storage; configured the server-side `SCHOOL_GOOGLE_CONFIG_KEY` on preview API. No Google client secret was committed.
+- [x] Resilient static API bridge: bounded read-only retries for Render wake-up and HTTP 502/503/504, with 22-second fetch deadlines. Mutating POST operations are never retried.
+- [x] Removed unnecessary application/json preflight headers from bodyless reads.
+- [x] Updated PWA release/cache identity to `v3.9.0-r11`, plus added a Node regression suite; GitHub v3.9 frontend CI passed.
+- [ ] Confirm Render static preview is serving `v3.9.0-r11` (GitHub CI is not proof of deployment).
+- [ ] Sign in as platform owner, upload downloaded `shawahed-school` Web OAuth client JSON, verify owner-only status and persistence after refresh.
+- [ ] Google Drive account linking/OAuth callback requires separate implementation; importing credentials alone does **not** enable school Drive integrations.
+- [ ] For predictable owner-page response times, evaluate moving the preview API off Render Free (currently separate from Starter static site).
+
 # TODO — منصة شواهد التقويم المدرسي | v3.9.0
 > **مصدر الحقيقة للتقدم:** يُحدَّث هذا الملف مع كل دفعة تغيير، ويُذكر commit والاختبارات الفعلية، ولا يُعلَّم أي بند مكتملًا دون تنفيذ وتحقق.
 >
