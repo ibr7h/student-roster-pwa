@@ -52,8 +52,10 @@ assert.ok(releaseScript.includes("CURRENT='v3.9.0-r11'")&&releaseScript.includes
 assert.ok(documentHtml.includes('release-ui-v39.js'),'Visible PWA version script not attached to live page');
 const ownerHtml=await fetchText('/owner.html');
 assert.ok(ownerHtml.includes('owner-google-ui-v39.js'),'Owner settings UI must be present in deployed preview');
+assert.ok(ownerHtml.includes('owner-connect-20261023-r11'),'Owner HTML must load fresh cache-busted API and OAuth scripts');
 const ownerScript=await fetchText('/assets/owner-google-ui-v39.js');
 assert.ok(ownerScript.includes('ownerGoogleJson')&&ownerScript.includes('إعادة الاتصال بالخادم'),'Owner import and reconnect UI must be deployed');
+assert.ok(ownerScript.includes('owner-r11')&&ownerScript.includes('جارٍ فحص الاتصال'),'Owner must expose build identity and bounded reconnect probes');
 const reportScript=await fetchText('/assets/evidence-workspace.js');
 assert.ok(reportScript.includes('host.contains(report)')&&reportScript.includes('document.body.appendChild(report)'),'The published report is still nested inside the hidden evidence workspace');
 console.log('PASS live PWA cache and privacy signup copy');
