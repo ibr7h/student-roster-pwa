@@ -4,11 +4,37 @@ const KEY='school_evidence_session_v37';
 const token=()=>{try{return sessionStorage.getItem(KEY)||''}catch{return ''}};
 const clear=()=>{try{sessionStorage.removeItem(KEY)}catch{}};
 function headers(extra={}){const h=new Headers(extra);const t=token();if(t)h.set('Authorization','Bearer '+t);return h;}
+// A sleeping preview API may transiently return 502/503 or reset connections.
+// Retry reads only: retrying a registration, login or owner configuration write
+// could accidentally repeat a state-changing operation.
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function fetchWithWakeRetry(url,options){
+ const method=String(options.method||'GET').toUpperCase();
+ const safe=method==='GET'||method==='HEAD';
+ const attempts=safe?4:1;
+ let lastError;
+ for(let attempt=0;attempt<attempts;attempt++){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),22000);
+  try{
+   const response=await fetch(url,{...options,signal:options.signal||controller.signal});
+   if(safe && [502,503,504].includes(response.status) && attempt<attempts-1){
+    await pause(1400*(attempt+1));continue;
+   }
+   return response;
+  }catch(error){
+   lastError=error;
+   if(!safe||options.signal?.aborted||attempt===attempts-1)break;
+   await pause(1400*(attempt+1));
+  }finally{clearTimeout(timeout)}
+ }
+ throw lastError||new Error('API request failed');
+}
 async function request(path,options={}){
  const opts={...options,credentials:'omit',cache:'no-store'};
  opts.headers=headers({'Content-Type':'application/json',...(options.headers||{})});
  let response;
- try{response=await fetch(API_ORIGIN+'/api'+path,opts)}
+ try{response=await fetchWithWakeRetry(API_ORIGIN+'/api'+path,opts)}
  catch(e){throw new Error('الخادم يستيقظ أو الاتصال غير متاح. حاول مجددًا بعد لحظات.')}
  const data=await response.json().catch(()=>({}));
  if(!response.ok){if(response.status===401 && !path.endsWith('/login'))clear();throw new Error(data.error||'خطأ الخادم: '+response.status)}
