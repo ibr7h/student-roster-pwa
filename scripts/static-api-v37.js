@@ -32,7 +32,8 @@ async function fetchWithWakeRetry(url,options){
 }
 async function request(path,options={}){
  const opts={...options,credentials:'omit',cache:'no-store'};
- opts.headers=headers({'Content-Type':'application/json',...(options.headers||{})});
+ // Content-Type on bodyless GETs causes unnecessary CORS preflights.
+ opts.headers=headers({...(options.body===undefined||options.body===null?{}:{'Content-Type':'application/json'}),...(options.headers||{})});
  let response;
  try{response=await fetchWithWakeRetry(API_ORIGIN+'/api'+path,opts)}
  catch(e){throw new Error('الخادم يستيقظ أو الاتصال غير متاح. حاول مجددًا بعد لحظات.')}
