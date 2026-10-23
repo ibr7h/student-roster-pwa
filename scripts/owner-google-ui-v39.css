@@ -11,3 +11,5 @@
 .owner-drive-summary{margin:0}
 .owner-drive-help{color:#64748b}
 @media(max-width:680px){.owner-drive-panel{padding:14px;margin:14px 0}.owner-drive-save,.owner-drive-retry{width:100%}}
+
+.owner-drive-build{display:block;color:#64748b;font-size:12px;direction:ltr;unicode-bidi:isolate;margin:2px 0 12px}
