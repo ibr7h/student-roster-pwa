@@ -1,0 +1,26 @@
+name: Diagnose live v3.9 owner connection
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - scripts/owner-live-connect-v39.mjs
+      - .github/workflows/owner-live-connect-v39.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install headless browser
+        run: |
+          npm install --no-audit --no-fund --no-save playwright-core@1.58.2
+          npx playwright-core install --with-deps chromium
+      - name: Verify live owner page and CORS without credentials
+        run: node scripts/owner-live-connect-v39.mjs
