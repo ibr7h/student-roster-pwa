@@ -10,6 +10,8 @@ on:
       - scripts/auth-ui-v39.css
       - scripts/apply-auth-ui-v39.mjs
       - scripts/static-frontend-v37.mjs
+      - scripts/static-api-v37.js
+      - scripts/static-api-wake-v39.test.mjs
       - scripts/owner-google-frontend-v39.mjs
       - scripts/owner-google-ui-v39.js
       - scripts/owner-google-ui-v39.css
@@ -43,6 +45,8 @@ jobs:
           node --check public/assets/mobile-native-v38.js
           node --check public/assets/static-api-v37.js
           node --check public/view.js
+      - name: Test API wake recovery and owner Google write safety
+        run: node --test scripts/static-api-wake-v39.test.mjs
       - name: Check unified identity fields, mobile sizing and cache version
         run: |
           node --input-type=module <<'NODE'
