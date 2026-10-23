@@ -1,0 +1,45 @@
+name: Verify live owner API CORS without browser dependencies
+on:
+  push:
+    branches:
+      - feature/school-v3.9-unified-auth-20261020
+    paths:
+      - .github/workflows/owner-live-http-v39.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read-only cross-origin owner API health probe
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const api='https://school-evidence-v39-api-preview.onrender.com';
+          const ui='https://school-evidence-v39-preview.onrender.com';
+          for(const path of ['/api/health','/api/platform/status','/api/platform/me','/api/platform/google-drive']){
+           const headers={Origin:ui,'Content-Type':'application/json'};
+           const r=await fetch(api+path,{headers,signal:AbortSignal.timeout(30000),cache:'no-store'});
+           const body=await r.json().catch(()=>({}));
+           console.log('OWNER_API',path,'status',r.status,'cors',r.headers.get('access-control-allow-origin'),'keys',Object.keys(body));
+           assert.equal(r.headers.get('access-control-allow-origin'),ui,'CORS origin mismatch '+path);
+           if(path.endsWith('/health')||path.endsWith('/status'))assert.equal(r.status,200,path);
+           else assert.ok([401,403].includes(r.status),'Owner protection missing '+path);
+          }
+          const options=await fetch(api+'/api/platform/status',{method:'OPTIONS',headers:{Origin:ui,'Access-Control-Request-Method':'GET','Access-Control-Request-Headers':'content-type'},signal:AbortSignal.timeout(30000)});
+          console.log('OWNER_OPTIONS',options.status,options.headers.get('access-control-allow-origin'),options.headers.get('access-control-allow-headers'));
+          assert.equal(options.status,204);
+          assert.equal(options.headers.get('access-control-allow-origin'),ui);
+          const owner=await fetch(ui+'/owner.html',{signal:AbortSignal.timeout(30000)});
+          assert.equal(owner.status,200);
+          const markup=await owner.text();
+          assert.ok(markup.includes('owner-google-ui-v39.js')&&markup.includes('static-api-v37.js'));
+          const js=await(await fetch(ui+'/assets/static-api-v37.js',{signal:AbortSignal.timeout(30000)})).text();
+          assert.ok(js.includes(api));
+          console.log('PASS real owner page + API CORS, protected admin route; no credentials');
+          NODE
