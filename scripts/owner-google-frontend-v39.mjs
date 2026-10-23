@@ -11,7 +11,16 @@ if(!page.includes('ownerGoogleDriveSettings')){
  if(!page.includes('</head>')||!page.includes('</body>'))throw Error('Owner HTML markers missing');
  page=page.replace('</head>','<link rel="stylesheet" href="./assets/owner-google-ui-v39.css"></head>');
  page=page.replace('</body>','<script src="./assets/owner-google-ui-v39.js" defer></script></body>');
- fs.writeFileSync(owner,page);
+ // Owner entry point is network-first, but cached JS can still point to an old API.
+// Use an owner-only cache key so reopening this page loads the reviewed bridge and settings UI.
+const ownerRevision='owner-connect-20261023-r11';
+for(const asset of ['static-api-v37.js','owner-google-ui-v39.js','owner-google-ui-v39.css']){
+ const plain='./assets/'+asset;
+ if(!page.includes(plain))throw Error('Owner asset marker missing: '+asset);
+ page=page.replaceAll(plain,plain+'?v='+ownerRevision);
+}
+page=page.replace('</body>','<!-- '+ownerRevision+' --></body>');
+fs.writeFileSync(owner,page);
 }
 fs.copyFileSync('scripts/owner-google-ui-v39.js','public/assets/owner-google-ui-v39.js');
 fs.copyFileSync('scripts/owner-google-ui-v39.css','public/assets/owner-google-ui-v39.css');
