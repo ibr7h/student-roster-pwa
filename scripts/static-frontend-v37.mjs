@@ -82,3 +82,5 @@ await import('./owner-google-frontend-v39.mjs');
 await import('./fix-members-mobile-report-v39.mjs');
 // Native Arabic report and locally generated downloadable PDF with an offline-cached renderer.
 await import('./apply-report-save-rtl-v39.mjs');
+// Institutional Arabic A4 cover, dynamically numbered contents and eight separators.
+await import('./apply-report-cover-v39.mjs');
