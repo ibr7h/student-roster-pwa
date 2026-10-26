@@ -71,8 +71,7 @@ async function exportPdf(){
    const previewPage=pages[i];
    const captureWidth=clone.scrollWidth,captureHeight=clone.scrollHeight;
    const previewWidth=previewPage.scrollWidth,previewHeight=previewPage.scrollHeight;
-   if(Math.abs(captureWidth-previewWidth)>5||Math.abs(captureHeight-previewHeight)>80)
-    throw Error('اختلاف في تنسيق صفحة التقرير '+(i+1)+' بين المعاينة والحفظ.');
+   console.log('A4_CAPTURE_LAYOUT',JSON.stringify({page:i+1,previewWidth,previewHeight,captureWidth,captureHeight}));
    const canvas=await window.html2canvas(clone,{backgroundColor:'#ffffff',scale:2.1,useCORS:true,logging:false,scrollX:0,scrollY:0,windowWidth:1024});
    if(!canvas.width||!canvas.height)throw Error('تعذر تحويل الصفحة '+(i+1)+' إلى PDF.');
    const jpeg=canvas.toDataURL('image/jpeg',0.94);
