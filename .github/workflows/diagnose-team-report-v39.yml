@@ -1,0 +1,25 @@
+name: Diagnose school team and A4 mobile (isolated branch)
+on:
+  push:
+    branches: [fix/school-v39-members-mobile-report-20261026]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assemble preview without production data
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+      - name: Print source-only team and report diagnostics
+        run: node scripts/diagnose-team-report-v39.mjs
