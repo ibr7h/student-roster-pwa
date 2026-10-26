@@ -13,6 +13,7 @@ const old=html.slice(buttonAt,buttonEnd+9);
 if(!old.includes('طباعة / حفظ PDF'))throw Error('Unrecognized report save button');
 const print=old.replace(saveOld,'<button type="button" id="schoolReportPrint" onclick="printOfficialReportDirectly()"').replace('طباعة / حفظ PDF','طباعة');
 const additional=[
+ '<button type="button" id="schoolReportToggleView" aria-pressed="true">عرض مناسب للجوال</button>',
  '<button type="button" id="schoolReportSavePdf" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-black flex items-center gap-1.5 transition shadow"><i class="fa-solid fa-file-pdf"></i><span>إنشاء PDF</span></button>',
  '<div id="schoolReportFileActions" hidden>',
  '<a id="schoolReportDownloadPdf" rel="noopener">تنزيل PDF</a>',
@@ -27,15 +28,18 @@ html=html.replace(marker,marker+' dir="rtl" lang="ar"');
 const modalTag='id="officialReportModal"';
 html=html.replace(modalTag,modalTag+' dir="rtl" lang="ar"');
 if(!html.includes('</head>')||!html.includes('</body>'))throw Error('PWA HTML boundaries missing');
-html=html.replace('</head>','<link rel="stylesheet" href="./assets/school-report-rtl-v39.css"></head>');
+html=html.replace('</head>','<link rel="stylesheet" href="./assets/school-report-rtl-v39.css"><link rel="stylesheet" href="./assets/school-report-a4-preview-v39.css"></head>');
 html=html.replace('</body>',
  '<script src="./assets/html2canvas-pro-v2.4.5.min.js"></script>'+
  '<script src="./assets/pdf-lib-v1.17.1.min.js"></script>'+
- '<script src="./assets/school-report-export-v39.js"></script></body>');
+ '<script src="./assets/school-report-export-v39.js"></script>'+ 
+ '<script src="./assets/school-report-a4-preview-v39.js"></script></body>');
 fs.writeFileSync(htmlPath,html);
 for(const [src,dst] of [
  ['scripts/report-save-v39.js','public/assets/school-report-export-v39.js'],
- ['scripts/report-rtl-v39.css','public/assets/school-report-rtl-v39.css']
+ ['scripts/report-rtl-v39.css','public/assets/school-report-rtl-v39.css'],
+ ['scripts/report-a4-preview-v39.css','public/assets/school-report-a4-preview-v39.css'],
+ ['scripts/report-a4-preview-v39.js','public/assets/school-report-a4-preview-v39.js']
 ])fs.copyFileSync(src,dst);
 const deps=[
  {file:'html2canvas-pro-v2.4.5.min.js',urls:[
@@ -66,7 +70,7 @@ for(const dep of deps){
 let sw=fs.readFileSync(swPath,'utf8');
 const token="'./assets/mobile.js'";
 if(!sw.includes(token))throw Error('Offline shell asset marker missing');
-sw=sw.replace(token,token+",'./assets/school-report-rtl-v39.css','./assets/school-report-export-v39.js','./assets/html2canvas-pro-v2.4.5.min.js','./assets/pdf-lib-v1.17.1.min.js'");
+sw=sw.replace(token,token+",'./assets/school-report-rtl-v39.css','./assets/school-report-a4-preview-v39.css','./assets/school-report-a4-preview-v39.js','./assets/school-report-export-v39.js','./assets/html2canvas-pro-v2.4.5.min.js','./assets/pdf-lib-v1.17.1.min.js'");
 fs.writeFileSync(swPath,sw);
 if(!html.includes('id="schoolReportSavePdf"')||!html.includes('dir="rtl" lang="ar"')||!sw.includes('school-report-export-v39.js'))throw Error('Incomplete report saving/RTL integration');
 console.log('Ready: local PDF generation, standalone download and iOS Files sharing, Arabic RTL A4');
