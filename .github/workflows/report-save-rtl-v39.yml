@@ -6,6 +6,8 @@ on:
       - scripts/report-pdf-browser-v39.mjs
       - scripts/report-save-v39.js
       - scripts/report-rtl-v39.css
+      - scripts/report-a4-preview-v39.css
+      - scripts/report-a4-preview-v39.js
       - scripts/apply-report-save-rtl-v39.mjs
       - scripts/static-frontend-v37.mjs
       - .github/workflows/report-save-rtl-v39.yml
