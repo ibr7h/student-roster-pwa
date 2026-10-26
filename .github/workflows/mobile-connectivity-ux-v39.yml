@@ -1,0 +1,48 @@
+name: Verify Shawahed iPhone connectivity UX and no-fake-sync safety
+on:
+  push:
+    branches: [fix/school-v39-mobile-connectivity-ux-r17-20261026,feature/school-v3.9-unified-auth-20261020]
+    paths:
+      - scripts/mobile-connectivity-ux-v39.js
+      - scripts/mobile-connectivity-ux-v39.css
+      - scripts/apply-mobile-connectivity-ux-v39.mjs
+      - scripts/mobile-connectivity-browser-v39.mjs
+      - scripts/static-frontend-v37.mjs
+      - .github/workflows/mobile-connectivity-ux-v39.yml
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Build isolated PWA
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+          node --check public/assets/mobile-connectivity-ux-v39.js
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+      - run: TEST_BROWSER=chromium node scripts/mobile-connectivity-browser-v39.mjs
+  webkit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    container: {image: 'mcr.microsoft.com/playwright:v1.58.2-noble'}
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update -qq && apt-get install -y -qq unzip
+      - name: Build isolated PWA
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+          node --check public/assets/mobile-connectivity-ux-v39.js
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+      - run: node scripts/mobile-connectivity-browser-v39.mjs
