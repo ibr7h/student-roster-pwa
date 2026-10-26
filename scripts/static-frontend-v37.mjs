@@ -80,3 +80,5 @@ await import('./harden-report-v39.mjs');
 await import('./owner-google-frontend-v39.mjs');
 // Isolated acceptance-tested manager permissions and responsive on-screen report.
 await import('./fix-members-mobile-report-v39.mjs');
+// Native Arabic report and locally generated downloadable PDF with an offline-cached renderer.
+await import('./apply-report-save-rtl-v39.mjs');
