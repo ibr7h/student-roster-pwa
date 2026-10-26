@@ -1,3 +1,13 @@
+## 2026-10-26 — إصلاح إضافة الأعضاء وصلاحيات الأقسام والتقرير على الهاتف (v3.9.0-r12)
+- [x] عزل العمل في `fix/school-v39-members-mobile-report-20261026` ثم دمج PR #2 في فرع v3.9 التجريبي، دون ترحيل Neon أو مساس بالإنتاج.
+- [x] حقل كلمة مرور العضو أصبح `type=password` واحدًا، مع منع الحفظ المكرر والتحقق من اسم المستخدم/الفريق/كلمة المرور/الأقسام قبل إرسال `/api/members`.
+- [x] بعد إضافة العضو أو تعديل صلاحيات `/api/permissions` تُعاد قراءة بيانات API، ولا تظهر رسالة نجاح إلا بعد مطابقة بيانات العضوية والصلاحيات المحفوظة.
+- [x] فصل نافذة صلاحيات القسم عن الحاويات المخفية وعزل CSS للعرض الهاتفي عن قالب طباعة A4 الأصلي.
+- [x] اختبارات Chrome على بيانات وهمية: حساب عضو جديد وصلاحيات الأقسام ثم تقرير 17 صفحة بدون تجاوز عرض الهاتف عند 390 و320 بكسل. GitHub run `40269098748` ناجح.
+- [x] WebKit الفعلي على بيئة اختبار Playwright: نفس اختبار العضوية والصلاحيات وتقرير 390/320؛ run `40269098742` ناجح. اختبارات v3.9 الاعتيادية `verify-ui` و`webkit-v39` رُوجعت توقعات إصداراتها واجتازتها CI.
+- [ ] **بوابة النشر الحي:** Render واجهة `school-evidence-v39-preview` ما زال يعرض نشر 23 أكتوبر وفق قائمة عمليات النشر بعد الدمج، وفحص الصحة الخارجي `40269263236` أبلغ أن ذاكرة PWA لم تُحدَّث إلى r12. لا تُعلن الإصلاحات منشورة حتى يظهر نشر r12 ناجح.
+- [ ] **قبول الجهاز الحقيقي:** يجرب مدير المدرسة فعليًا إنشاء عضو وتحديث القسم ثم معاينة وطباعة التقرير من Safari وPWA المثبت، وبعدها فقط يُغلق E5/E7.
+
 ## 2026-10-23 — Owner console connectivity and Google OAuth import (v3.9.0-r11)
 - [x] Confirmed preview uses isolated Neon test branch and API server is database-ready after fixing `platform_google_oauth_updated_by_fkey`.
 - [x] Existing owner-only Google OAuth JSON importer uses encrypted PostgreSQL storage; configured the server-side `SCHOOL_GOOGLE_CONFIG_KEY` on preview API. No Google client secret was committed.
