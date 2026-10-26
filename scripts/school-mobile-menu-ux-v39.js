@@ -79,7 +79,7 @@ function build(){
   createGroup('الإدارة المدرسية','إعدادات المدرسة والأعضاء',[actions.school,actions.members]),
   createGroup('التقارير والأدوات','التقارير وملصقات الشواهد',[actions.report,actions.qr]),
   createGroup('البيانات والنسخ','تصدير البيانات واستيرادها',[actions.export,actions.import]),
-  createGroup('الاتصال والبيانات','إدارة الشبكة والتحديث',[(()=>{const b=toTag('button','school-connect-menu-entry');b.type='button';b.append(toTag('i','fa-solid fa-arrows-rotate'));b.append(toTag('span','','الاتصال والمزامنة'));b.addEventListener('click',()=>{window.closeMobileTools?.();window.SchoolConnectivityUX?.open()});return b})()])
+  createGroup('الاتصال والبيانات','إدارة الشبكة والتحديث',[(()=>{const b=toTag('button','school-connect-menu-entry');b.id='school-connect-menu-action';b.type='button';b.append(toTag('i','fa-solid fa-arrows-rotate'));b.append(toTag('span','','الاتصال والمزامنة'));b.addEventListener('click',()=>{window.closeMobileTools?.();window.SchoolConnectivityUX?.open()});return b})()])
  );
  // Keep all dynamically injected login/security/update controls: never drop features.
  const optional=[actions.email,actions.password,actions.updates].filter(Boolean);
