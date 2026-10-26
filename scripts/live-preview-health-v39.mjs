@@ -54,7 +54,7 @@ assert.ok(documentHtml.includes('window.schoolMemberSaving')&&documentHtml.inclu
 assert.ok(documentHtml.includes('mobile-report-fix-v39.css'),'Deployed school A4 phone layout must be linked');
 assert.ok((await fetchText('/assets/mobile-report-fix-v39.css')).includes('#formalPrintableDocument'),'Published responsive report CSS missing');
 assert.ok(documentHtml.includes('id="schoolReportSavePdf"')&&documentHtml.includes('school-report-export-v39.js'),'Real PDF save control not deployed');
-for(const asset of ['/assets/school-report-export-v39.js','/assets/school-report-rtl-v39.css','/assets/html2canvas-v1.4.1.min.js','/assets/pdf-lib-v1.17.1.min.js'])assert.ok((await fetchText(asset)).length>100,'Missing PDF asset '+asset);
+for(const asset of ['/assets/school-report-export-v39.js','/assets/school-report-rtl-v39.css','/assets/html2canvas-pro-v2.4.5.min.js','/assets/pdf-lib-v1.17.1.min.js'])assert.ok((await fetchText(asset)).length>100,'Missing PDF asset '+asset);
 const ownerHtml=await fetchText('/owner.html');
 assert.ok(ownerHtml.includes('owner-google-ui-v39.js'),'Owner settings UI must be present in deployed preview');
 assert.ok(ownerHtml.includes('owner-connect-20261023-r11'),'Owner HTML must load fresh cache-busted API and OAuth scripts');
