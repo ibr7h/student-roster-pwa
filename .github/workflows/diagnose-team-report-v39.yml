@@ -21,5 +21,12 @@ jobs:
           tar -xf school-backend.tar
           node patch-release.mjs
           node scripts/static-frontend-v37.mjs
+          node scripts/fix-members-mobile-report-v39.mjs
+      - name: Check mobile and member output markers
+        run: |
+          grep -Fq 'window.schoolMemberSaving' public/index.html
+          grep -Fq 'window.schoolPermissionsSaving' public/index.html
+          grep -Fq 'mobile-report-fix-v39.css' public/index.html
+          test -s public/assets/mobile-report-fix-v39.css
       - name: Print source-only team and report diagnostics
         run: node scripts/diagnose-team-report-v39.mjs
