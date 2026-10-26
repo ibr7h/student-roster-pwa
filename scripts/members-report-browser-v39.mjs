@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import {webkit} from 'playwright-core';
+import {webkit,chromium} from 'playwright-core';
 const root=path.resolve('public');
 const api='https://school-evidence-v39-api-preview.onrender.com';
 const mime={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'};
@@ -23,7 +23,7 @@ const requests=[];
 let team=[];
 let browser;
 try{
- browser=await webkit.launch({headless:true});
+ browser=process.env.TEST_BROWSER==='chromium' ? await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox','--disable-dev-shm-usage']}) : await webkit.launch({headless:true});
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,locale:'ar-SA',serviceWorkers:'block'});
  await context.route(api+'/api/**',async route=>{
   const rq=route.request(),p=new URL(rq.url()).pathname,method=rq.method();
