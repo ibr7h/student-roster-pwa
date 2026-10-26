@@ -44,10 +44,10 @@ try{
     account:!!menu.querySelector('#currentUserHeaderName')&&!!menu.querySelector('.school-menu-logout'),
     files:menu.querySelectorAll('#importJsonInput').length};
   });
-  assert.deepEqual(before.groups,['الإدارة المدرسية','التقارير والأدوات','البيانات والنسخ','الحساب والأمان']);
+  assert.deepEqual(before.groups,['الإدارة المدرسية','التقارير والأدوات','البيانات والنسخ','الاتصال والبيانات','الحساب والأمان']);
   assert.deepEqual(before.items,[
     'openSchoolProfileModal()','openTeamModal()','openOfficialReportModal()',
-    'openBulkQrModal()','exportJSONBackup()','import',
+    'openBulkQrModal()','exportJSONBackup()','import','school-connect-menu-action',
     'auth39-link-email-action','auth39-change-password-action','updates'
   ]);
   assert.equal(before.account,true);assert.equal(before.files,1);
@@ -73,7 +73,7 @@ try{
   });
   console.log('TOOLS_MENU_LAYOUT',JSON.stringify(ui));
   assert.equal(ui.rtl,'rtl');assert.equal(ui.menuDisplay,'flex');assert.equal(ui.expanded,'true');
-  assert.equal(ui.items.length,9);
+  assert.equal(ui.items.length,10);
   assert.ok(ui.bodyWidth<=width+2,'Mobile main document scrolls horizontally');
   assert.ok(Math.abs(ui.menuWidth-width)<3,'Mobile tools panel must fit viewport');
   assert.ok(Math.abs(ui.top-ui.headerBottom)<5,'Menu must start below live app header');
