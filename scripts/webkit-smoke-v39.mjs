@@ -69,7 +69,7 @@ try{
   // A toolbar icon can have an SVG child and still render as a zero-sized shape.
   // Assert visible controls have a measurable vector and retain their icon color.
   const displayedIcons=await page.evaluate(()=>{
-   const controls=[...document.querySelectorAll('#headerTools > button,#headerTools > label')];
+   const controls=[...document.querySelectorAll('#headerTools .school-menu-group .school-menu-action')].filter(el=>el.matches('button,label'));
    return controls.filter(el=>el.getClientRects().length>0).flatMap(control=>{
     const icon=control.querySelector('i.school-vector-ready');
     if(!icon)return [];

@@ -22,11 +22,11 @@ jobs:
   webkit:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container: {image: 'mcr.microsoft.com/playwright:v1.58.2-noble'}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+      - name: Install unzip
+        run: apt-get update -qq && apt-get install -y -qq unzip
       - name: Assemble exact v3.9 static preview
         run: |
           unzip -q -o site.zip -d public
@@ -36,7 +36,10 @@ jobs:
           node scripts/static-frontend-v37.mjs
       - name: Install WebKit runtime
         run: |
-          npm install --no-save --no-audit --no-fund playwright-core@1.58.2
-          npx playwright-core install --with-deps webkit
+          mkdir -p .ci-playwright
+          printf '{"name":"isolated-webkit-test","private":true}' > .ci-playwright/package.json
+          npm install --prefix .ci-playwright --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+          mkdir -p node_modules
+          ln -s ../.ci-playwright/node_modules/playwright-core node_modules/playwright-core
       - name: Check Arabic PWA keyboard and 320/390 WebKit layout
         run: node scripts/webkit-smoke-v39.mjs
