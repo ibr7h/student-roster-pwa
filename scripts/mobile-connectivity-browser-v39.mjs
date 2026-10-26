@@ -42,6 +42,18 @@ try{
    const css=getComputedStyle(el);
    return {background:css.backgroundColor,filter:css.backdropFilter,image:css.backgroundImage};
   });
+  const ios=await page.evaluate(()=>{
+   const meta=name=>[...document.querySelectorAll('meta[name="'+name+'"]')].map(el=>el.content);
+   const top=getComputedStyle(document.getElementById('appHeader'),'::before');
+   const root=getComputedStyle(document.documentElement);
+   return {status:meta('apple-mobile-web-app-status-bar-style'),standalone:meta('apple-mobile-web-app-capable'),
+    theme:meta('theme-color'),rootColor:root.backgroundColor,topPseudo:top.content,topDisplay:top.display};
+  });
+  assert.deepEqual(ios.status,['black'],'Native iPhone status bar must be solid, with no translucent fade');
+  assert.deepEqual(ios.standalone,['yes'],'Apple PWA standalone is required for status meta');
+  assert.deepEqual(ios.theme,['#0d4153'],'Use a solid theme behind the native status bar');
+  assert.equal(ios.topDisplay,'none','Remove legacy negative safe-area overlay');
+  assert.equal(ios.rootColor,'rgb(13, 65, 83)','Root must remain same solid shade as header');
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);
