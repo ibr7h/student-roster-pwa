@@ -1,0 +1,75 @@
+/* Shawahed v3.9 - A4 institutional cover / TOC / dividers.
+   Only new .shd-page sheets are affected; QR grids and signatures remain intact. */
+:root{--shd-ink:#203748;--shd-navy:#173a51;--shd-teal:#16877d;--shd-gold:#ac8e4d;--shd-muted:#657584;--shd-line:#dce6e9;--shd-surface:#f3f8f8}
+#officialReportModal #formalPrintableDocument .shd-page.a4-page,
+.school-report-pdf-capture .shd-page.a4-page{
+ box-sizing:border-box!important;width:210mm!important;min-width:210mm!important;max-width:210mm!important;
+ min-height:297mm!important;height:297mm!important;padding:14mm 12mm!important;overflow:hidden!important;
+ display:flex!important;flex-direction:column!important;justify-content:flex-start!important;position:relative!important;
+ background:#fff!important;color:var(--shd-ink)!important;direction:rtl!important;text-align:right!important;
+ font-family:'Tajawal','Noto Sans Arabic',Tahoma,Arial,sans-serif!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;gap:0!important;overflow-wrap:break-word!important
+}
+#officialReportModal #formalPrintableDocument .shd-page *, .school-report-pdf-capture .shd-page *{box-sizing:border-box}
+.shd-page h1,.shd-page h2,.shd-page p,.shd-page dl,.shd-page dd,.shd-page dt{margin:0}
+.shd-page .shd-top-accent{position:absolute;top:0;right:0;left:0;height:4mm;background:linear-gradient(90deg,var(--shd-teal) 0%,var(--shd-teal) 58%,var(--shd-navy) 58%,var(--shd-navy) 100%)}
+.shd-page .shd-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8mm;padding-bottom:8mm;border-bottom:.35mm solid var(--shd-line);min-height:34mm;flex-shrink:0}
+.shd-page .shd-authority{display:grid;gap:1.5mm;min-width:0}
+.shd-page .shd-authority strong{font-size:12pt;line-height:1.5;color:var(--shd-navy)}
+.shd-page .shd-authority span{font-size:9.3pt;line-height:1.5;color:var(--shd-muted)}
+.shd-page .shd-logo-slot{width:45mm;height:27mm;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#096a66;font-size:10pt;font-weight:700;text-align:center}
+.shd-page .shd-logo-slot img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+.shd-page .shd-logo-fallback{border:.35mm solid #c8dadd;padding:3mm 5mm;display:block;border-radius:2mm}
+.shd-page .shd-footer{margin-top:auto;padding-top:5mm;border-top:.35mm solid var(--shd-line);display:flex;justify-content:space-between;gap:6mm;align-items:center;font-size:8.7pt;line-height:1.6;color:var(--shd-muted)}
+.shd-page .shd-page-no{font-variant-numeric:tabular-nums}
+.shd-page .shd-meta-label{color:var(--shd-muted);font-size:9pt}
+.shd-page .shd-meta-value{color:var(--shd-ink);font-size:11.2pt;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
+.shd-page .shd-hero-title{font-size:29pt;line-height:1.5;font-weight:800;color:var(--shd-navy);max-width:160mm}
+.shd-page .shd-subtitle{font-size:12.5pt;line-height:1.9;color:var(--shd-muted);max-width:155mm}
+.shd-page .shd-pill{display:inline-block;border:.3mm solid #badad6;color:#096a66;font-size:9.4pt;font-weight:700;padding:2.3mm 5mm;border-radius:100mm}
+.shd-page .shd-divider-line{display:block;width:23mm;height:1.2mm;background:var(--shd-gold);margin:8mm 0 6mm}
+.shd-cover .shd-cover-hero{position:relative;padding-top:27mm;padding-bottom:22mm}
+.shd-cover .shd-cover-hero::before{content:'';position:absolute;left:1mm;top:12mm;width:46mm;height:46mm;border:.6mm solid #e1f0ef;border-radius:50%;z-index:0;pointer-events:none}
+.shd-cover .shd-cover-hero>*{position:relative;z-index:1}
+.shd-cover .shd-school-box{border-right:1.5mm solid var(--shd-teal);background:var(--shd-surface);padding:8mm 9mm;border-radius:2mm}
+.shd-cover .shd-school-title{font-size:15.5pt;font-weight:800;color:var(--shd-navy);line-height:1.6;margin-bottom:6mm}
+.shd-cover .shd-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm 12mm}
+.shd-cover .shd-meta-grid>div{display:flex;flex-direction:column;gap:1.2mm;min-width:0}
+.shd-cover .shd-note{font-size:9.8pt;line-height:1.9;color:var(--shd-muted);margin-top:12mm;max-width:160mm}
+.shd-cover .shd-summary{display:flex;align-items:center;gap:9mm;margin-top:7mm;color:var(--shd-navy)}
+.shd-cover .shd-summary strong{font-size:15pt;font-weight:800}
+.shd-cover .shd-summary span{font-size:9pt;color:var(--shd-muted)}
+.shd-toc .shd-toc-head{padding-top:16mm;padding-bottom:11mm}
+.shd-toc .shd-kicker{font-size:10pt;color:#096a66;font-weight:700}
+.shd-toc .shd-toc-title{font-size:24pt;font-weight:800;color:var(--shd-navy);line-height:1.5}
+.shd-toc .shd-toc-intro{font-size:10.7pt;line-height:1.8;color:var(--shd-muted);margin-top:4mm}
+.shd-toc .shd-toc-list{display:grid;gap:3mm;list-style:none;padding:0;margin:0}
+.shd-toc .shd-toc-item{display:grid;grid-template-columns:10mm 1fr 25mm;align-items:center;min-height:17mm;border:.35mm solid var(--shd-line);border-radius:2mm;padding:3mm 5mm;gap:5mm}
+.shd-toc .shd-toc-number{font-size:14pt;font-weight:800;color:#096a66}
+.shd-toc .shd-toc-name{font-size:12pt;font-weight:700;color:var(--shd-navy)}
+.shd-toc .shd-toc-page{font-size:10pt;color:var(--shd-muted);text-align:left}
+.shd-toc .shd-toc-meta{font-size:9pt;color:var(--shd-muted);margin-top:2mm}
+.shd-divider{--shd-section-color:#0f766e}
+.shd-divider .shd-divider-body{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:18mm 12mm 18mm 6mm}
+.shd-divider .shd-divider-body::before{content:'';width:1.7mm;position:absolute;top:23mm;bottom:25mm;right:0;background:var(--shd-section-color);border-radius:1mm}
+.shd-divider .shd-watermark{position:absolute;left:0;top:15mm;font-size:91pt;font-weight:800;line-height:1;direction:ltr;color:#e7eeee;pointer-events:none}
+.shd-divider .shd-section-counter{font-size:10pt;font-weight:700;color:var(--shd-section-color)}
+.shd-divider .shd-icon-box{width:21mm;height:21mm;display:flex;align-items:center;justify-content:center;border:.5mm solid var(--shd-section-color);border-radius:5mm;margin-top:9mm;margin-bottom:12mm;color:var(--shd-section-color);background:var(--shd-surface)}
+.shd-divider .shd-icon-box svg{width:12mm;height:12mm}
+.shd-divider .shd-section-name{font-size:27pt;font-weight:800;color:var(--shd-navy);line-height:1.4;max-width:157mm}
+.shd-divider .shd-section-intro{font-size:11.3pt;line-height:2;color:var(--shd-muted);margin-top:5mm;max-width:149mm;min-height:21mm}
+.shd-divider .shd-section-rule{height:1mm;width:31mm;background:var(--shd-section-color);margin-top:9mm}
+.shd-divider .shd-stat-card{display:grid;grid-template-columns:1fr 1fr;gap:7mm;margin-top:15mm;max-width:139mm}
+.shd-divider .shd-stat{border:.3mm solid var(--shd-line);border-radius:2mm;background:#fff;padding:5mm 6mm;display:flex;flex-direction:column;gap:3mm;min-height:25mm}
+.shd-divider .shd-stat strong{font-size:16pt;color:var(--shd-navy);line-height:1.2}
+.shd-divider .shd-stat span{font-size:9.5pt;color:var(--shd-muted)}
+.shd-divider .shd-responsible{font-size:9.7pt;color:var(--shd-muted);margin-top:8mm}
+.shd-divider .shd-responsible strong{color:var(--shd-navy)}
+/* New print sheets override legacy responsive reading rules while preserving the original table sheets. */
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .school-a4-sheet>.shd-page.a4-page,
+.school-report-pdf-capture .shd-page.a4-page{justify-content:flex-start!important;gap:0!important;max-height:297mm!important}
+@media print{
+ @page{size:A4 portrait;margin:0}
+ #officialReportModal #formalPrintableDocument .shd-page.a4-page{width:210mm!important;min-width:210mm!important;max-width:210mm!important;height:297mm!important;min-height:297mm!important;padding:14mm 12mm!important;margin:0!important;border:0!important;box-shadow:none!important;break-after:page;page-break-after:always}
+ .shd-page *, .shd-page .shd-top-accent{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
