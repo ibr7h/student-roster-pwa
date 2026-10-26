@@ -1,11 +1,11 @@
-/* Shawahed iPhone status region + connectivity settings r17. */
+/* Shawahed iPhone opaque status region + connectivity settings r18. */
 :root{--shd-head:#0d4153;--shd-gold:#dfb84c;--shd-surface:#f5f8fb;}
 html{background:var(--shd-head)!important}
 body{background:var(--shd-surface)!important}
 #appHeader{background:var(--shd-head)!important;background-image:none!important;box-shadow:none!important;
  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
-#appHeader::before{content:'';position:absolute;top:calc(-1*env(safe-area-inset-top,0px));left:0;right:0;
- height:env(safe-area-inset-top,0px);background:var(--shd-head);pointer-events:none;z-index:-1}
+/* No negative safe-area overlay: native opaque status bar owns the area above the page. */
+#appHeader::before{content:none!important;display:none!important;}
 #appHeader .app-header-layout{position:relative}
 #appHeader::after{content:none!important}
 #appHeader .app-brand{min-width:0;flex-wrap:wrap;position:relative}
