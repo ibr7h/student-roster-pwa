@@ -37,7 +37,7 @@ function createGroup(title,subtitle,items){
  if(subtitle)section.append(toTag('p','school-menu-group-subtitle',subtitle));
  for(const action of items){
   if(!action.querySelector('i')&&action.matches('button')){
-   const icon=toTag('i','fa-solid '+(action.id==='auth39-change-password-action'?'fa-lock':'fa-envelope'));
+   const icon=toTag('i','school-menu-generated-icon fa-solid '+(action.id==='auth39-change-password-action'?'fa-lock':'fa-envelope'));
    icon.setAttribute('aria-hidden','true');action.prepend(icon);
   }
   action.classList.add('school-menu-action');
@@ -116,7 +116,7 @@ function restore(){
  menu.removeAttribute('aria-label');menu.removeAttribute('tabindex');
  menu.classList.remove('school-tools-upgraded');
  for(const k of ['display','flex-direction','flex-wrap','align-items','justify-content'])menu.style.removeProperty(k);
- for(const e of originals){e.classList.remove('school-menu-action','school-menu-current-user');e.removeAttribute('dir')}
+ for(const e of originals){e.classList.remove('school-menu-action','school-menu-current-user');e.removeAttribute('dir');e.querySelectorAll('.school-menu-generated-icon').forEach(icon=>icon.remove())}
  built=false;
 }
 function position(){
