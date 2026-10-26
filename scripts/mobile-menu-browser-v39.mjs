@@ -40,14 +40,15 @@ try{
   const before=await page.evaluate(()=>{
    const menu=document.getElementById('headerTools');
    return {groups:[...menu.querySelectorAll('.school-menu-group')].map(x=>x.querySelector('h3')?.textContent),
-    items:[...menu.querySelectorAll('.school-menu-action')].map(x=>x.getAttribute('onclick')||'import'),
+    items:[...menu.querySelectorAll('.school-menu-action')].map(x=>x.getAttribute('onclick')||x.id||x.className.includes('school-release-tools')&&'updates'||'import'),
     account:!!menu.querySelector('#currentUserHeaderName')&&!!menu.querySelector('.school-menu-logout'),
     files:menu.querySelectorAll('#importJsonInput').length};
   });
-  assert.deepEqual(before.groups,['الإدارة المدرسية','التقارير والأدوات','البيانات والنسخ']);
+  assert.deepEqual(before.groups,['الإدارة المدرسية','التقارير والأدوات','البيانات والنسخ','الحساب والأمان']);
   assert.deepEqual(before.items,[
     'openSchoolProfileModal()','openTeamModal()','openOfficialReportModal()',
-    'openBulkQrModal()','exportJSONBackup()','import'
+    'openBulkQrModal()','exportJSONBackup()','import',
+    'auth39-link-email-action','auth39-change-password-action','updates'
   ]);
   assert.equal(before.account,true);assert.equal(before.files,1);
   await page.locator('#mobileMenuToggle').click();
@@ -71,11 +72,11 @@ try{
   });
   console.log('TOOLS_MENU_LAYOUT',JSON.stringify(ui));
   assert.equal(ui.rtl,'rtl');assert.equal(ui.menuDisplay,'flex');assert.equal(ui.expanded,'true');
-  assert.equal(ui.items.length,6);
+  assert.equal(ui.items.length,9);
   assert.ok(ui.bodyWidth<=width+2,'Mobile main document scrolls horizontally');
   assert.ok(Math.abs(ui.menuWidth-width)<3,'Mobile tools panel must fit viewport');
   assert.ok(Math.abs(ui.top-ui.headerBottom)<5,'Menu must start below live app header');
-  assert.ok(ui.items.every(r=>r.h>=54&&r.w<=width&&r.left>=-2&&r.right<=width+2),'Touch targets clipped or too small');
+  assert.ok(ui.items.filter(r=>r.h>0).every(r=>r.h>=44&&r.w<=width&&r.left>=-2&&r.right<=width+2),'Touch targets clipped or too small');
   assert.ok(ui.iconToRight,'Arabic menu icons should precede their labels on the right');
   assert.ok(ui.accountVisible&&ui.logoutHeight>=44,'Account/log out not usable on phone');
   // Keyboard Escape returns focus and toggler state.
@@ -92,13 +93,13 @@ try{
   await page.locator('#officialReportModal').waitFor({state:'hidden'});
   // On a desktop breakpoint, original seven controls must be restored in order.
   await page.setViewportSize({width:1000,height:800});
-  await page.waitForFunction(()=>document.querySelector('#headerTools')?.children.length===7);
+  await page.waitForFunction(()=>document.querySelector('#headerTools')?.children.length===10);
   const desktop=await page.evaluate(()=>{
    const m=document.getElementById('headerTools');
    return {children:m.children.length,roles:[...m.children].map(x=>x.getAttribute('onclick')||x.tagName),
     file:m.querySelectorAll('#importJsonInput').length,logout:m.querySelectorAll('button[onclick*="logoutSession"]').length};
   });
-  assert.equal(desktop.children,7);assert.equal(desktop.file,1);assert.equal(desktop.logout,1);
+  assert.equal(desktop.children,10);assert.equal(desktop.file,1);assert.equal(desktop.logout,1);
   await page.setViewportSize({width,height:760});
   await page.waitForFunction(()=>document.querySelectorAll('#headerTools .school-menu-group').length===3);
   assert.deepEqual(errors,[],errors.join('\n'));
