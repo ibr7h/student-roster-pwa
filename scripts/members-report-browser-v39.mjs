@@ -88,6 +88,7 @@ try{
   await page.locator('button[onclick="openOfficialReportModal()"]').evaluate(el=>el.click());
   await page.locator('#officialReportModal').waitFor({state:'visible',timeout:6000});
   await page.locator('#formalPrintableDocument .a4-page').first().waitFor({state:'visible',timeout:15000});
+  await page.waitForFunction(()=>{const p=document.querySelector('#formalPrintableDocument .a4-page');return p?.parentElement?.classList.contains('school-a4-sheet')&&p.getBoundingClientRect().width<=innerWidth+2},null,{timeout:15000});
   const m=await page.evaluate(()=>{
    const modal=document.getElementById('officialReportModal'),area=modal.querySelector('.report-scroll-region'),page=modal.querySelector('.a4-page');
    const b=page.getBoundingClientRect();

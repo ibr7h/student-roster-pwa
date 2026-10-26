@@ -1,13 +1,16 @@
 name: Verify real Arabic report PDF saving and RTL (v3.9)
 on:
   push:
-    branches: [fix/school-v39-report-save-rtl-20261026, fix/school-v39-pdf-fidelity-r14-20261026, feature/school-v3.9-unified-auth-20261020]
+    branches: [fix/school-v39-report-save-rtl-20261026, fix/school-v39-pdf-fidelity-r14-20261026, fix/school-report-cover-dividers-v39-r15-20261026, feature/school-v3.9-unified-auth-20261020]
     paths:
       - scripts/report-pdf-browser-v39.mjs
       - scripts/report-save-v39.js
       - scripts/report-rtl-v39.css
       - scripts/report-a4-preview-v39.css
       - scripts/report-a4-preview-v39.js
+      - scripts/report-components-v39.js
+      - scripts/report-design-v39.css
+      - scripts/apply-report-cover-v39.mjs
       - scripts/apply-report-save-rtl-v39.mjs
       - scripts/static-frontend-v37.mjs
       - .github/workflows/report-save-rtl-v39.yml
