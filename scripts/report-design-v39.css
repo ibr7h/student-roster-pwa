@@ -39,12 +39,12 @@
 .shd-cover .shd-summary{display:flex;align-items:center;gap:9mm;margin-top:7mm;color:var(--shd-navy)}
 .shd-cover .shd-summary strong{font-size:15pt;font-weight:800}
 .shd-cover .shd-summary span{font-size:9pt;color:var(--shd-muted)}
-.shd-toc .shd-toc-head{padding-top:16mm;padding-bottom:11mm}
+.shd-toc .shd-toc-head{padding-top:10mm;padding-bottom:4mm}
 .shd-toc .shd-kicker{font-size:10pt;color:#096a66;font-weight:700}
 .shd-toc .shd-toc-title{font-size:24pt;font-weight:800;color:var(--shd-navy);line-height:1.5}
 .shd-toc .shd-toc-intro{font-size:10.7pt;line-height:1.8;color:var(--shd-muted);margin-top:4mm}
 .shd-toc .shd-toc-list{display:grid;gap:3mm;list-style:none;padding:0;margin:0}
-.shd-toc .shd-toc-item{display:grid;grid-template-columns:10mm 1fr 25mm;align-items:center;min-height:17mm;border:.35mm solid var(--shd-line);border-radius:2mm;padding:3mm 5mm;gap:5mm}
+.shd-toc .shd-toc-item{display:grid;grid-template-columns:10mm 1fr 25mm;align-items:center;min-height:16mm;border:.35mm solid var(--shd-line);border-radius:2mm;padding:3mm 5mm;gap:5mm}
 .shd-toc .shd-toc-number{font-size:14pt;font-weight:800;color:#096a66}
 .shd-toc .shd-toc-name{font-size:12pt;font-weight:700;color:var(--shd-navy)}
 .shd-toc .shd-toc-page{font-size:10pt;color:var(--shd-muted);text-align:left}
