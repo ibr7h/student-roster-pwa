@@ -86,3 +86,5 @@ await import('./apply-report-save-rtl-v39.mjs');
 await import('./apply-report-cover-v39.mjs');
 // RTL mobile hamburger layout, preserving original account and reports actions.
 await import('./apply-mobile-menu-ux-v39.mjs');
+// Opaque iPhone safe-area and real connection status/sync settings UX.
+await import('./apply-mobile-connectivity-ux-v39.mjs');
