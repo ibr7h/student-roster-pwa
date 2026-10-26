@@ -50,7 +50,7 @@ function refresh(){
   const topRect=document.getElementById('appHeader')?.getBoundingClientRect();
   const bottomRect=document.querySelector('.mobile-bottom-nav')?.getBoundingClientRect();
   // Bound the available chrome dimensions: legacy header wrappers can span the page.
-  const top=topRect?.height>0?Math.min(96,Math.max(0,Math.ceil(topRect.bottom))):66;
+  const top=topRect?.height>0?Math.min(Math.round(window.innerHeight*.34),Math.max(0,Math.ceil(topRect.bottom))):66;
   const bottom=bottomRect?.height>0?Math.min(90,Math.max(0,Math.ceil(window.innerHeight-bottomRect.top))):68;
   document.body.style.setProperty('--school-report-top',top+'px');
   document.body.style.setProperty('--school-report-bottom',bottom+'px');

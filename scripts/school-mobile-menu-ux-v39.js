@@ -9,6 +9,8 @@ const header=document.getElementById('appHeader');
 if(!menu||!toggle||!header)return;
 const query=window.matchMedia('(max-width:767px)');
 const originals=Array.from(menu.children);
+// Keep the interactive mobile menu above the sticky header, avoiding iOS hit-test interception.
+const desktopParent=menu.parentNode,desktopNext=menu.nextSibling;
 const actions={
  school:originals.find(x=>x.getAttribute('onclick')?.includes('openSchoolProfileModal()')),
  members:originals.find(x=>x.getAttribute('onclick')?.includes('openTeamModal()')),
@@ -50,6 +52,7 @@ function build(){
  if(built)return;
  built=true;
  menu.classList.add('school-tools-upgraded');
+ if(menu.parentElement!==document.body)document.body.appendChild(menu);
  // Explicit mobile-only flex axis prevents legacy .app-toolbar !important layout rules
  // from placing grouped sections side-by-side outside the viewport.
  // Display is controlled by mobile-menu-open CSS; do not keep the closed panel over dialogs.
@@ -79,7 +82,7 @@ function build(){
   createGroup('الإدارة المدرسية','إعدادات المدرسة والأعضاء',[actions.school,actions.members]),
   createGroup('التقارير والأدوات','التقارير وملصقات الشواهد',[actions.report,actions.qr]),
   createGroup('البيانات والنسخ','تصدير البيانات واستيرادها',[actions.export,actions.import]),
-  createGroup('الاتصال والبيانات','إدارة الشبكة والتحديث',[(()=>{const b=toTag('button','school-connect-menu-entry');b.type='button';b.append(toTag('i','fa-solid fa-arrows-rotate'));b.append(toTag('span','','الاتصال والمزامنة'));b.addEventListener('click',()=>{window.closeMobileTools?.();window.SchoolConnectivityUX?.open()});return b})()])
+  createGroup('الاتصال والبيانات','إدارة الشبكة والتحديث',[(()=>{const b=toTag('button','school-connect-menu-entry');b.id='school-connect-menu-action';b.type='button';b.append(toTag('i','fa-solid fa-arrows-rotate'));b.append(toTag('span','','الاتصال والمزامنة'));b.addEventListener('click',()=>{window.closeMobileTools?.();window.SchoolConnectivityUX?.open()});return b})()])
  );
  // Keep all dynamically injected login/security/update controls: never drop features.
  const optional=[actions.email,actions.password,actions.updates].filter(Boolean);
@@ -113,6 +116,7 @@ function build(){
 function restore(){
  if(!built)return;
  menu.replaceChildren(...originals);
+ if(menu.parentNode!==desktopParent)desktopParent.insertBefore(menu,desktopNext);
  menu.removeAttribute('dir');menu.removeAttribute('role');
  menu.removeAttribute('aria-label');menu.removeAttribute('tabindex');
  menu.classList.remove('school-tools-upgraded');
