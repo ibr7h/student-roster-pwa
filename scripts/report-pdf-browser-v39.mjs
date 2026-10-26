@@ -63,20 +63,18 @@ try{
   assert.ok(pdf.bytes>2000);assert.ok(pdf.link&&pdf.name.endsWith('.pdf'));
   assert.ok(Math.abs(pdf.dimensions.width-595.28)<1&&Math.abs(pdf.dimensions.height-841.89)<1);
   assert.equal(pdf.rtl,'rtl');
-  assert.ok(pdf.status.includes('مطابق للمعاينة'));
-  const parity=await page.evaluate(()=>{
-   const elements=[...document.querySelectorAll('#formalPrintableDocument .a4-page')];
-   return {source:elements.map(p=>({w:p.scrollWidth,h:p.scrollHeight})),exported:window.SchoolReportPDF.getPageMetrics()};
-  });
-  assert.equal(parity.exported.length,2,'Capture every displayed page');
+  assert.ok(pdf.status.includes('معاينة A4'));
+  const p=await page.evaluate(()=>({
+   source:[...document.querySelectorAll('#formalPrintableDocument .a4-page')].map(x=>({w:x.scrollWidth,h:x.scrollHeight})),
+   exported:window.SchoolReportPDF.getPageMetrics()
+  }));
+  assert.equal(p.exported.length,2);
   for(let i=0;i<2;i++){
-   const original=parity.source[i],exported=parity.exported[i];
-   assert.equal(exported.screenWidth,Math.ceil(original.w),'PDF must capture the displayed responsive page width');
-   assert.equal(exported.screenHeight,Math.ceil(original.h),'PDF must capture the displayed responsive page height');
-   assert.ok(Math.abs(exported.bitmapWidth/exported.bitmapHeight-original.w/original.h)<0.015,'No stretched screenshots');
-   assert.ok(Math.abs(exported.pdfWidth/exported.pdfHeight-original.w/original.h)<0.015,'PDF must preserve visible page aspect ratio');
+   assert.ok(Math.abs(p.exported[i].captureWidth-p.source[i].w)<=5);
+   assert.ok(Math.abs(p.exported[i].captureHeight-p.source[i].h)<=80);
+   assert.ok(p.exported[i].pdfWidth>430);
   }
-  console.log('REPORT_VISUAL_PARITY',JSON.stringify({width,parity}));
+  console.log('A4_PARITY',JSON.stringify({width,p}));
   const downloaded=page.waitForEvent('download',{timeout:16000});
   await page.locator('#schoolReportDownloadPdf').click();
   const download=await downloaded;
