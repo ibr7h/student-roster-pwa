@@ -54,6 +54,8 @@ function build(){
  // from placing grouped sections side-by-side outside the viewport.
  menu.style.setProperty('display','flex','important');
  menu.style.setProperty('flex-direction','column','important');
+ // Tailwind flex-wrap from the original header was wrapping tall menu sections into invisible RTL columns.
+ menu.style.setProperty('flex-wrap','nowrap','important');
  menu.style.setProperty('align-items','stretch','important');
  menu.style.setProperty('justify-content','flex-start','important');
  menu.setAttribute('dir','rtl');menu.setAttribute('role','region');
@@ -113,7 +115,7 @@ function restore(){
  menu.removeAttribute('dir');menu.removeAttribute('role');
  menu.removeAttribute('aria-label');menu.removeAttribute('tabindex');
  menu.classList.remove('school-tools-upgraded');
- for(const k of ['display','flex-direction','align-items','justify-content'])menu.style.removeProperty(k);
+ for(const k of ['display','flex-direction','flex-wrap','align-items','justify-content'])menu.style.removeProperty(k);
  for(const e of originals){e.classList.remove('school-menu-action','school-menu-current-user');e.removeAttribute('dir')}
  built=false;
 }
