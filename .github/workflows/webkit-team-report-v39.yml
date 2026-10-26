@@ -13,6 +13,8 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
     steps:
       - uses: actions/checkout@v4
+      - name: Install ZIP extraction utility in browser container
+        run: apt-get update -qq && apt-get install -y -qq unzip
       - name: Build isolated v3.9 school frontend
         run: |
           unzip -q -o site.zip -d public
