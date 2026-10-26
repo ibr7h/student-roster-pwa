@@ -5,6 +5,7 @@ on:
     paths:
       - scripts/mobile-menu-browser-v39.mjs
       - scripts/school-mobile-menu-ux-v39.js
+      - scripts/mobile-native-v38.js
       - scripts/school-mobile-menu-ux-v39.css
       - scripts/apply-mobile-menu-ux-v39.mjs
       - scripts/static-frontend-v37.mjs
