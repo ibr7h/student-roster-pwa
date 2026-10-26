@@ -40,10 +40,10 @@ for(const [src,dst] of [
 const deps=[
  {file:'html2canvas-pro-v2.4.5.min.js',urls:[
   'https://cdn.jsdelivr.net/npm/html2canvas-pro@2.4.5/dist/html2canvas-pro.min.js',
-  'https://unpkg.com/html2canvas-pro@2.4.5/dist/html2canvas-pro.min.js'],min:120000,max:800000},
+  'https://unpkg.com/html2canvas-pro@2.4.5/dist/html2canvas-pro.min.js'],min:120000,max:800000,sha256:'83de413ad498bdedb4cbc6ede80f8d349b52ce728131db16e134dbe1ced95c97'},
  {file:'pdf-lib-v1.17.1.min.js',urls:[
   'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
-  'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'],min:200000,max:900000}
+  'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'],min:200000,max:900000,sha256:'0f9a5cad07941f0826586c94e089d89b918c46e5c17cf2d5a3c6f666e3bc694f'}
 ];
 for(const dep of deps){
  let bytes,issue;
@@ -58,6 +58,8 @@ for(const dep of deps){
   }catch(error){issue=error;bytes=null}
  }
  if(!bytes)throw new Error('Cannot package '+dep.file+': '+String(issue));
+ const sha256=createHash('sha256').update(bytes).digest('hex');
+ if(sha256!==dep.sha256)throw new Error('Integrity check failed for '+dep.file);
  fs.writeFileSync('public/assets/'+dep.file,bytes);
  console.log('Vendor asset',dep.file,bytes.length,'sha256='+createHash('sha256').update(bytes).digest('hex'));
 }
