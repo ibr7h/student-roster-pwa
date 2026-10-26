@@ -41,3 +41,4 @@
  #officialReportModal #formalPrintableDocument .a4-page table{direction:rtl!important;}
  #schoolReportFileActions,#schoolReportPdfStatus,#schoolReportSavePdf{display:none!important;}
 }
+#schoolReportFileActions button[hidden],#schoolReportFileActions a[hidden]{display:none!important;}
