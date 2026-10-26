@@ -34,6 +34,26 @@ try{
   await page.evaluate(()=>document.getElementById('loginScreenOverlay')?.classList.add('hidden'));
   await page.locator('button[onclick="openOfficialReportModal()"]').evaluate(el=>el.click());
   await page.locator('#formalPrintableDocument .a4-page').first().waitFor({state:'visible',timeout:15000});
+  const reportStructure=await page.evaluate(()=>{
+   const doc=document.getElementById('formalPrintableDocument');
+   const pages=[...doc.querySelectorAll('.a4-page')];
+   const tablePages=pages.filter(x=>x.dataset.reportPage==='section-table');
+   const separators=pages.filter(x=>x.dataset.reportPage==='section-divider');
+   return {length:pages.length,order:pages.map(x=>x.dataset.reportPage||'signature'),
+    index:[...doc.querySelectorAll('[data-toc-page]')].map(x=>({section:x.getAttribute('data-toc-page'),label:x.textContent})),
+    cover:pages[0]?.innerText.includes('سجل توثيق شواهد'),
+    tablePages:tablePages.length,separators:separators.length,signature:pages.at(-1)?.innerText.includes('محضر اعتماد'),
+    overflow:pages.slice(0,2).map(p=>({client:p.clientHeight,scroll:p.scrollHeight}))};
+  });
+  assert.equal(reportStructure.length,19,'8 dividers + 8 original tables + signatures + cover/index');
+  assert.deepEqual(reportStructure.order.slice(0,4),['cover','toc','section-divider','section-table']);
+  assert.equal(reportStructure.tablePages,8,'Original eight evidence sections must survive');
+  assert.equal(reportStructure.separators,8);
+  assert.equal(reportStructure.signature,true,'Original approval and signatures must be preserved');
+  assert.equal(reportStructure.cover,true);
+  assert.deepEqual(reportStructure.index.map(x=>Number(x.label.replace(/[^0-9]/g,''))),[3,5,7,9,11,13,15,17]);
+  assert.ok(reportStructure.overflow.every(x=>x.scroll<=x.client+5),'Cover and index must fit an A4 page');
+  console.log('REPORT_19_PAGE_STRUCTURE',JSON.stringify({width,reportStructure}));
   await page.waitForFunction(()=>window.SchoolReportView?.getMode()==='a4'&&document.querySelector('#formalPrintableDocument .a4-page')?.parentElement?.classList.contains('school-a4-sheet'),null,{timeout:10000});
   const view=await page.evaluate(()=>{
    const p=document.querySelector('#formalPrintableDocument .a4-page'),shell=p.parentElement;
@@ -94,12 +114,12 @@ try{
   const download=await downloaded;
   assert.ok(download.suggestedFilename().endsWith('.pdf'));
   if(width===390&&process.env.TEST_BROWSER==='chromium'){
-   // Check a full 17-sheet synthetic school report instead of only two pages.
+   // Check a full 19-sheet synthetic school report instead of only two pages.
    await page.evaluate(()=>window.renderFormalReportPreview());
-   await page.waitForFunction(()=>document.querySelectorAll('#formalPrintableDocument .a4-page').length===17,null,{timeout:15000});
+   await page.waitForFunction(()=>document.querySelectorAll('#formalPrintableDocument .a4-page').length===19,null,{timeout:15000});
    await page.locator('#schoolReportSavePdf').click();
    await page.waitForFunction(()=>!document.getElementById('schoolReportSavePdf').disabled&&(
-    window.SchoolReportPDF.getPageMetrics().length===17||
+    window.SchoolReportPDF.getPageMetrics().length===19||
     document.getElementById('schoolReportPdfStatus').classList.contains('school-report-error')
    ),null,{timeout:160000});
    const full=await page.evaluate(async()=>{
@@ -110,9 +130,9 @@ try{
       minWidth:Math.min(...m.map(x=>x.pdfWidth)),
       status:document.getElementById('schoolReportPdfStatus').textContent};
    });
-   console.log('FULL_17_PAGE_PDF',JSON.stringify(full));
-   assert.equal(full.pages,17);
-   assert.equal(full.metrics,17);
+   console.log('FULL_19_PAGE_PDF',JSON.stringify(full));
+   assert.equal(full.pages,19);
+   assert.equal(full.metrics,19);
    assert.ok(full.minWidth>400);
    assert.ok(full.bytes>150000);
   }
