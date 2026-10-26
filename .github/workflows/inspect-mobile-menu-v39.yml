@@ -1,0 +1,20 @@
+name: Diagnose Shawahed mobile tools menu accessibility/layout
+on:
+  push:
+    branches: [fix/school-v39-mobile-hamburger-ux-r16-20261026]
+    paths: [scripts/inspect-mobile-menu-v39.mjs,.github/workflows/inspect-mobile-menu-v39.yml]
+permissions: {contents: read}
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+          node scripts/inspect-mobile-menu-v39.mjs

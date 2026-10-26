@@ -84,3 +84,5 @@ await import('./fix-members-mobile-report-v39.mjs');
 await import('./apply-report-save-rtl-v39.mjs');
 // Institutional Arabic A4 cover, dynamically numbered contents and eight separators.
 await import('./apply-report-cover-v39.mjs');
+// RTL mobile hamburger layout, preserving original account and reports actions.
+await import('./apply-mobile-menu-ux-v39.mjs');
