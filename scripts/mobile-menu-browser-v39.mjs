@@ -62,6 +62,7 @@ try{
    });
    return {width:innerWidth,bodyWidth:document.documentElement.scrollWidth,menuWidth:el.getBoundingClientRect().width,
     top:el.getBoundingClientRect().top,headerBottom:document.getElementById('appHeader').getBoundingClientRect().bottom,
+    menuRect:el.getBoundingClientRect().toJSON(),scrollRect:el.querySelector('.school-menu-scroll').getBoundingClientRect().toJSON(),groupRect:group.getBoundingClientRect().toJSON(),accountRect:el.querySelector('.school-menu-account').getBoundingClientRect().toJSON(),
     menuDisplay:getComputedStyle(el).display,rtl:getComputedStyle(el).direction,
     grid:getComputedStyle(group).display,
     headingHeight:heading.getBoundingClientRect().height,
