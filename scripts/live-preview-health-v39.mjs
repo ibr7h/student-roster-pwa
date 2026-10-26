@@ -36,7 +36,7 @@ async function fetchText(path){
  throw new Error('PWA request failed '+path+': '+String(last));
 }
 const serviceWorker=await fetchText('/sw.js');
-assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261026-r16'),'PWA cache not updated on live preview');
+assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261026-r17'),'PWA cache not updated on live preview');
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
 assert.ok(authScript.includes('auth39-retryConnection'),'Updated login retry action not deployed');
@@ -46,9 +46,9 @@ assert.ok(mobileScript.includes('schoolReportMenuGuard'),'Mobile report must dis
 const documentHtml=await fetchText('/index.html');
 assert.ok(documentHtml.includes('جارٍ إعداد التقرير المدرسي')&&documentHtml.includes('إعادة محاولة التقرير'),'Published A4 launch must paint before rendering and show retry on failure');
 const releaseData=JSON.parse(await fetchText('/release.json'));
-assert.equal(releaseData.version,'v3.9.0-r16','Published release manifest must match displayed build');
+assert.equal(releaseData.version,'v3.9.0-r17','Published release manifest must match displayed build');
 const releaseScript=await fetchText('/assets/release-ui-v39.js');
-assert.ok(releaseScript.includes("CURRENT='v3.9.0-r16'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
+assert.ok(releaseScript.includes("CURRENT='v3.9.0-r17'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
 assert.ok(documentHtml.includes('release-ui-v39.js'),'Visible PWA version script not attached to live page');
 assert.ok(documentHtml.includes('window.schoolMemberSaving')&&documentHtml.includes('window.schoolPermissionsSaving'),'Deployed team management handlers must be active');
 assert.ok(documentHtml.includes('mobile-report-fix-v39.css'),'Deployed school A4 phone layout must be linked');
@@ -59,6 +59,10 @@ assert.ok((await fetchText('/assets/school-report-a4-preview-v39.js')).includes(
 assert.ok((await fetchText('/assets/school-report-a4-preview-v39.css')).includes('210mm'),'Matching A4 layout styles are missing');
 assert.ok(documentHtml.includes('schoolReportToggleView'),'Phone/A4 preview toggle not in deployed HTML');
 assert.ok(documentHtml.includes('repOptMainCover')&&documentHtml.includes('template.updateIndexPageNumbers(docContainer)'),'Published report cover and TOC integration missing');
+assert.ok(documentHtml.includes('mobile-connectivity-ux-v39.js'),'Connectivity UX script not loaded');
+assert.ok(documentHtml.includes('black-translucent')&&documentHtml.includes('name="theme-color"'),'iPhone opaque header metadata missing');
+assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.js')).includes('schoolConnectivityPanel'),'Connectivity screen asset not deployed');
+assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.css')).includes('school-connect-sheet'),'Connectivity UI CSS not deployed');
 assert.ok((await fetchText('/assets/school-report-cover-v39.js')).includes('ShawahedReportDesign'),'Report designer script not on live service');
 assert.ok((await fetchText('/assets/school-report-cover-v39.css')).includes('.shd-cover'),'Institutional report CSS not served');
 assert.ok(documentHtml.includes('school-mobile-menu-ux-v39.js'),'RTL grouped mobile menu not loaded');
