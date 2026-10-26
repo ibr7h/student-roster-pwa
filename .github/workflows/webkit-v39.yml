@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - test/school-v39-webkit-release-r17-20261026
+      - fix/school-v39-opaque-ios-status-r18-20261027
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/webkit-smoke-v39.mjs
@@ -16,6 +17,8 @@ on:
       - scripts/mobile-native-v38.js
       - scripts/mobile-native-v38.css
       - scripts/apply-auth-ui-v39.mjs
+      - scripts/apply-mobile-connectivity-ux-v39.mjs
+      - scripts/mobile-connectivity-ux-v39.css
       - .github/workflows/webkit-v39.yml
 permissions:
   contents: read
