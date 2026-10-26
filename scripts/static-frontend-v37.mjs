@@ -78,3 +78,5 @@ await import('./apply-auth-ui-v39.mjs');
 await import('./harden-report-v39.mjs');
 // Owner administration only: import a Google Cloud OAuth JSON into encrypted API storage.
 await import('./owner-google-frontend-v39.mjs');
+// Isolated acceptance-tested manager permissions and responsive on-screen report.
+await import('./fix-members-mobile-report-v39.mjs');
