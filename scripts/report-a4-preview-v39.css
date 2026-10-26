@@ -3,8 +3,8 @@
 #schoolReportToggleView{border-radius:10px;padding:8px 11px;background:#334155;color:white;font-size:12px;font-weight:700;cursor:pointer;}
 .school-a4-sheet{flex:none;position:relative;margin-inline:auto;}
 #officialReportModal.school-report-a4-preview #formalPrintableDocument{display:flex!important;flex-direction:column!important;align-items:center!important;overflow:visible!important;}
-#officialReportModal.school-report-a4-preview .school-a4-sheet{display:block!important;max-width:none!important;min-width:0;}
-#officialReportModal.school-report-a4-preview .school-a4-sheet > .a4-page{
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .school-a4-sheet{display:block!important;max-width:none!important;min-width:0;}
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .school-a4-sheet > .a4-page{
  position:absolute!important;top:0!important;right:0!important;
  transform-origin:top right!important;
  width:210mm!important;min-width:210mm!important;max-width:210mm!important;
@@ -15,21 +15,21 @@
  font-size:initial!important;direction:rtl!important;text-align:right!important;
  overflow-wrap:normal!important;
 }
-#officialReportModal.school-report-a4-preview .a4-page .grid-cols-3{
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .a4-page .grid-cols-3{
  grid-template-columns:repeat(3,minmax(0,1fr))!important;
 }
-#officialReportModal.school-report-a4-preview .a4-page table{
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .a4-page table{
  table-layout:auto!important;font-size:12px!important;
 }
-#officialReportModal.school-report-a4-preview .a4-page th,
-#officialReportModal.school-report-a4-preview .a4-page td{
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .a4-page th,
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .a4-page td{
  max-width:none!important;padding:6px 8px!important;
  overflow-wrap:break-word!important;font-size:12px!important;
 }
-#officialReportModal.school-report-a4-preview .a4-page .text-3xl{
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .a4-page .text-3xl{
  font-size:30px!important;line-height:1.2!important;
 }
-#officialReportModal.school-report-a4-preview .a4-page .section-cover-page{
+#officialReportModal.school-report-a4-preview #formalPrintableDocument .a4-page .section-cover-page{
  min-height:270mm!important;
 }
 #officialReportModal:not(.school-report-a4-preview) .school-a4-sheet{display:contents!important;}
@@ -53,7 +53,7 @@
  .school-a4-sheet{display:contents!important;height:auto!important;transform:none!important;}
  .school-a4-sheet>.a4-page{position:relative!important;top:auto!important;right:auto!important;transform:none!important;}
  #schoolReportToggleView{display:none!important;}
- #officialReportModal.school-report-a4-preview .school-a4-sheet>.a4-page{
+ #officialReportModal.school-report-a4-preview #formalPrintableDocument .school-a4-sheet>.a4-page{
  position:relative!important;top:auto!important;right:auto!important;transform:none!important;
  min-height:100%!important;width:100%!important;max-width:100%!important;
  padding:10mm!important;
