@@ -84,6 +84,7 @@ try{
   await page.keyboard.press('Escape');
   await page.waitForFunction(()=>!document.body.classList.contains('mobile-menu-open'));
   assert.equal(await page.locator('#mobileMenuToggle').getAttribute('aria-expanded'),'false');
+  assert.equal(await page.locator('#headerTools').evaluate(e=>getComputedStyle(e).display),'none','Closed menu must never intercept other pages');
   assert.equal(await page.evaluate(()=>document.activeElement?.id),'mobileMenuToggle');
   // One-menu action opens a REAL report after closing the tools UI.
   await page.locator('#mobileMenuToggle').click();
