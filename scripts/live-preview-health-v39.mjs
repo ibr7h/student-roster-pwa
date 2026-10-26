@@ -36,7 +36,7 @@ async function fetchText(path){
  throw new Error('PWA request failed '+path+': '+String(last));
 }
 const serviceWorker=await fetchText('/sw.js');
-assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261026-r13'),'PWA cache not updated on live preview');
+assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261026-r14'),'PWA cache not updated on live preview');
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
 assert.ok(authScript.includes('auth39-retryConnection'),'Updated login retry action not deployed');
@@ -46,14 +46,18 @@ assert.ok(mobileScript.includes('schoolReportMenuGuard'),'Mobile report must dis
 const documentHtml=await fetchText('/index.html');
 assert.ok(documentHtml.includes('جارٍ إعداد التقرير المدرسي')&&documentHtml.includes('إعادة محاولة التقرير'),'Published A4 launch must paint before rendering and show retry on failure');
 const releaseData=JSON.parse(await fetchText('/release.json'));
-assert.equal(releaseData.version,'v3.9.0-r13','Published release manifest must match displayed build');
+assert.equal(releaseData.version,'v3.9.0-r14','Published release manifest must match displayed build');
 const releaseScript=await fetchText('/assets/release-ui-v39.js');
-assert.ok(releaseScript.includes("CURRENT='v3.9.0-r13'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
+assert.ok(releaseScript.includes("CURRENT='v3.9.0-r14'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
 assert.ok(documentHtml.includes('release-ui-v39.js'),'Visible PWA version script not attached to live page');
 assert.ok(documentHtml.includes('window.schoolMemberSaving')&&documentHtml.includes('window.schoolPermissionsSaving'),'Deployed team management handlers must be active');
 assert.ok(documentHtml.includes('mobile-report-fix-v39.css'),'Deployed school A4 phone layout must be linked');
 assert.ok((await fetchText('/assets/mobile-report-fix-v39.css')).includes('#formalPrintableDocument'),'Published responsive report CSS missing');
 assert.ok(documentHtml.includes('id="schoolReportSavePdf"')&&documentHtml.includes('school-report-export-v39.js'),'Real PDF save control not deployed');
+assert.ok((await fetchText('/assets/school-report-export-v39.js')).includes('getPageMetrics'),'PDF A4 layout parity data missing');
+assert.ok((await fetchText('/assets/school-report-a4-preview-v39.js')).includes('school-a4-sheet'),'A4 scaled preview is not deployed');
+assert.ok((await fetchText('/assets/school-report-a4-preview-v39.css')).includes('210mm'),'Matching A4 layout styles are missing');
+assert.ok(documentHtml.includes('schoolReportToggleView'),'Phone/A4 preview toggle not in deployed HTML');
 for(const asset of ['/assets/school-report-export-v39.js','/assets/school-report-rtl-v39.css','/assets/html2canvas-pro-v2.4.5.min.js','/assets/pdf-lib-v1.17.1.min.js'])assert.ok((await fetchText(asset)).length>100,'Missing PDF asset '+asset);
 const ownerHtml=await fetchText('/owner.html');
 assert.ok(ownerHtml.includes('owner-google-ui-v39.js'),'Owner settings UI must be present in deployed preview');

@@ -10,6 +10,7 @@ const share=document.getElementById('schoolReportSharePdf');
 const download=document.getElementById('schoolReportDownloadPdf');
 if(!modal||!doc||!save||!actions||!message||!share||!download)return;
 let saving=false,objectUrl=null,currentFile=null,sourceKey='';
+const pageMetrics=[];
 function inform(value,error=false){message.textContent=value;message.classList.toggle('school-report-error',error)}
 function key(){return [doc.querySelectorAll('.a4-page').length,doc.textContent.length,document.getElementById('repOptIncludeCovers')?.checked,document.getElementById('repOptIncludeQrs')?.checked].join(':')}
 function reset(){if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=null;currentFile=null;sourceKey='';actions.hidden=true;download.removeAttribute('href')}
@@ -49,6 +50,9 @@ async function exportPdf(){
   if(typeof window.html2canvas!=='function'||!window.PDFLib?.PDFDocument)throw Error('أدوات PDF غير متوفرة. حدّث التطبيق ثم حاول مرة أخرى.');
   let pages=[...doc.querySelectorAll('.a4-page')];
   if(!pages.length)throw Error('التقرير لم يكتمل. افتح التقرير مجددًا ثم حاول الحفظ.');
+  window.SchoolReportView?.showA4();
+  await pause();await pause();
+  pageMetrics.length=0;
   if(pages.length>250)throw Error('عدد الصفحات كبير جدًا للحفظ من الهاتف.');
   inform('جارٍ إنشاء PDF...');await awaitQrs();
   pages=[...doc.querySelectorAll('.a4-page')];
@@ -64,12 +68,17 @@ async function exportPdf(){
    inform('جارٍ تجهيز الصفحة '+(i+1)+' من '+pages.length+'...');
    const clone=clonePage(pages[i]);offscreen.replaceChildren(clone);
    await pause();
-   const canvas=await window.html2canvas(clone,{backgroundColor:'#ffffff',scale:1.35,useCORS:true,logging:false,scrollX:0,scrollY:0,windowWidth:1024});
+   const previewPage=pages[i];
+   const captureWidth=clone.scrollWidth,captureHeight=clone.scrollHeight;
+   const previewWidth=previewPage.scrollWidth,previewHeight=previewPage.scrollHeight;
+   console.log('A4_CAPTURE_LAYOUT',JSON.stringify({page:i+1,previewWidth,previewHeight,captureWidth,captureHeight}));
+   const canvas=await window.html2canvas(clone,{backgroundColor:'#ffffff',scale:2.1,useCORS:true,logging:false,scrollX:0,scrollY:0,windowWidth:1024});
    if(!canvas.width||!canvas.height)throw Error('تعذر تحويل الصفحة '+(i+1)+' إلى PDF.');
-   const jpeg=canvas.toDataURL('image/jpeg',0.81);
+   const jpeg=canvas.toDataURL('image/jpeg',0.94);
    const image=await pdf.embedJpg(jpeg);const sheet=pdf.addPage([pw,ph]);
    const factor=Math.min(pw/image.width,ph/image.height),w=image.width*factor,h=image.height*factor;
    sheet.drawImage(image,{x:(pw-w)/2,y:ph-h,width:w,height:h});
+   pageMetrics.push({previewWidth,previewHeight,captureWidth,captureHeight,pdfWidth:Number(w.toFixed(2)),pdfHeight:Number(h.toFixed(2))});
    clone.remove();offscreen.replaceChildren();canvas.width=1;canvas.height=1;
    if(i%2===0)await pause();
   }
@@ -80,7 +89,7 @@ async function exportPdf(){
   objectUrl=URL.createObjectURL(currentFile);sourceKey=key();
   download.href=objectUrl;download.download=currentFile.name;actions.hidden=false;
   share.hidden=!(typeof navigator.share==='function'&&(!navigator.canShare||navigator.canShare({files:[currentFile]})));
-  inform('تم تجهيز PDF ('+pages.length+' صفحة). اضغط «تنزيل PDF» أو «حفظ في الملفات».');
+  inform('تم تجهيز PDF بنفس تخطيط معاينة A4 ('+pages.length+' صفحة). اضغط «تنزيل PDF» أو «حفظ في الملفات».');
  }catch(error){console.error('PDF export failed',error);inform(error?.message||'تعذر إنشاء PDF. جرّب الطباعة من Safari.',true)}
  finally{offscreen?.remove();saving=false;save.disabled=false}
 }
@@ -95,5 +104,5 @@ function sharePdf(){
 save.addEventListener('click',exportPdf);
 share.addEventListener('click',sharePdf);
 print?.addEventListener('click',()=>inform('استخدم خيارات الطباعة للحفظ إذا كانت مدعومة في جهازك.'));
-window.SchoolReportPDF={export:exportPdf,getFile:()=>currentFile};
+window.SchoolReportPDF={export:exportPdf,getFile:()=>currentFile,getPageMetrics:()=>pageMetrics.slice()};
 })();

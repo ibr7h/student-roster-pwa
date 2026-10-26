@@ -34,6 +34,20 @@ try{
   await page.evaluate(()=>document.getElementById('loginScreenOverlay')?.classList.add('hidden'));
   await page.locator('button[onclick="openOfficialReportModal()"]').evaluate(el=>el.click());
   await page.locator('#formalPrintableDocument .a4-page').first().waitFor({state:'visible',timeout:15000});
+  await page.waitForFunction(()=>window.SchoolReportView?.getMode()==='a4'&&document.querySelector('#formalPrintableDocument .a4-page')?.parentElement?.classList.contains('school-a4-sheet'),null,{timeout:10000});
+  const view=await page.evaluate(()=>{
+   const p=document.querySelector('#formalPrintableDocument .a4-page'),shell=p.parentElement;
+   return {pageWidth:p.getBoundingClientRect().width,pageHeight:p.getBoundingClientRect().height,shellWidth:shell.getBoundingClientRect().width,shellHeight:shell.getBoundingClientRect().height,sourceWidth:p.scrollWidth,mode:window.SchoolReportView.getMode()};
+  });
+  assert.ok(view.sourceWidth>750,'A4 preview must use real A4 layout dimensions');
+  assert.ok(view.pageWidth<=width+2&&view.pageWidth>width*0.65,'A4 page should visually fit screen');
+  assert.ok(Math.abs(view.pageWidth-view.shellWidth)<3,'Scaled A4 page must match its preview wrapper');
+  assert.ok(Math.abs(view.pageHeight-view.shellHeight)<3,'A4 preview wrapper must preserve full page height');
+  console.log('A4_VIEWPORT',JSON.stringify({width,view}));
+  await page.locator('#schoolReportToggleView').click();
+  await page.waitForFunction(()=>window.SchoolReportView.getMode()==='mobile');
+  await page.locator('#schoolReportToggleView').click();
+  await page.waitForFunction(()=>window.SchoolReportView.getMode()==='a4');
   let actual=await page.evaluate(()=>{
    const m=document.getElementById('officialReportModal'),a=m.querySelector('.a4-page'),table=m.querySelector('table'),save=m.querySelector('#schoolReportSavePdf');
    return {modal:getComputedStyle(m).direction,page:getComputedStyle(a).direction,align:getComputedStyle(a).textAlign,dir:a.getAttribute('dir')||a.parentElement.dir,table:table?getComputedStyle(table).direction:null,save:save?.textContent,print:m.querySelector('#schoolReportPrint')?.textContent};
@@ -63,11 +77,45 @@ try{
   assert.ok(pdf.bytes>2000);assert.ok(pdf.link&&pdf.name.endsWith('.pdf'));
   assert.ok(Math.abs(pdf.dimensions.width-595.28)<1&&Math.abs(pdf.dimensions.height-841.89)<1);
   assert.equal(pdf.rtl,'rtl');
-  assert.ok(pdf.status.includes('تم تجهيز PDF'));
+  assert.ok(pdf.status.includes('معاينة A4'));
+  const p=await page.evaluate(()=>({
+   source:[...document.querySelectorAll('#formalPrintableDocument .a4-page')].map(x=>({w:x.scrollWidth,h:x.scrollHeight})),
+   exported:window.SchoolReportPDF.getPageMetrics()
+  }));
+  assert.equal(p.exported.length,2);
+  for(let i=0;i<2;i++){
+   assert.ok(Math.abs(p.exported[i].captureWidth-p.source[i].w)<=5);
+   assert.ok(Math.abs(p.exported[i].captureHeight-p.source[i].h)<=80);
+   assert.ok(p.exported[i].pdfWidth>430);
+  }
+  console.log('A4_PARITY',JSON.stringify({width,p}));
   const downloaded=page.waitForEvent('download',{timeout:16000});
   await page.locator('#schoolReportDownloadPdf').click();
   const download=await downloaded;
   assert.ok(download.suggestedFilename().endsWith('.pdf'));
+  if(width===390&&process.env.TEST_BROWSER==='chromium'){
+   // Check a full 17-sheet synthetic school report instead of only two pages.
+   await page.evaluate(()=>window.renderFormalReportPreview());
+   await page.waitForFunction(()=>document.querySelectorAll('#formalPrintableDocument .a4-page').length===17,null,{timeout:15000});
+   await page.locator('#schoolReportSavePdf').click();
+   await page.waitForFunction(()=>!document.getElementById('schoolReportSavePdf').disabled&&(
+    window.SchoolReportPDF.getPageMetrics().length===17||
+    document.getElementById('schoolReportPdfStatus').classList.contains('school-report-error')
+   ),null,{timeout:160000});
+   const full=await page.evaluate(async()=>{
+    const file=window.SchoolReportPDF.getFile();
+    const pdf=await window.PDFLib.PDFDocument.load(await file.arrayBuffer());
+    const m=window.SchoolReportPDF.getPageMetrics();
+    return {pages:pdf.getPageCount(),bytes:file.size,metrics:m.length,
+      minWidth:Math.min(...m.map(x=>x.pdfWidth)),
+      status:document.getElementById('schoolReportPdfStatus').textContent};
+   });
+   console.log('FULL_17_PAGE_PDF',JSON.stringify(full));
+   assert.equal(full.pages,17);
+   assert.equal(full.metrics,17);
+   assert.ok(full.minWidth>400);
+   assert.ok(full.bytes>150000);
+  }
   assert.deepEqual(errors,[],errors.join('; '));
   console.log('PASS real PDF save, RTL alignment, file download on '+width+'px '+(process.env.TEST_BROWSER||'webkit'));
   await context.close();
