@@ -1,0 +1,28 @@
+name: Inspect report save and Arabic direction
+on:
+  push:
+    branches:
+      - fix/school-v39-report-save-rtl-20261026
+    paths:
+      - scripts/inspect-report-rtl-save-v39.mjs
+      - .github/workflows/inspect-report-save-rtl-v39.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Build report HTML locally
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+      - name: Inspect bundled report controls without any school data
+        run: node scripts/inspect-report-rtl-save-v39.mjs
