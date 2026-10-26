@@ -45,6 +45,7 @@ try{
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);
+  assert.equal(await page.locator('#headerTools .school-connect-menu-entry').count(),1,'More menu must also expose connectivity');
   await page.locator('#schoolConnectivityOpen').click();
   const panel=page.locator('#schoolConnectivityPanel');
   await panel.waitFor({state:'visible'});
@@ -66,7 +67,15 @@ try{
   assert.equal(calls.filter(x=>x.method==='POST').length,beforeWrites,'Never send writes in explicit offline mode');
   const text=await panel.locator('.school-connect-security').innerText();
   assert.ok(text.includes('الجلسة الحالية')&&text.includes('لا تُحفظ تعديلات'),'Honest limits must be disclosed');
-  // Session logout must work even while explicitly offline.
+  // Check route from More menu without mutating the user account.
+  await panel.locator('#schoolConnectBack').click();
+  assert.equal(await panel.isHidden(),true);
+  await page.evaluate(()=>window.mobileNavigate('more'));
+  await page.waitForFunction(()=>document.body.classList.contains('mobile-menu-open'),null,{timeout:7000});
+  await page.locator('#headerTools .school-connect-menu-entry').click();
+  await panel.waitFor({state:'visible'});
+  assert.equal(await page.evaluate(()=>document.body.classList.contains('mobile-menu-open')),false);
+    // Session logout must work even while explicitly offline.
   await page.evaluate(()=>window.SchoolConnectivityUX.request('/logout',{method:'POST',body:'{}'}));
   assert.equal(await page.evaluate(()=>window.SchoolBridge.token()),'');
   assert.deepEqual(errors,[],'No browser exceptions: '+errors.join('; '));
