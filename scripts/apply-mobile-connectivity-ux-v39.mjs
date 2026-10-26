@@ -7,6 +7,12 @@ const bridge='async function cloudRequest(path, options={}) { return window.Scho
 if(!html.includes(bridge))throw Error('Safe SchoolBridge API wrapper missing');
 html=html.replace(bridge,
  "async function cloudRequest(path, options={}) { const ux=window.SchoolConnectivityUX; return ux ? ux.request(path,options) : window.SchoolBridge.request(path,options); }");
+const themeSetter=String.raw`document.querySelector('meta[name="theme-color"]')?.setAttribute('content',({girls:'#701a75',early:'#0e7490',classic:'#0f172a'})[selected]);`;
+if(!html.includes(themeSetter))throw Error('School theme meta update changed; review iOS theme rather than patching blindly');
+// Keep school visual theme choices but never let them retint the native status region,
+// which must remain a single opaque colour matching the PWA header.
+html=html.replace(themeSetter,String.raw`document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#0d4153');`);
+
 if(!html.includes('id="appHeader"')||!html.includes('id="licenseBanner"')||!html.includes('id="storageNotice"'))throw Error('Original header/banner structure changed');
 const metaColor=/<meta\s+name=["']theme-color["'][^>]*>/i;
 const theme='<meta name="theme-color" content="#0d4153">';
