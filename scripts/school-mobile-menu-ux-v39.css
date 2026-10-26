@@ -89,6 +89,22 @@
  #headerTools.school-tools-upgraded .school-menu-logout:focus-visible{
   outline:3px solid #0e7490!important;outline-offset:2px!important
  }
+ #headerTools.school-tools-upgraded .school-release-tools.school-menu-action{
+  flex-direction:column!important;align-items:stretch!important;gap:6px!important;
+  background:#fff!important;min-height:58px!important;padding:7px 12px!important;
+ }
+ #headerTools.school-tools-upgraded .school-release-tools.school-menu-action::after{display:none!important}
+ #headerTools.school-tools-upgraded .school-release-tools.school-menu-action > button{
+  display:flex;align-items:center;justify-content:flex-start;text-align:right;
+  gap:10px;width:100%!important;min-height:44px!important;padding:6px 4px!important;
+  font-size:14px!important;font-weight:800!important;
+  color:#23364f!important;background:transparent!important;border:0!important;
+  box-shadow:none!important;border-radius:8px!important;
+ }
+ #headerTools.school-tools-upgraded .school-release-tools-status{
+  font-size:11px!important;line-height:1.5!important;white-space:normal!important;
+  text-align:right!important;overflow-wrap:anywhere!important;
+ }
  #headerTools.school-tools-upgraded .school-menu-action input[type=file]{display:none!important}
  #headerTools.school-tools-upgraded .school-menu-account{
   flex:0 0 auto;display:flex;flex-direction:column;gap:6px;
