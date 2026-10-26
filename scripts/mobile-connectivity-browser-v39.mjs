@@ -51,6 +51,7 @@ try{
   });
   assert.deepEqual(ios.status,['black'],'Native iPhone status bar must be solid, with no translucent fade');
   assert.deepEqual(ios.standalone,['yes'],'Apple PWA standalone is required for status meta');
+  console.log('DIAG_IOS_META',JSON.stringify({width,static:[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<meta[^>]+name=["']theme-color["'][^>]*>/g)].map(x=>x[0]),runtime:ios}));
   assert.deepEqual(ios.theme,['#0d4153'],'Use a solid theme behind the native status bar');
   assert.equal(ios.topDisplay,'none','Remove legacy negative safe-area overlay');
   assert.equal(ios.rootColor,'rgb(13, 65, 83)','Root must remain same solid shade as header');
