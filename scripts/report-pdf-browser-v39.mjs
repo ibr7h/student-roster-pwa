@@ -46,7 +46,9 @@ try{
    [...root.querySelectorAll('.a4-page')].slice(2).forEach(el=>el.remove());
   });
   await page.locator('#schoolReportSavePdf').click();
-  await page.waitForFunction(()=>window.SchoolReportPDF.getFile()!==null,null,{timeout:120000});
+  await page.waitForFunction(()=>window.SchoolReportPDF.getFile()!==null||document.getElementById('schoolReportPdfStatus')?.classList.contains('school-report-error'),null,{timeout:50000});
+  const exportError=await page.locator('#schoolReportPdfStatus').evaluate(el=>el.classList.contains('school-report-error')?el.textContent:'');
+  assert.equal(exportError,'','PDF export failed: '+exportError);
   const pdf=await page.evaluate(async()=>{
    const file=window.SchoolReportPDF.getFile();
    const bytes=new Uint8Array(await file.arrayBuffer());
