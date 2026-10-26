@@ -68,8 +68,13 @@ try{
  assert.deepEqual(submitted[0].body.allowedSections,[options[0]]);
  assert.equal(submitted[0].body.isAdmin,false);
  // Test section permission assignment through its real UI.
- await page.evaluate(id=>{document.getElementById('teamModal').classList.add('hidden');openSectionMembersModal(id)},options[1]);
- await page.locator('#sectionMembersModal').waitFor({state:'visible'});
+ await page.locator('#teamModal .school-native-back').click();
+ await page.locator('#teamModal').waitFor({state:'hidden',timeout:5000});
+ await page.waitForTimeout(650); // let mobile history navigation settle before opening another modal
+ await page.evaluate(id=>openSectionMembersModal(id),options[1]);
+ await page.waitForTimeout(220);
+ console.log('SECTION_MODAL_DIAG',JSON.stringify(await page.locator('#sectionMembersModal').evaluate(el=>({hidden:el.classList.contains('hidden'),display:getComputedStyle(el).display,parent:el.parentElement?.tagName,history:history.state}))));
+ await page.locator('#sectionMembersModal').waitFor({state:'visible',timeout:6500});
  await page.locator('input[name="secAssignMemberCb"]').first().check();
  await page.locator('#sectionMembersModal button[onclick="saveSectionMembersAssignment()"]').click();
  await page.waitForFunction(()=>document.getElementById('sectionMembersModal').classList.contains('hidden'),null,{timeout:10000});
