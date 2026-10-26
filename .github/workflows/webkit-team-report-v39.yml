@@ -1,7 +1,7 @@
 name: Verify mobile school member permissions and A4 with WebKit
 on:
   push:
-    branches: [fix/school-v39-members-mobile-report-20261026]
+    branches: [fix/school-v39-members-mobile-report-20261026, feature/school-v3.9-unified-auth-20261020]
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,7 +22,6 @@ jobs:
           tar -xf school-backend.tar
           node patch-release.mjs
           node scripts/static-frontend-v37.mjs
-          node scripts/fix-members-mobile-report-v39.mjs
       - name: Use container-provided WebKit dependencies
         run: npm install --no-audit --no-fund --no-save playwright-core@1.58.2
       - name: Confirm actual WebKit member and A4 usability
