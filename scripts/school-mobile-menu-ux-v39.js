@@ -52,7 +52,7 @@ function build(){
  menu.classList.add('school-tools-upgraded');
  // Explicit mobile-only flex axis prevents legacy .app-toolbar !important layout rules
  // from placing grouped sections side-by-side outside the viewport.
- menu.style.setProperty('display','flex','important');
+ // Display is controlled by mobile-menu-open CSS; do not keep the closed panel over dialogs.
  menu.style.setProperty('flex-direction','column','important');
  // Tailwind flex-wrap from the original header was wrapping tall menu sections into invisible RTL columns.
  menu.style.setProperty('flex-wrap','nowrap','important');
