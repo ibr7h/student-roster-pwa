@@ -13,7 +13,7 @@ const modes=['auto','online','offline'];
 let mode='auto',checking=false,lastSuccess=null,lastCheck=null,reachable=navigator.onLine,started=false,manualSyncing=false;
 try{const value=localStorage.getItem(KEY);if(modes.includes(value))mode=value}catch{}
 const hasSession=()=>login.classList.contains('hidden')&&!!api?.token?.();
-const effectiveOffline=()=>mode==='offline'||!navigator.onLine;
+const effectiveOffline=()=>hasSession()&&(mode==='offline'||!navigator.onLine);
 const saveAllowed=()=>hasSession()&&!effectiveOffline();
 function create(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
 function glyph(kind){const paths={
@@ -117,6 +117,7 @@ window.SchoolConnectivityUX={
  getMode:()=>mode,getOnlineStatus:()=>({mode,reachable,effectiveOffline:effectiveOffline(),hasSession:hasSession()}),
  open,close,refresh:render,request(path,options={}){
   const method=String(options.method||'GET').toUpperCase();
+  if(path==='/logout'&&effectiveOffline()){api.clear();return Promise.resolve({});}
   if(!['GET','HEAD'].includes(method)&&effectiveOffline()){
    return Promise.reject(new Error('وضع دون اتصال: لم تُحفظ التعديلات. اختر وضع «متصل» أو «تلقائي» للمحاولة من جديد.'));
   }
