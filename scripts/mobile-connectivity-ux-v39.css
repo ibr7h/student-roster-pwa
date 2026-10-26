@@ -1,0 +1,100 @@
+/* Shawahed iPhone status region + connectivity settings r17. */
+:root{--shd-head:#0d4153;--shd-gold:#dfb84c;--shd-surface:#f5f8fb;}
+html{background:var(--shd-head)!important}
+body{background:var(--shd-surface)!important}
+#appHeader{background:var(--shd-head)!important;background-image:none!important;box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+#appHeader::before{content:'';position:absolute;top:calc(-1*env(safe-area-inset-top,0px));left:0;right:0;
+ height:env(safe-area-inset-top,0px);background:var(--shd-head);pointer-events:none;z-index:-1}
+#appHeader .app-header-layout{position:relative}
+#appHeader::after{content:none!important}
+#appHeader .app-brand{min-width:0;flex-wrap:wrap;position:relative}
+#appHeader .app-brand > div:has(h1){min-width:0}
+#schoolConnectivityOpen.school-connection-pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;
+ padding:6px 11px;border-radius:11px;background:rgba(255,255,255,.11);color:#e4f6f2;
+ border:1px solid rgba(177,221,220,.3);font-weight:800;font-size:12px;
+ cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:background .16s ease;}
+#schoolConnectivityOpen.school-connection-pill:hover{background:rgba(255,255,255,.18)}
+#schoolConnectivityOpen.school-connection-offline{color:#ffe0b5;background:rgba(241,178,84,.13);border-color:rgba(238,197,112,.35)}
+#schoolConnectivityOpen.school-connection-pill svg{width:16px;height:16px}
+#schoolConnectivityOpen:focus-visible,#schoolConnectivityPanel button:focus-visible{outline:3px solid #e4b959;outline-offset:3px}
+#schoolConnectivityPanel[hidden],#schoolConnectModes [hidden]{display:none!important}
+#schoolConnectivityPanel{box-sizing:border-box;position:fixed;inset:0;z-index:9000;
+ background:rgba(8,25,42,.57);display:flex;align-items:center;justify-content:center;
+ -webkit-backdrop-filter:none;backdrop-filter:none;direction:rtl;color:#1c334a;
+ font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif}
+#schoolConnectivityPanel *{box-sizing:border-box;min-width:0}
+#schoolConnectivityPanel .school-connect-sheet{width:min(100%,540px);height:min(91dvh,870px);max-height:91dvh;
+ display:flex;flex-direction:column;overflow:hidden;background:#f5f8fb;
+ border-radius:22px;box-shadow:0 20px 64px rgba(5,18,34,.24);}
+#schoolConnectivityPanel .school-connect-head{display:flex;gap:14px;align-items:center;min-height:82px;
+ background:#0e4154;padding:13px 18px;color:white;flex:none}
+#schoolConnectivityPanel .school-connect-back{border:1px solid rgba(255,255,255,.19);color:white;
+ background:rgba(255,255,255,.10);width:44px;height:44px;border-radius:13px;flex:0 0 44px;
+ display:grid;place-items:center;cursor:pointer}
+#schoolConnectivityPanel .school-connect-eyebrow{margin:0 0 3px;color:#a7d5d8;font-size:11px;font-weight:700}
+#schoolConnectivityPanel .school-connect-head h2{margin:0;color:white;line-height:1.5;font-size:18px;font-weight:900}
+#schoolConnectivityPanel .school-connect-head-glyph{margin-inline-start:auto;color:#e0bc5b;display:grid;place-items:center}
+#schoolConnectivityPanel .school-connect-head-glyph svg{width:30px;height:30px}
+#schoolConnectivityPanel .school-connect-scroll{padding:18px 16px calc(25px + env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#schoolConnectivityPanel .school-connect-overview{background:white;border:1px solid #dce6eb;border-radius:20px;
+ padding:18px 16px 20px;box-shadow:0 2px 9px rgba(21,47,68,.035)}
+#schoolConnectivityPanel .school-connect-overview-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#schoolConnectivityPanel .school-connect-signal{background:#dff7ec;color:#0b6954;display:inline-flex;
+ padding:7px 11px;font-size:11px;font-weight:900;line-height:1.4;border-radius:100px}
+#schoolConnectivityPanel .school-connect-signal:before{content:'';display:block;width:7px;height:7px;
+ border-radius:50%;background:#0c8e66;margin:4px 0 0 6px}
+#schoolConnectivityPanel .school-connect-signal[data-status=offline]{background:#fdf1df;color:#935722}
+#schoolConnectivityPanel .school-connect-signal[data-status=offline]:before{background:#c48b27}
+#schoolConnectivityPanel .school-connect-overview-top small{font-size:11px;color:#788a9a;line-height:1.5}
+#schoolConnectivityPanel .school-connect-overview h3{margin:14px 0 5px;font-size:19px;font-weight:900;color:#18364e}
+#schoolConnectivityPanel .school-connect-overview p{font-size:12px;line-height:1.8;color:#607587;margin:0}
+#schoolConnectivityPanel .school-connect-section{margin-top:17px;background:white;border:1px solid #dce6eb;
+ border-radius:19px;padding:17px 14px;box-shadow:0 1px 3px rgba(26,44,60,.018)}
+#schoolConnectivityPanel .school-connect-section h3{margin:0 0 6px;font-size:15px;color:#17374e;font-weight:900}
+#schoolConnectivityPanel .school-connect-hint{font-size:12px;line-height:1.8;color:#687b8e;margin:0 0 12px}
+#schoolConnectivityPanel .school-connect-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#schoolConnectivityPanel .school-connect-modes button{min-height:78px;padding:11px 6px;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:5px;border:1px solid #dbe4ec;border-radius:13px;
+ background:#f8fafc;color:#365067;cursor:pointer;text-align:center;touch-action:manipulation}
+#schoolConnectivityPanel .school-connect-modes button[aria-pressed=true]{border:2px solid #0d797d;
+ background:#e9f5f3;color:#0c545f;box-shadow:0 0 0 2px #1c9a9122}
+#schoolConnectivityPanel .school-connect-modes b{font-size:13px;line-height:1.45}
+#schoolConnectivityPanel .school-connect-modes small{font-size:10px;line-height:1.45;font-weight:600}
+#schoolConnectivityPanel .school-connect-summary{display:flex;align-items:center;gap:12px;margin:9px 0 15px;
+ padding:12px;background:#f5f9fb;border:1px solid #e3eaf1;border-radius:13px}
+#schoolConnectivityPanel .school-connect-summary-icon{display:grid;place-items:center;flex:none;width:39px;height:39px;
+ background:#e2f0ef;color:#0e7774;border-radius:12px}
+#schoolConnectivityPanel .school-connect-summary strong{display:block;font-size:12px;line-height:1.6;color:#17374e}
+#schoolConnectivityPanel .school-connect-summary small{display:block;font-size:11px;line-height:1.7;color:#697d8d;margin-top:2px}
+#schoolConnectivityPanel .school-connect-primary{display:flex;align-items:center;justify-content:center;gap:9px;
+ background:#0e6875;color:white;min-height:48px;width:100%;border:0;border-radius:13px;
+ font-size:14px;font-weight:900;cursor:pointer;touch-action:manipulation}
+#schoolConnectivityPanel .school-connect-primary:disabled{opacity:.50;cursor:not-allowed}
+#schoolConnectivityPanel .school-connect-feedback{color:#486579;font-size:11px;line-height:1.7;min-height:15px;margin:7px 2px 0}
+#schoolConnectivityPanel .school-connect-license #licenseBanner{display:flex!important;flex-wrap:wrap;align-items:center;gap:10px;
+ padding:10px 12px;background:#f8fafb!important;border:1px solid #e4ebf0!important;border-radius:12px;
+ color:#294258!important;line-height:1.65}
+#schoolConnectivityPanel .school-connect-license #licenseBanner.hidden{display:none!important}
+#schoolConnectivityPanel .school-connect-license #licenseBannerText{flex:1 1 190px;font-size:12px;color:#294258}
+#schoolConnectivityPanel .school-connect-license #licenseRenewButton{margin:0!important;font-size:12px;min-height:37px}
+#schoolConnectivityPanel .school-connect-security{display:flex;gap:11px;padding:16px 8px 0;color:#547184}
+#schoolConnectivityPanel .school-connect-security>span{padding-top:2px;flex:none;color:#607b89}
+#schoolConnectivityPanel .school-connect-security p{margin:0;display:flex;flex-direction:column;gap:4px;font-size:11px;line-height:1.9}
+#schoolConnectivityPanel .school-connect-security strong{font-size:12px;color:#2d4e62}
+body.school-connect-open{overflow:hidden!important}
+body.school-connect-open .mobile-bottom-nav{pointer-events:none}
+@media(max-width:767px){
+ html,body{overscroll-behavior-y:none}
+ #appHeader{border-bottom:1px solid rgba(255,255,255,.10)!important}
+ #appHeader .app-brand{align-items:center!important}
+ #schoolConnectivityOpen.school-connection-pill{font-size:11px;min-height:35px;padding:5px 8px}
+ #schoolConnectivityPanel{background:#f5f8fb;align-items:stretch;justify-content:flex-start}
+ #schoolConnectivityPanel .school-connect-sheet{width:100%;max-width:100%;height:100dvh;max-height:100dvh;
+ border-radius:0;box-shadow:none}
+ #schoolConnectivityPanel .school-connect-head{min-height:calc(75px + env(safe-area-inset-top,0px));
+ padding:calc(11px + env(safe-area-inset-top,0px)) 16px 11px}
+ #schoolConnectivityPanel .school-connect-scroll{padding-inline:14px}
+}
+@media print{#schoolConnectivityOpen,#schoolConnectivityPanel{display:none!important}}
+@media(prefers-reduced-motion:reduce){#schoolConnectivityPanel *{transition:none!important}}
