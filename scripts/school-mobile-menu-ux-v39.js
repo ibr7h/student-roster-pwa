@@ -16,9 +16,13 @@ const actions={
  qr:originals.find(x=>x.getAttribute('onclick')?.includes('openBulkQrModal()')),
  export:originals.find(x=>x.getAttribute('onclick')?.includes('exportJSONBackup()')),
  import:originals.find(x=>x.matches('label')&&x.querySelector('#importJsonInput')),
- account:originals.find(x=>x.querySelector('#currentUserHeaderName,#currentUserHeaderRole'))
+ account:originals.find(x=>x.querySelector('#currentUserHeaderName,#currentUserHeaderRole')),
+ email:originals.find(x=>x.id==='auth39-link-email-action'),
+ password:originals.find(x=>x.id==='auth39-change-password-action'),
+ updates:originals.find(x=>x.classList.contains('school-release-tools'))
 };
-if(originals.length!==7||Object.values(actions).some(x=>!x)||new Set(Object.values(actions)).size!==7){
+const required=['school','members','report','qr','export','import','account'];
+if(originals.length<7||required.some(k=>!actions[k])||new Set(required.map(k=>actions[k])).size!==7){
  console.warn('Menu structure differs from expected; keep original toolbar instead of damaging navigation');
  return;
 }
@@ -32,6 +36,10 @@ function createGroup(title,subtitle,items){
  section.append(toTag('h3','school-menu-group-title',title));
  if(subtitle)section.append(toTag('p','school-menu-group-subtitle',subtitle));
  for(const action of items){
+  if(!action.querySelector('i')&&action.matches('button')){
+   const icon=toTag('i','fa-solid '+(action.id==='auth39-change-password-action'?'fa-lock':'fa-envelope'));
+   icon.setAttribute('aria-hidden','true');action.prepend(icon);
+  }
   action.classList.add('school-menu-action');
   action.setAttribute('dir','rtl');
   section.append(action);
@@ -64,6 +72,12 @@ function build(){
   createGroup('التقارير والأدوات','التقارير وملصقات الشواهد',[actions.report,actions.qr]),
   createGroup('البيانات والنسخ','تصدير البيانات واستيرادها',[actions.export,actions.import])
  );
+ // Keep all dynamically injected login/security/update controls: never drop features.
+ const optional=[actions.email,actions.password,actions.updates].filter(Boolean);
+ const mapped=new Set(Object.values(actions).filter(Boolean));
+ const other=originals.filter(x=>!mapped.has(x));
+ if(optional.length)scroll.append(createGroup('الحساب والأمان','التحقق والأمان والتحديثات',optional));
+ if(other.length)scroll.append(createGroup('خيارات أخرى','أدوات إضافية متاحة لحسابك',other));
  actions.import.setAttribute('tabindex','0');
  actions.import.setAttribute('role','button');
  actions.import.setAttribute('aria-label','استيراد بيانات من ملف JSON');
