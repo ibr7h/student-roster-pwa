@@ -99,9 +99,9 @@ try{
   const desktop=await page.evaluate(()=>{
    const m=document.getElementById('headerTools');
    return {children:m.children.length,roles:[...m.children].map(x=>x.getAttribute('onclick')||x.tagName),
-    file:m.querySelectorAll('#importJsonInput').length,logout:m.querySelectorAll('button[onclick*="logoutSession"]').length};
+    file:m.querySelectorAll('#importJsonInput').length,logout:m.querySelectorAll('button[onclick*="logoutSession"]').length,mobileIcons:m.querySelectorAll('.school-menu-generated-icon').length};
   });
-  assert.equal(desktop.children,10);assert.equal(desktop.file,1);assert.equal(desktop.logout,1);
+  assert.equal(desktop.children,10);assert.equal(desktop.file,1);assert.equal(desktop.logout,1);assert.equal(desktop.mobileIcons,0);
   await page.setViewportSize({width,height:760});
   await page.waitForFunction(()=>document.querySelectorAll('#headerTools .school-menu-group').length===4,null,{timeout:12000});
   assert.deepEqual(errors,[],errors.join('\n'));
