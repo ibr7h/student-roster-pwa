@@ -29,7 +29,7 @@ html=html.replace(modalTag,modalTag+' dir="rtl" lang="ar"');
 if(!html.includes('</head>')||!html.includes('</body>'))throw Error('PWA HTML boundaries missing');
 html=html.replace('</head>','<link rel="stylesheet" href="./assets/school-report-rtl-v39.css"></head>');
 html=html.replace('</body>',
- '<script src="./assets/html2canvas-v1.4.1.min.js"></script>'+
+ '<script src="./assets/html2canvas-pro-v2.4.5.min.js"></script>'+
  '<script src="./assets/pdf-lib-v1.17.1.min.js"></script>'+
  '<script src="./assets/school-report-export-v39.js"></script></body>');
 fs.writeFileSync(htmlPath,html);
@@ -38,9 +38,9 @@ for(const [src,dst] of [
  ['scripts/report-rtl-v39.css','public/assets/school-report-rtl-v39.css']
 ])fs.copyFileSync(src,dst);
 const deps=[
- {file:'html2canvas-v1.4.1.min.js',urls:[
-  'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'],min:120000,max:400000},
+ {file:'html2canvas-pro-v2.4.5.min.js',urls:[
+  'https://cdn.jsdelivr.net/npm/html2canvas-pro@2.4.5/dist/html2canvas-pro.min.js',
+  'https://unpkg.com/html2canvas-pro@2.4.5/dist/html2canvas-pro.min.js'],min:120000,max:800000},
  {file:'pdf-lib-v1.17.1.min.js',urls:[
   'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
   'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'],min:200000,max:900000}
@@ -64,7 +64,7 @@ for(const dep of deps){
 let sw=fs.readFileSync(swPath,'utf8');
 const token="'./assets/mobile.js'";
 if(!sw.includes(token))throw Error('Offline shell asset marker missing');
-sw=sw.replace(token,token+",'./assets/school-report-rtl-v39.css','./assets/school-report-export-v39.js','./assets/html2canvas-v1.4.1.min.js','./assets/pdf-lib-v1.17.1.min.js'");
+sw=sw.replace(token,token+",'./assets/school-report-rtl-v39.css','./assets/school-report-export-v39.js','./assets/html2canvas-pro-v2.4.5.min.js','./assets/pdf-lib-v1.17.1.min.js'");
 fs.writeFileSync(swPath,sw);
 if(!html.includes('id="schoolReportSavePdf"')||!html.includes('dir="rtl" lang="ar"')||!sw.includes('school-report-export-v39.js'))throw Error('Incomplete report saving/RTL integration');
 console.log('Ready: local PDF generation, standalone download and iOS Files sharing, Arabic RTL A4');
