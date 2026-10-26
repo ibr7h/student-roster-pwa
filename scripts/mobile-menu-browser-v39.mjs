@@ -88,6 +88,12 @@ try{
   assert.equal(await page.evaluate(()=>document.activeElement?.id),'mobileMenuToggle');
   // One-menu action opens a REAL report after closing the tools UI.
   await page.locator('#mobileMenuToggle').click();
+  await page.waitForFunction(()=>document.body.classList.contains('mobile-menu-open'));
+  const menuReopen=await page.evaluate(()=>{
+   const el=document.querySelector('#headerTools button[onclick="openOfficialReportModal()"]'),r=el.getBoundingClientRect();
+   return {target:r.toJSON(),top:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.outerHTML.slice(0,200),menu:document.getElementById('headerTools').getBoundingClientRect().toJSON(),header:document.getElementById('appHeader').getBoundingClientRect().toJSON(),scroll:document.querySelector('.school-menu-scroll')?.scrollTop};
+  });
+  console.log('REOPEN_MENU_DIAG',JSON.stringify(menuReopen));
   await page.locator('#headerTools button[onclick="openOfficialReportModal()"]').click();
   await page.locator('#officialReportModal').waitFor({state:'visible',timeout:12000});
   assert.equal(await page.evaluate(()=>document.body.classList.contains('mobile-menu-open')),false);
