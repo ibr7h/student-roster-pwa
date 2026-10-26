@@ -34,6 +34,20 @@ try{
   await page.evaluate(()=>document.getElementById('loginScreenOverlay')?.classList.add('hidden'));
   await page.locator('button[onclick="openOfficialReportModal()"]').evaluate(el=>el.click());
   await page.locator('#formalPrintableDocument .a4-page').first().waitFor({state:'visible',timeout:15000});
+  await page.waitForFunction(()=>window.SchoolReportView?.getMode()==='a4'&&document.querySelector('#formalPrintableDocument .a4-page')?.parentElement?.classList.contains('school-a4-sheet'),null,{timeout:10000});
+  const view=await page.evaluate(()=>{
+   const p=document.querySelector('#formalPrintableDocument .a4-page'),shell=p.parentElement;
+   return {pageWidth:p.getBoundingClientRect().width,pageHeight:p.getBoundingClientRect().height,shellWidth:shell.getBoundingClientRect().width,shellHeight:shell.getBoundingClientRect().height,sourceWidth:p.scrollWidth,mode:window.SchoolReportView.getMode()};
+  });
+  assert.ok(view.sourceWidth>750,'A4 preview must use real A4 layout dimensions');
+  assert.ok(view.pageWidth<=width+2&&view.pageWidth>width*0.65,'A4 page should visually fit screen');
+  assert.ok(Math.abs(view.pageWidth-view.shellWidth)<3,'Scaled A4 page must match its preview wrapper');
+  assert.ok(Math.abs(view.pageHeight-view.shellHeight)<3,'A4 preview wrapper must preserve full page height');
+  console.log('A4_VIEWPORT',JSON.stringify({width,view}));
+  await page.locator('#schoolReportToggleView').click();
+  await page.waitForFunction(()=>window.SchoolReportView.getMode()==='mobile');
+  await page.locator('#schoolReportToggleView').click();
+  await page.waitForFunction(()=>window.SchoolReportView.getMode()==='a4');
   let actual=await page.evaluate(()=>{
    const m=document.getElementById('officialReportModal'),a=m.querySelector('.a4-page'),table=m.querySelector('table'),save=m.querySelector('#schoolReportSavePdf');
    return {modal:getComputedStyle(m).direction,page:getComputedStyle(a).direction,align:getComputedStyle(a).textAlign,dir:a.getAttribute('dir')||a.parentElement.dir,table:table?getComputedStyle(table).direction:null,save:save?.textContent,print:m.querySelector('#schoolReportPrint')?.textContent};
