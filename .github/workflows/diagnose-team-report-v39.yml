@@ -28,9 +28,12 @@ jobs:
           grep -Fq 'window.schoolPermissionsSaving' public/index.html
           grep -Fq 'mobile-report-fix-v39.css' public/index.html
           test -s public/assets/mobile-report-fix-v39.css
+      - name: Install Playwright core
+        run: npm install --no-audit --no-fund --no-save playwright-core@1.58.2
+      - name: Test member/report on installed Chrome
+        run: TEST_BROWSER=chromium node scripts/members-report-browser-v39.mjs
       - name: Install WebKit for member and A4 regression
         run: |
-          npm install --no-audit --no-fund --no-save playwright-core@1.58.2
           npx playwright-core install webkit
       - name: Test member creation, scoped permissions and A4 phone presentation
         run: node scripts/members-report-browser-v39.mjs
