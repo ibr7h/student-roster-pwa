@@ -31,7 +31,10 @@ try{
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(origin+'/',{waitUntil:'domcontentloaded',timeout:30000});
-  await page.waitForFunction(()=>window.SchoolToolsMenuUX?.getItems());
+  await page.waitForTimeout(750);
+  const initInfo=await page.evaluate(()=>({ready:!!window.SchoolToolsMenuUX,menu:document.querySelector('#headerTools')?.outerHTML.slice(0,3600),children:[...document.querySelector('#headerTools')?.children||[]].map(x=>({tag:x.tagName,action:x.getAttribute('onclick'),html:x.outerHTML.slice(0,260)})),script:[...document.querySelectorAll('script[src]')].map(x=>x.getAttribute('src')).filter(x=>x.includes('menu-ux'))}));
+  console.log('MENU_INIT_DIAG',JSON.stringify(initInfo));
+  await page.waitForFunction(()=>window.SchoolToolsMenuUX?.getItems(),null,{timeout:7000});
   await page.evaluate(()=>document.getElementById('loginScreenOverlay')?.classList.add('hidden'));
   // All six original action elements remain with their click handlers after re-parenting.
   const before=await page.evaluate(()=>{
