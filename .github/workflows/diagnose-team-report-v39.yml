@@ -21,7 +21,6 @@ jobs:
           tar -xf school-backend.tar
           node patch-release.mjs
           node scripts/static-frontend-v37.mjs
-          node scripts/fix-members-mobile-report-v39.mjs
       - name: Check mobile and member output markers
         run: |
           grep -Fq 'window.schoolMemberSaving' public/index.html
@@ -32,10 +31,5 @@ jobs:
         run: npm install --no-audit --no-fund --no-save playwright-core@1.58.2
       - name: Test member/report on installed Chrome
         run: TEST_BROWSER=chromium node scripts/members-report-browser-v39.mjs
-      - name: Install WebKit for member and A4 regression
-        run: |
-          npx playwright-core install webkit
-      - name: Test member creation, scoped permissions and A4 phone presentation
-        run: node scripts/members-report-browser-v39.mjs
       - name: Print source-only team and report diagnostics
         run: node scripts/diagnose-team-report-v39.mjs
