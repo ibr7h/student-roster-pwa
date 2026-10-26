@@ -2,6 +2,7 @@ name: WebKit iPhone-sized PWA smoke
 on:
   push:
     branches:
+      - test/school-v39-webkit-release-r17-20261026
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/webkit-smoke-v39.mjs
