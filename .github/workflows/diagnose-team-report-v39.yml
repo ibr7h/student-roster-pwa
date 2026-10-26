@@ -31,7 +31,7 @@ jobs:
       - name: Install WebKit for member and A4 regression
         run: |
           npm install --no-audit --no-fund --no-save playwright-core@1.58.2
-          npx playwright-core install --with-deps webkit
+          npx playwright-core install webkit
       - name: Test member creation, scoped permissions and A4 phone presentation
         run: node scripts/members-report-browser-v39.mjs
       - name: Print source-only team and report diagnostics
