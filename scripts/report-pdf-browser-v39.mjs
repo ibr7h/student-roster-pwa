@@ -93,6 +93,29 @@ try{
   await page.locator('#schoolReportDownloadPdf').click();
   const download=await downloaded;
   assert.ok(download.suggestedFilename().endsWith('.pdf'));
+  if(width===390&&process.env.TEST_BROWSER==='chromium'){
+   // Check a full 17-sheet synthetic school report instead of only two pages.
+   await page.evaluate(()=>window.renderFormalReportPreview());
+   await page.waitForFunction(()=>document.querySelectorAll('#formalPrintableDocument .a4-page').length===17,null,{timeout:15000});
+   await page.locator('#schoolReportSavePdf').click();
+   await page.waitForFunction(()=>!document.getElementById('schoolReportSavePdf').disabled&&(
+    window.SchoolReportPDF.getPageMetrics().length===17||
+    document.getElementById('schoolReportPdfStatus').classList.contains('school-report-error')
+   ),null,{timeout:160000});
+   const full=await page.evaluate(async()=>{
+    const file=window.SchoolReportPDF.getFile();
+    const pdf=await window.PDFLib.PDFDocument.load(await file.arrayBuffer());
+    const m=window.SchoolReportPDF.getPageMetrics();
+    return {pages:pdf.getPageCount(),bytes:file.size,metrics:m.length,
+      minWidth:Math.min(...m.map(x=>x.pdfWidth)),
+      status:document.getElementById('schoolReportPdfStatus').textContent};
+   });
+   console.log('FULL_17_PAGE_PDF',JSON.stringify(full));
+   assert.equal(full.pages,17);
+   assert.equal(full.metrics,17);
+   assert.ok(full.minWidth>400);
+   assert.ok(full.bytes>150000);
+  }
   assert.deepEqual(errors,[],errors.join('; '));
   console.log('PASS real PDF save, RTL alignment, file download on '+width+'px '+(process.env.TEST_BROWSER||'webkit'));
   await context.close();
