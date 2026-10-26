@@ -54,7 +54,10 @@ assert.ok(documentHtml.includes('window.schoolMemberSaving')&&documentHtml.inclu
 assert.ok(documentHtml.includes('mobile-report-fix-v39.css'),'Deployed school A4 phone layout must be linked');
 assert.ok((await fetchText('/assets/mobile-report-fix-v39.css')).includes('#formalPrintableDocument'),'Published responsive report CSS missing');
 assert.ok(documentHtml.includes('id="schoolReportSavePdf"')&&documentHtml.includes('school-report-export-v39.js'),'Real PDF save control not deployed');
-assert.ok((await fetchText('/assets/school-report-export-v39.js')).includes('getPageMetrics'),'Visual-fidelity PDF capture code is not deployed');
+assert.ok((await fetchText('/assets/school-report-export-v39.js')).includes('getPageMetrics'),'PDF A4 layout parity data missing');
+assert.ok((await fetchText('/assets/school-report-a4-preview-v39.js')).includes('school-a4-sheet'),'A4 scaled preview is not deployed');
+assert.ok((await fetchText('/assets/school-report-a4-preview-v39.css')).includes('210mm'),'Matching A4 layout styles are missing');
+assert.ok(documentHtml.includes('schoolReportToggleView'),'Phone/A4 preview toggle not in deployed HTML');
 for(const asset of ['/assets/school-report-export-v39.js','/assets/school-report-rtl-v39.css','/assets/html2canvas-pro-v2.4.5.min.js','/assets/pdf-lib-v1.17.1.min.js'])assert.ok((await fetchText(asset)).length>100,'Missing PDF asset '+asset);
 const ownerHtml=await fetchText('/owner.html');
 assert.ok(ownerHtml.includes('owner-google-ui-v39.js'),'Owner settings UI must be present in deployed preview');
