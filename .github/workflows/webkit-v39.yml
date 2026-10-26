@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - feature/school-v3.9-unified-auth-20261020
-      - test/school-v39-menu-regression-nested-r16-20261026
     paths:
       - scripts/webkit-smoke-v39.mjs
       - scripts/auth-ui-v39.js
