@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const h=fs.readFileSync('public/index.html','utf8');
+const a=h.indexOf('function renderFormalReportPreview() {');
+const z=h.indexOf("const qrNodes=[...docContainer.querySelectorAll('[data-report-qr]')]",a);
+if(a<0||z<0)throw Error('Report function not found');
+console.log('SOURCE_REPORT_RENDER_BEGIN');
+const s=h.slice(a,z);
+for(let i=0;i<s.length;i+=6000)console.log('RENDER_PART_'+Math.round(i/6000)+' '+JSON.stringify(s.slice(i,i+6000)));
+console.log('RENDER_DONE',s.length);
+const q=h.slice(z,z+1500);console.log('RENDER_TAIL',JSON.stringify(q));
+console.log('CONFIG',JSON.stringify(h.slice(h.indexOf('const SECTIONS_CONFIG ='),h.indexOf('const SECTIONS_CONFIG =')+11000)));
