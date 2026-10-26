@@ -52,7 +52,8 @@ try{
   assert.equal(reportStructure.signature,true,'Original approval and signatures must be preserved');
   assert.equal(reportStructure.cover,true);
   assert.deepEqual(reportStructure.index.map(x=>Number(x.label.replace(/[^0-9]/g,''))),[3,5,7,9,11,13,15,17]);
-  assert.ok(reportStructure.overflow.every(x=>x.scroll<=x.client+5),'Cover and index must fit an A4 page');
+  console.log('A4_COVER_HEIGHT_DIAG',JSON.stringify({width,overflow:reportStructure.overflow}));
+  assert.ok(reportStructure.overflow.every(x=>x.scroll<=x.client+5),'Cover and index must fit an A4 page: '+JSON.stringify(reportStructure.overflow));
   console.log('REPORT_19_PAGE_STRUCTURE',JSON.stringify({width,reportStructure}));
   await page.waitForFunction(()=>window.SchoolReportView?.getMode()==='a4'&&document.querySelector('#formalPrintableDocument .a4-page')?.parentElement?.classList.contains('school-a4-sheet'),null,{timeout:10000});
   const view=await page.evaluate(()=>{
