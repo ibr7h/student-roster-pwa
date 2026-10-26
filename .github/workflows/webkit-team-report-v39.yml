@@ -1,0 +1,28 @@
+name: Verify mobile school member permissions and A4 with WebKit
+on:
+  push:
+    branches: [fix/school-v39-members-mobile-report-20261026, feature/school-v3.9-unified-auth-20261020]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  webkit-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ZIP extraction utility in browser container
+        run: apt-get update -qq && apt-get install -y -qq unzip
+      - name: Build isolated v3.9 school frontend
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+      - name: Use container-provided WebKit dependencies
+        run: npm install --no-audit --no-fund --no-save playwright-core@1.58.2
+      - name: Confirm actual WebKit member and A4 usability
+        run: node scripts/members-report-browser-v39.mjs
