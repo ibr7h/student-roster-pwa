@@ -1,7 +1,7 @@
 name: Verify Arabic mobile hamburger UX and navigation
 on:
   push:
-    branches: [fix/school-v39-mobile-hamburger-ux-r16-20261026, feature/school-v3.9-unified-auth-20261020]
+    branches: [test/school-v39-connectivity-menu-regression-r17, fix/school-v39-mobile-hamburger-ux-r16-20261026, feature/school-v3.9-unified-auth-20261020]
     paths:
       - scripts/mobile-menu-browser-v39.mjs
       - scripts/school-mobile-menu-ux-v39.js
