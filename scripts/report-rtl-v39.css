@@ -1,0 +1,44 @@
+/* Right-to-left Arabic report on desktop, phone, print and locally generated PDF. */
+#officialReportModal{direction:rtl;text-align:right;}
+#officialReportModal #formalPrintableDocument,
+#officialReportModal #formalPrintableDocument .a4-page{direction:rtl!important;text-align:right!important;}
+#officialReportModal #formalPrintableDocument .a4-page table,
+#officialReportModal #formalPrintableDocument .a4-page th,
+#officialReportModal #formalPrintableDocument .a4-page td{direction:rtl!important;text-align:right!important;}
+#officialReportModal #formalPrintableDocument .a4-page .text-center,
+#officialReportModal #formalPrintableDocument .a4-page td.text-center,
+#officialReportModal #formalPrintableDocument .a4-page th.text-center{text-align:center!important;}
+#officialReportModal #formalPrintableDocument .a4-page .text-left{text-align:right!important;}
+#officialReportModal .report-scroll-region{direction:rtl;}
+#schoolReportFileActions[hidden]{display:none!important;}
+#schoolReportFileActions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;direction:rtl;}
+#schoolReportFileActions a,#schoolReportFileActions button{
+ display:inline-flex;align-items:center;justify-content:center;min-height:38px;
+ padding:8px 12px;border-radius:9px;color:white;font-weight:700;font-size:12px;
+ text-decoration:none;cursor:pointer;white-space:normal;
+}
+#schoolReportFileActions a{background:#0369a1;}
+#schoolReportFileActions button{background:#7c3aed;}
+#schoolReportPdfStatus{color:#d1fae5;max-width:300px;font-size:11px;line-height:1.5;}
+#schoolReportPdfStatus.school-report-error{color:#fecaca;}
+.school-report-pdf-capture{font-family:inherit;direction:rtl!important;text-align:right!important;}
+.school-report-pdf-capture .a4-page{direction:rtl!important;text-align:right!important;}
+.school-report-pdf-capture .a4-page table,
+.school-report-pdf-capture .a4-page th,
+.school-report-pdf-capture .a4-page td{direction:rtl!important;text-align:right!important;}
+.school-report-pdf-capture .a4-page .text-center{text-align:center!important;}
+.school-report-pdf-capture .a4-page .text-left{text-align:right!important;}
+@media screen and (max-width:767px){
+ #officialReportModal > div:not(.school-native-bar) > div:first-child{direction:rtl;justify-content:flex-start!important;}
+ #officialReportModal > div:not(.school-native-bar) > div:first-child > div:last-child{justify-content:flex-start;gap:6px;flex-wrap:wrap;}
+ #officialReportModal #schoolReportSavePdf,#officialReportModal #schoolReportPrint{font-size:12px;min-height:38px;}
+ #schoolReportPdfStatus{width:100%;max-width:100%;white-space:normal;}
+ #officialReportModal #formalPrintableDocument .a4-page{direction:rtl!important;text-align:right!important;}
+}
+@media print{
+ #officialReportModal #formalPrintableDocument,
+ #officialReportModal #formalPrintableDocument .a4-page{direction:rtl!important;text-align:right!important;}
+ #officialReportModal #formalPrintableDocument .a4-page table{direction:rtl!important;}
+ #schoolReportFileActions,#schoolReportPdfStatus,#schoolReportSavePdf{display:none!important;}
+}
+#schoolReportFileActions button[hidden],#schoolReportFileActions a[hidden]{display:none!important;}

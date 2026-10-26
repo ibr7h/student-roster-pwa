@@ -1,0 +1,54 @@
+name: Verify real Arabic report PDF saving and RTL (v3.9)
+on:
+  push:
+    branches: [fix/school-v39-report-save-rtl-20261026, feature/school-v3.9-unified-auth-20261020]
+    paths:
+      - scripts/report-pdf-browser-v39.mjs
+      - scripts/report-save-v39.js
+      - scripts/report-rtl-v39.css
+      - scripts/apply-report-save-rtl-v39.mjs
+      - scripts/static-frontend-v37.mjs
+      - .github/workflows/report-save-rtl-v39.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Build complete offline PWA with locally bundled PDF libraries
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+          node --check public/assets/school-report-export-v39.js
+      - name: Install Playwright harness
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+      - name: Verify PDF bytes and RTL on Chrome 390/320
+        run: TEST_BROWSER=chromium node scripts/report-pdf-browser-v39.mjs
+  webkit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: {image: 'mcr.microsoft.com/playwright:v1.58.2-noble'}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install unzip in browser test container
+        run: apt-get update -qq && apt-get install -y -qq unzip
+      - name: Build offline PWA
+        run: |
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+          node --check public/assets/school-report-export-v39.js
+      - name: Install WebKit harness
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+      - name: Verify real PDF and RTL on iPhone-sized WebKit
+        run: node scripts/report-pdf-browser-v39.mjs
