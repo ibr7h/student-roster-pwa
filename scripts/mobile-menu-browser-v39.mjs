@@ -94,7 +94,11 @@ try{
    return {target:r.toJSON(),top:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.outerHTML.slice(0,200),menu:document.getElementById('headerTools').getBoundingClientRect().toJSON(),header:document.getElementById('appHeader').getBoundingClientRect().toJSON(),scroll:document.querySelector('.school-menu-scroll')?.scrollTop};
   });
   console.log('REOPEN_MENU_DIAG',JSON.stringify(menuReopen));
-  await page.locator('#headerTools button[onclick="openOfficialReportModal()"]').click();
+  const targetRect=await page.locator('#headerTools button[onclick="openOfficialReportModal()"]').boundingBox();
+  assert.ok(targetRect && targetRect.y>125,'Report action must be visible below the native header');
+  // Direct mobile tap at the visible action: Playwright's auto-scroll can incorrectly
+  // reposition a fixed menu within a sticky header, then click the header instead.
+  await page.mouse.click(targetRect.x+targetRect.width/2,targetRect.y+targetRect.height/2);
   await page.locator('#officialReportModal').waitFor({state:'visible',timeout:12000});
   assert.equal(await page.evaluate(()=>document.body.classList.contains('mobile-menu-open')),false);
   await page.locator('#officialReportModal .school-native-back').click();
