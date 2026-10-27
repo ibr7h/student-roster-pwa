@@ -1,12 +1,14 @@
 name: Verify Arabic mobile hamburger UX and navigation
 on:
   push:
-    branches: [test/school-v39-connectivity-menu-regression-r17, fix/school-v39-mobile-hamburger-ux-r16-20261026, fix/iphone-inner-fixed-header-r21, feature/school-v3.9-unified-auth-20261020]
+    branches: [test/school-v39-connectivity-menu-regression-r17, fix/school-v39-mobile-hamburger-ux-r16-20261026, fix/iphone-inner-fixed-header-r21, fix/school-iphone-bottom-nav-r22-20261027, feature/school-v3.9-unified-auth-20261020]
     paths:
       - scripts/mobile-menu-browser-v39.mjs
       - scripts/school-mobile-menu-ux-v39.js
       - scripts/mobile-native-v38.js
       - scripts/school-mobile-menu-ux-v39.css
+      - scripts/mobile-connectivity-ux-v39.css
+      - scripts/school-iphone-viewport-lock-v39.js
       - scripts/apply-mobile-menu-ux-v39.mjs
       - scripts/static-frontend-v37.mjs
       - .github/workflows/mobile-menu-ux-v39.yml

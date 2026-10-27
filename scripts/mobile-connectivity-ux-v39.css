@@ -126,3 +126,111 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
  html.school-iphone-page-lock body>#mobileBottomNav{flex:0 0 auto!important;position:relative!important;bottom:auto!important;}
  html.school-iphone-page-lock #schoolIosStatusBarSurface{display:none!important;}
 }
+
+
+/* v3.9.0-r22: iPhone installed PWA — bottom navigation is already an in-flow
+   flex child. The legacy document's 73px bottom reserve (for a fixed nav)
+   must not be applied again or it leaves a large empty strip underneath.
+   Consume iOS Home Indicator space INSIDE the opaque navigation background. */
+@media screen and (max-width:767px){
+ html.school-iphone-page-lock body{
+   padding-bottom:0!important;
+   margin-bottom:0!important;
+ }
+ html.school-iphone-page-lock body>#mobileBottomNav{
+   box-sizing:border-box!important;
+   display:grid!important;
+   grid-template-columns:repeat(4,minmax(0,1fr))!important;
+   align-items:center!important;
+   justify-items:stretch!important;
+   gap:5px!important;
+   width:100%!important;
+   min-width:0!important;
+   max-width:100%!important;
+   height:auto!important;
+   min-height:0!important;
+   margin:0!important;
+   padding:8px 10px max(9px,env(safe-area-inset-bottom,0px))!important;
+   position:relative!important;
+   inset:auto!important;
+   flex:0 0 auto!important;
+   background:#fff!important;
+   background-image:none!important;
+   border:0!important;
+   border-top:1px solid #e2e8ef!important;
+   border-radius:0!important;
+   box-shadow:0 -4px 14px rgba(15,35,57,.035)!important;
+   z-index:75!important;
+   isolation:isolate!important;
+ }
+ html.school-iphone-page-lock body>#mobileBottomNav>button{
+   appearance:none!important;
+   -webkit-appearance:none!important;
+   display:flex!important;
+   flex-direction:column!important;
+   justify-content:center!important;
+   align-items:center!important;
+   gap:4px!important;
+   width:100%!important;
+   min-width:0!important;
+   height:57px!important;
+   min-height:57px!important;
+   max-height:57px!important;
+   padding:6px 3px!important;
+   margin:0!important;
+   box-sizing:border-box!important;
+   border:0!important;
+   border-radius:15px!important;
+   background:transparent!important;
+   color:#687b91!important;
+   font-size:11px!important;
+   font-weight:800!important;
+   line-height:1.25!important;
+   letter-spacing:0!important;
+   text-align:center!important;
+   box-shadow:none!important;
+   touch-action:manipulation;
+ }
+ html.school-iphone-page-lock body>#mobileBottomNav>button>i{
+   display:inline-flex!important;
+   align-items:center!important;
+   justify-content:center!important;
+   flex:0 0 23px!important;
+   width:23px!important;
+   min-width:23px!important;
+   max-width:23px!important;
+   height:23px!important;
+   font-size:22px!important;
+   line-height:1!important;
+   color:inherit!important;
+ }
+ html.school-iphone-page-lock body>#mobileBottomNav>button>i svg{
+   display:block!important;
+   width:100%!important;
+   height:100%!important;
+   color:inherit!important;
+ }
+ html.school-iphone-page-lock body>#mobileBottomNav>button>span{
+   display:block!important;
+   flex:0 0 auto!important;
+   font-size:11px!important;
+   font-weight:800!important;
+   line-height:1.25!important;
+   white-space:nowrap!important;
+   color:inherit!important;
+ }
+ html.school-iphone-page-lock body>#mobileBottomNav>button[aria-current="page"],
+ html.school-iphone-page-lock body>#mobileBottomNav>button[aria-selected="true"],
+ html.school-iphone-page-lock body>#mobileBottomNav>button.selected,
+ html.school-iphone-page-lock body>#mobileBottomNav>button.active{
+   color:#0c788b!important;
+   background:#e9f8f8!important;
+ }
+ html.school-iphone-page-lock body>#mobileBottomNav>button:focus-visible{
+   outline:2px solid #0c788b!important;
+   outline-offset:-2px!important;
+ }
+}
+@media print{
+ html.school-iphone-page-lock body>#mobileBottomNav{display:none!important}
+}
