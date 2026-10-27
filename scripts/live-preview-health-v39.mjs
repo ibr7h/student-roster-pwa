@@ -36,7 +36,7 @@ async function fetchText(path){
  throw new Error('PWA request failed '+path+': '+String(last));
 }
 const serviceWorker=await fetchText('/sw.js');
-assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261027-r26'),'PWA cache not updated on live preview');
+assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261027-r27'),'PWA cache not updated on live preview');
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
 assert.ok(authScript.includes('auth39-retryConnection'),'Updated login retry action not deployed');
@@ -46,9 +46,9 @@ assert.ok(mobileScript.includes('schoolReportMenuGuard'),'Mobile report must dis
 const documentHtml=await fetchText('/index.html');
 assert.ok(documentHtml.includes('جارٍ إعداد التقرير المدرسي')&&documentHtml.includes('إعادة محاولة التقرير'),'Published A4 launch must paint before rendering and show retry on failure');
 const releaseData=JSON.parse(await fetchText('/release.json'));
-assert.equal(releaseData.version,'v3.9.0-r26','Published release manifest must match displayed build');
+assert.equal(releaseData.version,'v3.9.0-r27','Published release manifest must match displayed build');
 const releaseScript=await fetchText('/assets/release-ui-v39.js');
-assert.ok(releaseScript.includes("CURRENT='v3.9.0-r26'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
+assert.ok(releaseScript.includes("CURRENT='v3.9.0-r27'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
 assert.ok(documentHtml.includes('release-ui-v39.js'),'Visible PWA version script not attached to live page');
 assert.ok(documentHtml.includes('window.schoolMemberSaving')&&documentHtml.includes('window.schoolPermissionsSaving'),'Deployed team management handlers must be active');
 assert.ok(documentHtml.includes('mobile-report-fix-v39.css'),'Deployed school A4 phone layout must be linked');
@@ -73,7 +73,8 @@ assert.ok(iphoneLockJs.includes('measureVisibleViewport')&&iphoneLockJs.includes
 assert.ok(iphoneLockCss.includes('height:var(--school-iphone-visible-height,100dvh)')&&iphoneLockCss.includes('max(24px,env(safe-area-inset-bottom,0px))'),'iPhone footer height and Home Indicator fallback not deployed');
 assert.ok(iphoneLockJs.includes("activeTab('home')"),'iPhone accessible active footer tab not deployed');
 assert.ok(iphoneLockCss.includes('padding-bottom:0!important')&&iphoneLockCss.includes('body>#mobileBottomNav')&&iphoneLockCss.includes('grid-template-columns:repeat(4,minmax(0,1fr))'),'No-gap four-tab navigation CSS missing from live release');
-assert.ok(iphoneLockCss.includes('background:#001F3F!important')&&iphoneLockCss.includes('color:#D4AF37!important')&&iphoneLockCss.includes('font-size:10px!important')&&iphoneLockCss.includes('width:24px!important'),'Dhahabk dark navy/gold iPhone tab bar styling not deployed');
+assert.ok(iphoneLockCss.includes('background:var(--shd-head,#0d4153)!important')&&iphoneLockCss.includes('color:#7adbd2!important')&&iphoneLockCss.includes('color:#c5d9e0!important')&&iphoneLockCss.includes('font-size:10px!important')&&iphoneLockCss.includes('width:24px!important'),'Shawahed teal iPhone footer palette not deployed or navigation geometry changed');
+assert.ok(!iphoneLockCss.includes('background:#001F3F!important')&&!iphoneLockCss.includes('color:#D4AF37!important'),'Old Dhahabk navy/gold bottom navigation accidentally shipped');
 assert.ok(iphoneLockCss.includes('padding:7px 12px max(24px,env(safe-area-inset-bottom,0px))!important'),'Dhahabk iPhone nav safe-area spacing not deployed');
 assert.ok(iphoneLockCss.includes('min-height:48px!important')&&iphoneLockCss.includes('font-size:24px!important')&&iphoneLockCss.includes('background:transparent!important'),'Compact Dhahabk icon sizing and no active tab pill not deployed');
 
