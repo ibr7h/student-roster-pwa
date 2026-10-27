@@ -129,6 +129,7 @@ try{
   await panel.waitFor({state:'visible'});
   assert.equal(await panel.getAttribute('dir'),'rtl');
   assert.equal(await panel.locator('#schoolConnectModes button').count(),3);
+  await page.waitForFunction(()=>!document.getElementById('schoolConnectSync').disabled,null,{timeout:10000});
   assert.equal(await panel.locator('#schoolConnectSync').isEnabled(),true);
   const dataBefore=calls.filter(x=>x.p==='/api/data').length;
   await panel.locator('#schoolConnectSync').click();
