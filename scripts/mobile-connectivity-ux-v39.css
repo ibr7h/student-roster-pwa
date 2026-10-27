@@ -103,7 +103,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    Only installed mobile PWA: inner main remains scrollable, no status scrim. */
 @media screen and (max-width:767px){
  html.school-iphone-page-lock{height:100%!important;width:100%!important;overflow:hidden!important;overscroll-behavior:none!important;}
- html.school-iphone-page-lock body{position:fixed!important;top:0!important;right:0!important;left:0!important;bottom:auto!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;overflow:hidden!important;overscroll-behavior:none!important;display:flex!important;flex-direction:column!important;}
+ html.school-iphone-page-lock body{position:fixed!important;top:0!important;right:0!important;left:0!important;bottom:auto!important;width:100%!important;height:var(--school-iphone-visible-height,100dvh)!important;max-height:var(--school-iphone-visible-height,100dvh)!important;margin:0!important;overflow:hidden!important;overscroll-behavior:none!important;display:flex!important;flex-direction:column!important;}
  html.school-iphone-page-lock body>main{flex:1 1 0%!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch;}
  /* The home header is a wide, opaque, actually fixed surface at viewport y=0.
     iOS 27 samples fixed surfaces for its native status-bar blur compositor;
@@ -128,7 +128,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
 }
 
 
-/* v3.9.0-r25 — same *shipped* visual language as Dhahabk iPhone.
+/* v3.9.0-r26 — same shipped Dhahabk iPhone navigation, inside measured visible viewport.
    Source: gold-app-pwa/apps/user/overrides/web/user.css:
      .gold-web.workspace .mobile-bottom-nav / .mobile-tab (navy/gold).
    Keep Shawahed's four destinations and the previously fixed iPhone viewport.
@@ -153,7 +153,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    min-height:0!important;
    max-height:none!important;
    margin:0!important;
-   padding:7px 12px max(9px,env(safe-area-inset-bottom,0px))!important;
+   padding:7px 12px max(24px,env(safe-area-inset-bottom,0px))!important;
    position:relative!important;
    inset:auto!important;
    flex:0 0 auto!important;
