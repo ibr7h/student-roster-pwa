@@ -160,6 +160,7 @@ try{
     const btns=[...nav.querySelectorAll('button')];
     return {background:getComputedStyle(nav).backgroundColor,
       colors:btns.map(b=>getComputedStyle(b).color),
+      markup:btns.map(b=>b.outerHTML.slice(0,500)),
       active:btns.map(b=>({label:b.textContent.trim(),selected:b.classList.contains('selected')||
         b.getAttribute('aria-current')==='page',background:getComputedStyle(b).backgroundColor})),
       innerWidth:document.documentElement.clientWidth,
@@ -167,6 +168,7 @@ try{
   });
   assert.equal(footerStyle.background,'rgb(255, 255, 255)','Opaque professional white bottom navigation');
   assert.ok(footerStyle.bodyScrollWidth<=footerStyle.innerWidth+2,'No horizontal overflow from footer');
+  console.log('IPHONE_NAV_CLASSES',JSON.stringify({width,footerStyle}));
   assert.ok(footerStyle.active.some(x=>x.selected&&x.background!=='rgba(0, 0, 0, 0)'),
    'Highlight selected navigation tab with a clear pale teal background');
 
