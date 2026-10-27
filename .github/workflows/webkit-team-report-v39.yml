@@ -1,7 +1,7 @@
 name: Verify mobile school member permissions and A4 with WebKit
 on:
   push:
-    branches: [fix/iphone-inner-fixed-header-r21, fix/iphone-viewport-match-dhahabk-r20, fix/school-v39-members-mobile-report-20261026, fix/school-report-cover-dividers-v39-r15-20261026, fix/school-v39-mobile-connectivity-ux-r17-20261026, fix/school-iphone-bottom-nav-r22-20261027, fix/school-iphone-gold-nav-metrics-r23-20261027, fix/shawahed-iphone-pwa-nav-size-r24-20261027, feature/school-v3.9-unified-auth-20261020]
+    branches: [fix/iphone-inner-fixed-header-r21, fix/iphone-viewport-match-dhahabk-r20, fix/school-v39-members-mobile-report-20261026, fix/school-report-cover-dividers-v39-r15-20261026, fix/school-v39-mobile-connectivity-ux-r17-20261026, fix/school-iphone-bottom-nav-r22-20261027, fix/school-iphone-gold-nav-metrics-r23-20261027, fix/shawahed-iphone-pwa-nav-size-r24-20261027, fix/shawahed-dhahabk-navbar-r25-20261027, feature/school-v3.9-unified-auth-20261020]
   workflow_dispatch:
 permissions:
   contents: read
