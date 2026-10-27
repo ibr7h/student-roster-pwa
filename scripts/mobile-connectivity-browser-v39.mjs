@@ -20,7 +20,8 @@ const browser=process.env.TEST_BROWSER==='chromium'?
 try{
  for(const width of [390,320]){
   let calls=[],errors=[];
-  const context=await browser.newContext({viewport:{width,height:844},locale:'ar-SA',isMobile:true,hasTouch:true,serviceWorkers:'block'});
+  const context=await browser.newContext({viewport:{width,height:844},locale:'ar-SA',isMobile:true,hasTouch:true,serviceWorkers:'block',userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 27_0 like Mac OS X) AppleWebKit/605.1.15 Version/27.0 Mobile/15E148 Safari/604.1'});
+  await context.addInitScript(()=>{Object.defineProperty(navigator,'standalone',{configurable:true,get:()=>true});});
   await context.addInitScript(()=>sessionStorage.setItem('school_evidence_session_v37','X'.repeat(43)));
   const current={id:'manager-ci',name:'مدير اختبار',isAdmin:true,allowedSections:[],activationRequired:false,license:{status:'active',canWrite:true,until:'2027-10-26',daysRemaining:365}};
   await context.route(api,async route=>{
@@ -49,29 +50,38 @@ try{
    return {status:meta('apple-mobile-web-app-status-bar-style'),standalone:meta('apple-mobile-web-app-capable'),
     theme:meta('theme-color'),rootColor:root.backgroundColor,topPseudo:top.content,topDisplay:top.display};
   });
-  assert.deepEqual(ios.status,['black'],'Native iPhone status bar must be solid, with no translucent fade');
+  assert.deepEqual(ios.status,[],'Match Dhahabk: do not force native status-bar styling');
   assert.deepEqual(ios.standalone,['yes'],'Apple PWA standalone is required for status meta');
   assert.deepEqual(ios.theme,['#0d4153'],'Use a solid theme behind the native status bar');
   assert.equal(ios.topDisplay,'none','Remove legacy negative safe-area overlay');
   assert.equal(ios.rootColor,'rgb(13, 65, 83)','Root must remain same solid shade as header');
-  const strip=await page.evaluate(()=>{
-    const el=document.getElementById('schoolIosStatusBarSurface');
-    if(!el)return null;
-    const style=getComputedStyle(el);
-    return {tag:el.tagName,first:document.body.firstElementChild===el,aria:el.getAttribute('aria-hidden'),
-      display:style.display,parent:el.parentElement?.tagName,
-      rules:[...document.styleSheets].flatMap(sheet=>{
-       try{return [...sheet.cssRules].filter(rule=>rule.cssText.includes('schoolIosStatusBarSurface')).map(rule=>rule.cssText.slice(0,1200))}
-       catch{return []}
-      })};
+  const pageLock=await page.evaluate(()=>{
+    const root=document.documentElement,body=document.body,main=document.querySelector('body>main');
+    const bs=getComputedStyle(body),ms=getComputedStyle(main);
+    return {active:root.classList.contains('school-iphone-page-lock'),
+      bodyPosition:bs.position,bodyOverflow:bs.overflowY,bodyHeight:body.getBoundingClientRect().height,
+      viewportHeight:innerHeight,mainOverflow:ms.overflowY,mainClientHeight:main.clientHeight,
+      hasScrim:!!document.getElementById('schoolIosStatusBarSurface'),
+      hasScript:!!document.querySelector('script[src$="school-iphone-viewport-lock-v39.js"]')};
   });
-  assert.ok(strip?.first,'Solid status surface must be added as first body element before app paint');
-  assert.equal(strip.aria,'true','Status surface must be excluded from accessibility tree');
-  assert.equal(strip.display,'none','Do not cover Safari/browser-mode or desktop content');
-  const css=fs.readFileSync(path.join(root,'assets/mobile-connectivity-ux-v39.css'),'utf8');
-  assert.ok(css.includes('@media screen and (display-mode: standalone)'),'Only installed PWA can show status surface');
-  assert.ok(css.includes('width:100%!important;height:10px!important'),'System blur workaround must fill the whole top edge');
-  assert.ok(css.includes('position:fixed!important')&&css.includes('background:#0d4153!important')&&css.includes('pointer-events:none!important'),'Native iOS blur mitigation must be fixed, solid and non-interactive');
+  assert.equal(pageLock.active,true,'Match installed Dhahabk iPhone: document viewport is locked');
+  assert.equal(pageLock.bodyPosition,'fixed','iPhone document should not scroll underneath native status bar');
+  assert.equal(pageLock.bodyOverflow,'hidden','Document scrolling should be disabled');
+  assert.equal(pageLock.mainOverflow,'auto','Inner school main must remain scrollable');
+  assert.ok(Math.abs(pageLock.bodyHeight-pageLock.viewportHeight)<5,'Fixed body must match visual screen height');
+  assert.equal(pageLock.hasScrim,false,'Remove 10px fake status overlay from previous r19 attempt');
+  assert.equal(pageLock.hasScript,true,'Dhahabk-like viewport JS must load');
+  const scrolling=await page.evaluate(()=>{
+    const main=document.querySelector('body>main');
+    const tall=document.createElement('div');tall.style.height='1500px';tall.id='viewport-scroll-proof';main.append(tall);
+    main.scrollTop=main.scrollHeight;
+    const result={windowY:window.scrollY,contentY:main.scrollTop,documentY:document.documentElement.scrollTop};
+    tall.remove();main.scrollTop=0;
+    return result;
+  });
+  assert.equal(scrolling.windowY,0,'Page itself cannot scroll');
+  assert.ok(scrolling.contentY>0,'School content continues to scroll internally on phone');
+  assert.equal(scrolling.documentY,0,'Keep Safari page at top');
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);
