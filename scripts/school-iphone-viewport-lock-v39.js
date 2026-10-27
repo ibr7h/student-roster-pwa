@@ -1,5 +1,25 @@
 /* Standalone iPhone PWA fixed viewport, following Dhahabk's structure. */
 (()=>{'use strict';const mobile=/iPhone|iPod/i.test(navigator.userAgent);const standalone=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;if(!mobile||!standalone)return;document.documentElement.classList.add('school-iphone-page-lock');
+
+// Keep four bottom-tab icons aligned and expose the current screen accessibly.
+// The original mobileNavigate handlers remain authoritative for navigation.
+const nav=document.getElementById('mobileBottomNav');
+if(nav){
+ const buttons=[...nav.querySelectorAll('button[onclick*="mobileNavigate("]')];
+ const pageFor=b=>(b.getAttribute('onclick')||'').match(/mobileNavigate\('([a-z]+)'\)/)?.[1]||null;
+ function activeTab(page){
+  if(!buttons.some(b=>pageFor(b)===page))return;
+  buttons.forEach(b=>{
+   const selected=pageFor(b)===page;
+   b.classList.toggle('selected',selected);
+   if(selected)b.setAttribute('aria-current','page');
+   else b.removeAttribute('aria-current');
+  });
+ }
+ buttons.forEach(b=>b.addEventListener('click',()=>activeTab(pageFor(b)),{passive:true}));
+ activeTab('home');
+}
+
 // The login overlay has its own full-screen opaque layout. The school dashboard
 // instead needs a *fixed* opaque header at the actual viewport top on iOS 27.
 const header=document.getElementById('appHeader');
