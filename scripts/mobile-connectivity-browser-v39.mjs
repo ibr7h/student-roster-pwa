@@ -146,18 +146,18 @@ try{
     'Navigation must end at bottom of screen with no empty area below: '+JSON.stringify(navMetrics.navRect));
   assert.equal(navMetrics.bodyStyle.padding,'0px',
     'The old 73px body bottom reserve must be completely removed');
-  assert.ok(navMetrics.navRect.height>=70&&navMetrics.navRect.height<=130,
-    'Bottom tab bar must be compact while reserving space for the iOS Home Indicator');
+  assert.ok(navMetrics.navRect.height>=95&&navMetrics.navRect.height<=135,
+    'Installed PWA tab bar must have visibly larger controls and built-in safe-area padding');
   assert.equal(navMetrics.navStyle.position,'relative',
     'The flex-child tab bar should not overlay scrolling content');
   assert.equal(navMetrics.tabs.length,4);
   for(let i=0;i<navMetrics.tabs.length;i++){
     const tab=navMetrics.tabs[i];
-    assert.ok(tab.rect.height>=48&&tab.rect.height<=82,'Flexible Dhahabk-size navigation target');
-    assert.ok(Math.abs(tab.icon.width-24)<1 && Math.abs(tab.icon.height-24)<1,
-      'Use exact Dhahabk iPhone 24px navigation icons');
-    assert.equal(tab.labelFont,'10px','Use matching Dhahabk 10px caption');
-    assert.ok(tab.label?.height>=10&&navMetrics.navRect.bottom-tab.label.bottom>=18,
+    assert.ok(tab.rect.height>=72&&tab.rect.height<=78,'Large accessible installed-PWA navigation target');
+    assert.ok(Math.abs(tab.icon.width-32)<1 && Math.abs(tab.icon.height-32)<1,
+      'Installed iPhone PWA must render a full-size 32px icon');
+    assert.equal(tab.labelFont,'14px','Installed PWA labels must be readable at 14px');
+    assert.ok(tab.label?.height>=14&&navMetrics.navRect.bottom-tab.label.bottom>=18,
       'Caption must remain completely visible above Home Indicator safe-area');
     assert.ok(tab.rect.y>=navMetrics.navRect.y&&tab.rect.bottom<=navMetrics.navRect.bottom,
       'All tabs must fit within the safe-area background');
@@ -178,10 +178,10 @@ try{
   assert.equal(footerStyle.background,'rgb(255, 255, 255)','Opaque professional white bottom navigation');
   assert.ok(footerStyle.bodyScrollWidth<=footerStyle.innerWidth+2,'No horizontal overflow from footer');
   console.log('IPHONE_NAV_CLASSES',JSON.stringify({width,footerStyle}));
-  assert.ok(footerStyle.active.some(x=>x.selected&&x.color==='rgb(12, 120, 139)'),
-   'Match Dhahabk: identify active tab by color without a squeezed pill');
-  assert.ok(footerStyle.active.every(x=>x.background==='rgba(0, 0, 0, 0)'),
-   'Dhahabk bottom tabs remain flat without tall highlighted pills');
+  assert.ok(footerStyle.active.some(x=>x.selected&&x.color==='rgb(11, 116, 137)'&&x.background==='rgb(231, 247, 248)'),
+   'Active page must have a visible accessible teal highlight inside its larger tab');
+  assert.ok(footerStyle.active.every(x=>x.selected||x.background==='rgba(0, 0, 0, 0)'),
+   'Inactive navigation should remain clean white');
 
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
@@ -224,4 +224,26 @@ try{
   console.log('PASS_MOBILE_CONNECTIVITY_UX',JSON.stringify({width,opaqueHeader:head.background,licenseRelocated:true,networkSync:true,offlineWritesBlocked:true,logoutClearsToken:true}));
   await context.close();
  }
+
+ // In normal Safari/Chrome, the installed-only class must never activate;
+ // browser UI stays controlled by the existing responsive CSS.
+ const browserContext=await browser.newContext({
+   viewport:{width:390,height:844},locale:'ar-SA',isMobile:true,hasTouch:true,
+   serviceWorkers:'block',
+   userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 27_0 like Mac OS X) AppleWebKit/605.1.15 Version/27.0 Mobile/15E148 Safari/604.1'
+ });
+ const browserPage=await browserContext.newPage();
+ await browserPage.goto(url+'/',{waitUntil:'domcontentloaded'});
+ const browserMode=await browserPage.evaluate(()=>{
+   const n=document.querySelector('#mobileBottomNav button'),
+         s=getComputedStyle(n),icon=getComputedStyle(n.querySelector('i')),
+         label=getComputedStyle(n.querySelector('span'));
+   return {installed:document.documentElement.classList.contains('school-iphone-page-lock'),
+     height:s.height,icon:icon.width,label:label.fontSize};
+ });
+ assert.equal(browserMode.installed,false,'Normal iPhone browser must not inherit app-only layout');
+ assert.ok(browserMode.label!=='14px'||browserMode.icon!=='32px'||browserMode.height!=='74px',
+   'Normal browser must retain its own non-PWA tab design');
+ console.log('NORMAL_BROWSER_UNCHANGED',JSON.stringify(browserMode));
+ await browserContext.close();
 }finally{await browser.close();await new Promise(r=>server.close(r))}
