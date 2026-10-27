@@ -40,5 +40,5 @@ const checks=[
  fs.readFileSync('public/release.json','utf8').includes('v3.9.0-r22'),
  fs.readFileSync('public/sw.js','utf8').includes("pathname==='/release.json'")
 ];
-if(checks.some(x=>!x))throw Error('v3.9 PWA authentication integration incomplete');
+if(checks.some(x=>!x))throw Error('v3.9 PWA authentication integration incomplete: failed check indices '+checks.map((ok,i)=>ok?'':String(i)).filter(Boolean).join(','));
 console.log('v3.9 registration, login, OTP and in-app activation integrated into static PWA');
