@@ -203,6 +203,7 @@ try{
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     return result;
   });
+  console.log('VISUAL_VIEWPORT_DIAG',JSON.stringify({width,viewportMismatch}));
   assert.ok(viewportMismatch.supported,'visualViewport must be testable in iPhone emulation');
   assert.ok(Math.abs(viewportMismatch.body-viewportMismatch.visible)<3,
     'Fixed body must follow truly visible PWA canvas, not 100dvh');
