@@ -33,18 +33,18 @@ try{
   // A human-visible build number is essential for diagnosing old installed PWA caches.
   const loginRelease=page.locator('#authV39Shell [data-school-release]');
   await loginRelease.waitFor({state:'visible',timeout:5000});
-  assert.equal(await loginRelease.textContent(),'الإصدار v3.9.0-r25');
+  assert.equal(await loginRelease.textContent(),'الإصدار v3.9.0-r26');
   const releaseResponse=await page.request.get('http://127.0.0.1:'+server.address().port+'/release.json');
-  assert.equal((await releaseResponse.json()).version,'v3.9.0-r25');
+  assert.equal((await releaseResponse.json()).version,'v3.9.0-r26');
   const checkButton=page.locator('#authV39Shell .school-release-check');
   assert.equal(await checkButton.isVisible(),true);
   await page.waitForTimeout(300);
   await checkButton.click();
   await page.waitForFunction(()=>document.querySelector('#authV39Shell .school-release-status')?.textContent.includes('أنت تستخدم أحدث إصدار'),null,{timeout:7000});
   // Emulate a newer public release only; do not install a service worker in CI.
-  await page.route('**/release.json?check=*',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:'v3.9.0-r26',channel:'preview'})}));
+  await page.route('**/release.json?check=*',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:'v3.9.0-r27',channel:'preview'})}));
   await checkButton.click();
-  await page.waitForFunction(()=>document.querySelector('#authV39Shell .school-release-check')?.textContent.includes('تثبيت التحديث v3.9.0-r26'),null,{timeout:7000});
+  await page.waitForFunction(()=>document.querySelector('#authV39Shell .school-release-check')?.textContent.includes('تثبيت التحديث v3.9.0-r27'),null,{timeout:7000});
 
 
   const layout=await page.evaluate(()=>{
@@ -62,7 +62,7 @@ try{
   await page.locator('#auth39-login').waitFor({state:'visible'});
   // Test the nested official report at WebKit mobile viewport sizes.
   await page.evaluate(()=>document.getElementById('loginScreenOverlay').classList.add('hidden'));
-  assert.equal(await page.locator('#appHeader [data-school-release]').textContent(),'الإصدار v3.9.0-r25');
+  assert.equal(await page.locator('#appHeader [data-school-release]').textContent(),'الإصدار v3.9.0-r26');
   assert.equal(await page.locator('#officialReportModal').evaluate(el=>el.parentElement.tagName),'BODY');
 
   await page.locator('#mobileMenuToggle').click();
