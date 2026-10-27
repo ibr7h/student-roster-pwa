@@ -128,11 +128,8 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
 }
 
 
-/* v3.9.0-r23 — bottom tabs mirror the shipped Dhahabk iPhone layout.
-   Gold App: flexible 48px tab, 24px icon, 10px caption, 3px icon/text gap,
-   7px top + 12px inline padding and bottom safe-area within the tab bar.
-   A small extra fallback under the iOS Home Indicator is intentional here:
-   recent iOS PWA versions can expose a zero CSS env() bottom inset. */
+/* v3.9.0-r24 — installed iPhone only. Restore full-size legible navigation.
+   Keep a safe-area-aware flush footer without changing browser layouts. */
 @media screen and (max-width:767px){
  html.school-iphone-page-lock body{
    padding-bottom:0!important;
@@ -145,7 +142,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    align-items:center!important;
    align-content:center!important;
    justify-items:stretch!important;
-   gap:6px!important;
+   gap:8px!important;
    width:100%!important;
    min-width:0!important;
    max-width:100%!important;
@@ -153,7 +150,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    min-height:0!important;
    max-height:none!important;
    margin:0!important;
-   padding:7px 12px max(20px,env(safe-area-inset-bottom,0px))!important;
+   padding:9px 12px max(20px,env(safe-area-inset-bottom,0px))!important;
    position:relative!important;
    inset:auto!important;
    flex:0 0 auto!important;
@@ -173,22 +170,22 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    flex-direction:column!important;
    justify-content:center!important;
    align-items:center!important;
-   gap:3px!important;
+   gap:7px!important;
    width:100%!important;
    min-width:0!important;
-   height:auto!important;
-   min-height:48px!important;
-   max-height:none!important;
-   padding:4px 2px!important;
+   height:74px!important;
+   min-height:74px!important;
+   max-height:74px!important;
+   padding:9px 3px!important;
    margin:0!important;
    box-sizing:border-box!important;
    border:0!important;
-   border-radius:0!important;
+   border-radius:16px!important;
    background:transparent!important;
    color:#748092!important;
-   font-size:10px!important;
-   font-weight:700!important;
-   line-height:1.2!important;
+   font-size:14px!important;
+   font-weight:800!important;
+   line-height:1.25!important;
    letter-spacing:0!important;
    text-align:center!important;
    box-shadow:none!important;
@@ -198,28 +195,28 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    display:inline-flex!important;
    align-items:center!important;
    justify-content:center!important;
-   flex:0 0 24px!important;
-   width:24px!important;
-   min-width:24px!important;
-   max-width:24px!important;
-   height:24px!important;
-   min-height:24px!important;
-   font-size:24px!important;
+   flex:0 0 32px!important;
+   width:32px!important;
+   min-width:32px!important;
+   max-width:32px!important;
+   height:32px!important;
+   min-height:32px!important;
+   font-size:32px!important;
    line-height:1!important;
    color:inherit!important;
  }
  html.school-iphone-page-lock body>#mobileBottomNav>button>i svg{
    display:block!important;
-   width:24px!important;
-   height:24px!important;
+   width:32px!important;
+   height:32px!important;
    color:inherit!important;
  }
  html.school-iphone-page-lock body>#mobileBottomNav>button>span{
    display:block!important;
    flex:0 0 auto!important;
-   font-size:10px!important;
-   font-weight:700!important;
-   line-height:1.2!important;
+   font-size:14px!important;
+   font-weight:800!important;
+   line-height:1.25!important;
    white-space:nowrap!important;
    color:inherit!important;
  }
@@ -227,8 +224,8 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
  html.school-iphone-page-lock body>#mobileBottomNav>button[aria-selected="true"],
  html.school-iphone-page-lock body>#mobileBottomNav>button.selected,
  html.school-iphone-page-lock body>#mobileBottomNav>button.active{
-   color:#0c788b!important;
-   background:transparent!important;
+   color:#0b7489!important;
+   background:#e7f7f8!important;
  }
  html.school-iphone-page-lock body>#mobileBottomNav>button:focus-visible{
    outline:2px solid #0c788b!important;
