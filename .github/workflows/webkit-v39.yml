@@ -11,6 +11,7 @@ on:
       - fix/school-iphone-gold-nav-metrics-r23-20261027
       - fix/shawahed-iphone-pwa-nav-size-r24-20261027
       - fix/shawahed-dhahabk-navbar-r25-20261027
+      - fix/shawahed-iphone-visible-viewport-r26
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/webkit-smoke-v39.mjs
