@@ -183,6 +183,34 @@ try{
   assert.ok(footerStyle.active.every(x=>x.selected||x.background==='rgba(0, 0, 0, 0)'),
    'Inactive navigation must be transparent over navy');
 
+  // Simulate the real device defect: 100dvh/innerHeight is taller than
+  // the visible PWA canvas, so the lower tab captions previously got clipped.
+  const viewportMismatch=await page.evaluate(async()=>{
+    const vv=window.visualViewport, before=vv.height;
+    if(!vv)return {supported:false};
+    const own=Object.getOwnPropertyDescriptor(vv,'height');
+    Object.defineProperty(vv,'height',{configurable:true,get:()=>before-64});
+    vv.dispatchEvent(new Event('resize'));
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const nav=document.getElementById('mobileBottomNav');
+    const labels=[...nav.querySelectorAll('button>span')].map(el=>el.getBoundingClientRect().bottom);
+    const result={supported:true,inner:innerHeight,visible:before-64,
+      body:document.body.getBoundingClientRect().bottom,
+      nav:nav.getBoundingClientRect().bottom,
+      labels,measured:getComputedStyle(document.documentElement).getPropertyValue('--school-iphone-visible-height')};
+    if(own)Object.defineProperty(vv,'height',own);else delete vv.height;
+    vv.dispatchEvent(new Event('resize'));
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    return result;
+  });
+  assert.ok(viewportMismatch.supported,'visualViewport must be testable in iPhone emulation');
+  assert.ok(Math.abs(viewportMismatch.body-viewportMismatch.visible)<3,
+    'Fixed body must follow truly visible PWA canvas, not 100dvh');
+  assert.ok(Math.abs(viewportMismatch.nav-viewportMismatch.visible)<3,
+    'Bottom bar must be inside screen under iOS height mismatch');
+  assert.ok(viewportMismatch.labels.every(v=>v<=viewportMismatch.visible-16),
+    'All bottom labels must remain visible with internal Home Indicator padding');
+  console.log('IPHONE_VISUAL_VIEWPORT_MISMATCH_PASS',JSON.stringify({width,viewportMismatch}));
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);
