@@ -1,5 +1,24 @@
 /* Standalone iPhone PWA fixed viewport, following Dhahabk's structure. */
 (()=>{'use strict';const mobile=/iPhone|iPod/i.test(navigator.userAgent);const standalone=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;if(!mobile||!standalone)return;document.documentElement.classList.add('school-iphone-page-lock');
+// The login overlay has its own full-screen opaque layout. The school dashboard
+// instead needs a *fixed* opaque header at the actual viewport top on iOS 27.
+const header=document.getElementById('appHeader');
+function positionMainBelowHeader(){
+ if(!header)return;
+ const pixels=Math.ceil(header.getBoundingClientRect().height);
+ if(pixels>10&&pixels<window.innerHeight*.5){
+  const value=pixels+'px';
+  if(document.body.style.getPropertyValue('--school-iphone-header-height')!==value)
+   document.body.style.setProperty('--school-iphone-header-height',value);
+ }
+}
+if(header){
+ positionMainBelowHeader();
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(positionMainBelowHeader).observe(header);
+ window.addEventListener('resize',positionMainBelowHeader,{passive:true});
+ window.addEventListener('orientationchange',positionMainBelowHeader,{passive:true});
+ requestAnimationFrame(positionMainBelowHeader);
+}
 const vv=window.visualViewport;
 let scheduled=false;
 function revealInput(){

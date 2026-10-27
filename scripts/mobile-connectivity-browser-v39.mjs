@@ -71,6 +71,32 @@ try{
   assert.ok(Math.abs(pageLock.bodyHeight-pageLock.viewportHeight)<5,'Fixed body must match visual screen height');
   assert.equal(pageLock.hasScrim,false,'Remove 10px fake status overlay from previous r19 attempt');
   assert.equal(pageLock.hasScript,true,'Dhahabk-like viewport JS must load');
+  await page.waitForFunction(()=>{
+    const h=document.getElementById('appHeader'),m=document.querySelector('body>main'),s=getComputedStyle(h);
+    return s.position==='fixed'&&Math.abs(h.getBoundingClientRect().bottom-m.getBoundingClientRect().top)<5;
+  },null,{timeout:10000});
+  const inner=await page.evaluate(()=>{
+    const h=document.getElementById('appHeader'),m=document.querySelector('body>main');
+    const hs=getComputedStyle(h),hr=h.getBoundingClientRect(),mr=m.getBoundingClientRect();
+    const login=document.getElementById('loginScreenOverlay'),ls=getComputedStyle(login);
+    return {headTop:hr.top,headBottom:hr.bottom,headHeight:hr.height,
+      headPosition:hs.position,headColor:hs.backgroundColor,headImage:hs.backgroundImage,
+      headFilter:hs.backdropFilter,mainTop:mr.top,mainHeight:mr.height,
+      mainMargin:getComputedStyle(m).marginTop,loginHidden:login.classList.contains('hidden'),
+      loginIsFixed:ls.position==='fixed',topBarAbsent:!document.getElementById('schoolIosStatusBarSurface')};
+  });
+  assert.equal(inner.headPosition,'fixed','Dashboard header must actually be fixed at top after login');
+  assert.ok(Math.abs(inner.headTop)<2,'Dashboard header begins at viewport top for iOS compositor');
+  assert.ok(inner.headHeight>6&&inner.headHeight<300,'Fixed header is a real painted surface, not the previous tiny 10px strip');
+  assert.equal(inner.headColor,'rgb(13, 65, 83)','Internal header must have solid opaque navy');
+  assert.equal(inner.headImage,'none','No gradient in dashboard header');
+  assert.equal(inner.headFilter,'none','No backdrop blur in dashboard header');
+  assert.ok(inner.mainTop>=inner.headBottom-2,'School content must start below the actual fixed header');
+  assert.equal(inner.loginHidden,true,'Do not alter the existing login overlay layout');
+  assert.equal(inner.loginIsFixed,true,'Login screen remains full-screen and fixed');
+  assert.equal(inner.topBarAbsent,true,'No intrusive fake status bar from older revisions');
+  console.log('DASHBOARD_OPAQUE_FIXED_HEADER',JSON.stringify({width,inner}));
+
   const scrolling=await page.evaluate(()=>{
     const main=document.querySelector('body>main');
     const tall=document.createElement('div');tall.style.height='1500px';tall.id='viewport-scroll-proof';main.append(tall);
@@ -82,6 +108,18 @@ try{
   assert.equal(scrolling.windowY,0,'Page itself cannot scroll');
   assert.ok(scrolling.contentY>0,'School content continues to scroll internally on phone');
   assert.equal(scrolling.documentY,0,'Keep Safari page at top');
+  const headerDuringScroll=await page.evaluate(()=>{
+    const h=document.getElementById('appHeader'),m=document.querySelector('body>main');
+    const before=h.getBoundingClientRect().top;
+    const spacer=document.createElement('div');spacer.style.height='1100px';m.appendChild(spacer);
+    m.scrollTop=600;
+    const after=h.getBoundingClientRect().top,mainTop=m.getBoundingClientRect().top;
+    spacer.remove();m.scrollTop=0;
+    return {before,after,mainTop};
+  });
+  assert.ok(Math.abs(headerDuringScroll.after-headerDuringScroll.before)<2,
+    'Scrolling school content must never scroll the fixed iPhone header');
+
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);
@@ -91,6 +129,7 @@ try{
   await panel.waitFor({state:'visible'});
   assert.equal(await panel.getAttribute('dir'),'rtl');
   assert.equal(await panel.locator('#schoolConnectModes button').count(),3);
+  await page.waitForFunction(()=>!document.getElementById('schoolConnectSync').disabled,null,{timeout:10000});
   assert.equal(await panel.locator('#schoolConnectSync').isEnabled(),true);
   const dataBefore=calls.filter(x=>x.p==='/api/data').length;
   await panel.locator('#schoolConnectSync').click();
