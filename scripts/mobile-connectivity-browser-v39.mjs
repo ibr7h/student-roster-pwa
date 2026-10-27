@@ -146,18 +146,18 @@ try{
     'Navigation must end at bottom of screen with no empty area below: '+JSON.stringify(navMetrics.navRect));
   assert.equal(navMetrics.bodyStyle.padding,'0px',
     'The old 73px body bottom reserve must be completely removed');
-  assert.ok(navMetrics.navRect.height>=95&&navMetrics.navRect.height<=135,
-    'Installed PWA tab bar must have visibly larger controls and built-in safe-area padding');
+  assert.ok(navMetrics.navRect.height>=60&&navMetrics.navRect.height<=95,
+    'Dhahabk has a compact content-sized navy tab bar with safe-area padding');
   assert.equal(navMetrics.navStyle.position,'relative',
     'The flex-child tab bar should not overlay scrolling content');
   assert.equal(navMetrics.tabs.length,4);
   for(let i=0;i<navMetrics.tabs.length;i++){
     const tab=navMetrics.tabs[i];
-    assert.ok(tab.rect.height>=72&&tab.rect.height<=78,'Large accessible installed-PWA navigation target');
-    assert.ok(Math.abs(tab.icon.width-32)<1 && Math.abs(tab.icon.height-32)<1,
-      'Installed iPhone PWA must render a full-size 32px icon');
-    assert.equal(tab.labelFont,'14px','Installed PWA labels must be readable at 14px');
-    assert.ok(tab.label?.height>=14&&navMetrics.navRect.bottom-tab.label.bottom>=18,
+    assert.ok(tab.rect.height>=48&&tab.rect.height<=60,'Dhahabk tab touch target at least 48px');
+    assert.ok(Math.abs(tab.icon.width-24)<1 && Math.abs(tab.icon.height-24)<1,
+      'Dhahabk iPhone tab icons are 24px');
+    assert.equal(tab.labelFont,'10px','Dhahabk workspace tab labels are 10px');
+    assert.ok(tab.label?.height>=10&&navMetrics.navRect.bottom-tab.label.bottom>=8,
       'Caption must remain completely visible above Home Indicator safe-area');
     assert.ok(tab.rect.y>=navMetrics.navRect.y&&tab.rect.bottom<=navMetrics.navRect.bottom,
       'All tabs must fit within the safe-area background');
@@ -175,13 +175,13 @@ try{
       innerWidth:document.documentElement.clientWidth,
       bodyScrollWidth:document.body.scrollWidth};
   });
-  assert.equal(footerStyle.background,'rgb(255, 255, 255)','Opaque professional white bottom navigation');
+  assert.equal(footerStyle.background,'rgb(0, 31, 63)','Use identical dark navy background as Dhahabk');
   assert.ok(footerStyle.bodyScrollWidth<=footerStyle.innerWidth+2,'No horizontal overflow from footer');
   console.log('IPHONE_NAV_CLASSES',JSON.stringify({width,footerStyle}));
-  assert.ok(footerStyle.active.some(x=>x.selected&&x.color==='rgb(11, 116, 137)'&&x.background==='rgb(231, 247, 248)'),
-   'Active page must have a visible accessible teal highlight inside its larger tab');
+  assert.ok(footerStyle.active.some(x=>x.selected&&x.color==='rgb(212, 175, 55)'&&x.background==='rgba(0, 0, 0, 0)'),
+   'Dhahabk active tab must be gold without a pill background');
   assert.ok(footerStyle.active.every(x=>x.selected||x.background==='rgba(0, 0, 0, 0)'),
-   'Inactive navigation should remain clean white');
+   'Inactive navigation must be transparent over navy');
 
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
