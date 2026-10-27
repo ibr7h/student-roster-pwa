@@ -18,7 +18,7 @@ const browser=process.env.TEST_BROWSER==='chromium'?
  await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox','--disable-dev-shm-usage']}):
  await webkit.launch({headless:true});
 try{
- for(const width of [390,320]){
+ for(const width of [390,320,430]){
   let calls=[],errors=[];
   const context=await browser.newContext({viewport:{width,height:844},locale:'ar-SA',isMobile:true,hasTouch:true,serviceWorkers:'block',userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 27_0 like Mac OS X) AppleWebKit/605.1.15 Version/27.0 Mobile/15E148 Safari/604.1'});
   await context.addInitScript(()=>{Object.defineProperty(navigator,'standalone',{configurable:true,get:()=>true});});
@@ -138,6 +138,38 @@ try{
       tabs};
   });
   console.log('IPHONE_BOTTOM_NAV_GEOMETRY',JSON.stringify({width,navMetrics}));
+
+  assert.ok(Math.abs(navMetrics.navRect.bottom-navMetrics.innerHeight)<2,
+    'Navigation must end at bottom of screen with no empty area below: '+JSON.stringify(navMetrics.navRect));
+  assert.equal(navMetrics.bodyStyle.padding,'0px',
+    'The old 73px body bottom reserve must be completely removed');
+  assert.ok(navMetrics.navRect.height>=69&&navMetrics.navRect.height<=120,
+    'Bottom tab bar must be compact while reserving space for the iOS Home Indicator');
+  assert.equal(navMetrics.navStyle.position,'relative',
+    'The flex-child tab bar should not overlay scrolling content');
+  assert.equal(navMetrics.tabs.length,4);
+  for(let i=0;i<navMetrics.tabs.length;i++){
+    const tab=navMetrics.tabs[i];
+    assert.ok(tab.rect.height>=50&&tab.rect.height<=60,'Consistent touch target');
+    assert.ok(tab.rect.y>=navMetrics.navRect.y&&tab.rect.bottom<=navMetrics.navRect.bottom,
+      'All tabs must fit within the safe-area background');
+    assert.ok(Math.abs(tab.rect.width-navMetrics.tabs[0].rect.width)<2,
+      'All four navigation tabs must have equal width');
+  }
+  const footerStyle=await page.locator('#mobileBottomNav').evaluate(nav=>{
+    const btns=[...nav.querySelectorAll('button')];
+    return {background:getComputedStyle(nav).backgroundColor,
+      colors:btns.map(b=>getComputedStyle(b).color),
+      active:btns.map(b=>({label:b.textContent.trim(),selected:b.classList.contains('selected')||
+        b.getAttribute('aria-current')==='page',background:getComputedStyle(b).backgroundColor})),
+      innerWidth:document.documentElement.clientWidth,
+      bodyScrollWidth:document.body.scrollWidth};
+  });
+  assert.equal(footerStyle.background,'rgb(255, 255, 255)','Opaque professional white bottom navigation');
+  assert.ok(footerStyle.bodyScrollWidth<=footerStyle.innerWidth+2,'No horizontal overflow from footer');
+  assert.ok(footerStyle.active.some(x=>x.selected&&x.background!=='rgba(0, 0, 0, 0)'),
+   'Highlight selected navigation tab with a clear pale teal background');
+
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);
