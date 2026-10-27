@@ -54,6 +54,24 @@ try{
   assert.deepEqual(ios.theme,['#0d4153'],'Use a solid theme behind the native status bar');
   assert.equal(ios.topDisplay,'none','Remove legacy negative safe-area overlay');
   assert.equal(ios.rootColor,'rgb(13, 65, 83)','Root must remain same solid shade as header');
+  const strip=await page.evaluate(()=>{
+    const el=document.getElementById('schoolIosStatusBarSurface');
+    if(!el)return null;
+    const style=getComputedStyle(el);
+    return {tag:el.tagName,first:document.body.firstElementChild===el,aria:el.getAttribute('aria-hidden'),
+      display:style.display,parent:el.parentElement?.tagName,
+      rules:[...document.styleSheets].flatMap(sheet=>{
+       try{return [...sheet.cssRules].filter(rule=>rule.cssText.includes('schoolIosStatusBarSurface')).map(rule=>rule.cssText.slice(0,1200))}
+       catch{return []}
+      })};
+  });
+  assert.ok(strip?.first,'Solid status surface must be added as first body element before app paint');
+  assert.equal(strip.aria,'true','Status surface must be excluded from accessibility tree');
+  assert.equal(strip.display,'none','Do not cover Safari/browser-mode or desktop content');
+  const css=fs.readFileSync(path.join(root,'assets/mobile-connectivity-ux-v39.css'),'utf8');
+  assert.ok(css.includes('@media screen and (display-mode: standalone)'),'Only installed PWA can show status surface');
+  assert.ok(css.includes('width:100%!important;height:10px!important'),'System blur workaround must fill the whole top edge');
+  assert.ok(css.includes('position:fixed!important')&&css.includes('background:#0d4153!important')&&css.includes('pointer-events:none!important'),'Native iOS blur mitigation must be fixed, solid and non-interactive');
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);

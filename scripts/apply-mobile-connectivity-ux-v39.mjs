@@ -28,6 +28,14 @@ const standalone=/<meta\s+name=["']apple-mobile-web-app-capable["'][^>]*>/i;
 const standaloneTag='<meta name="apple-mobile-web-app-capable" content="yes">';
 html=standalone.test(html)?html.replace(standalone,standaloneTag):html.replace('</head>',standaloneTag+'</head>');
 html=html.replace('</head>','<link rel="stylesheet" href="./assets/mobile-connectivity-ux-v39.css"></head>');
+// iOS 27 overlays an OS-rendered blur on Home Screen PWAs. A real, visible,
+// fixed opaque strip at the top is sampled by WebKit's native status renderer.
+// Unlike the old pseudo-element with negative safe-area coordinates, this DOM
+// surface lives inside the viewport and is in the document before first paint.
+const bodyOpen=/<body\b[^>]*>/i;
+if(!bodyOpen.test(html))throw Error('PWA body element missing for iOS status surface');
+if(html.includes('schoolIosStatusBarSurface'))throw Error('iOS status surface already injected');
+html=html.replace(bodyOpen,match=>match+'<div id="schoolIosStatusBarSurface" aria-hidden="true"></div>');
 html=html.replace('</body>','<script src="./assets/mobile-connectivity-ux-v39.js"></script></body>');
 fs.writeFileSync(path,html);
 for(const [src,dest] of [
@@ -38,4 +46,4 @@ const swPath=root+'sw.js',sw=fs.readFileSync(swPath,'utf8');
 const asset="'./assets/mobile.js'";
 if(!sw.includes(asset))throw Error('Cannot extend PWA offline shell');
 fs.writeFileSync(swPath,sw.replace(asset,asset+",'./assets/mobile-connectivity-ux-v39.js','./assets/mobile-connectivity-ux-v39.css'"));
-console.log('PASS truly opaque native iOS status bar, banners moved to settings, connectivity UX installed, no fake write queue.');
+console.log('PASS iOS 27 fixed opaque status strip, banners moved to settings, connectivity UX installed, no fake write queue.');
