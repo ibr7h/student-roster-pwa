@@ -17,33 +17,25 @@ if(!html.includes('id="appHeader"')||!html.includes('id="licenseBanner"')||!html
 const metaColor=/<meta\s+name=["']theme-color["'][^>]*>/i;
 const theme='<meta name="theme-color" content="#0d4153">';
 html=metaColor.test(html)?html.replace(metaColor,theme):html.replace('</head>',theme+'</head>');
-const statusBar=/<meta\s+name=["']apple-mobile-web-app-status-bar-style["'][^>]*>/i;
-// Apple's black-translucent mode overlays the page and creates the unwanted
-// fading/light status region on installed iPhone PWAs. Black is opaque and
-// places web content below the native status bar.
-const status='<meta name="apple-mobile-web-app-status-bar-style" content="black">';
-html=statusBar.test(html)?html.replace(statusBar,status):html.replace('</head>',status+'</head>');
+// Match Dhahabk's deployed iPhone page: no explicit status-bar-style meta.
+const statusBar=/<meta\s+name=["']apple-mobile-web-app-status-bar-style["'][^>]*>/gi;
+html=html.replace(statusBar,'');
 // Ensure Apple actually applies the status style in standalone mode.
 const standalone=/<meta\s+name=["']apple-mobile-web-app-capable["'][^>]*>/i;
 const standaloneTag='<meta name="apple-mobile-web-app-capable" content="yes">';
 html=standalone.test(html)?html.replace(standalone,standaloneTag):html.replace('</head>',standaloneTag+'</head>');
-html=html.replace('</head>','<link rel="stylesheet" href="./assets/mobile-connectivity-ux-v39.css"></head>');
-// iOS 27 overlays an OS-rendered blur on Home Screen PWAs. A real, visible,
-// fixed opaque strip at the top is sampled by WebKit's native status renderer.
-// Unlike the old pseudo-element with negative safe-area coordinates, this DOM
-// surface lives inside the viewport and is in the document before first paint.
-const bodyOpen=/<body\b[^>]*>/i;
-if(!bodyOpen.test(html))throw Error('PWA body element missing for iOS status surface');
-if(html.includes('schoolIosStatusBarSurface'))throw Error('iOS status surface already injected');
-html=html.replace(bodyOpen,match=>match+'<div id="schoolIosStatusBarSurface" aria-hidden="true"></div>');
+html=html.replace('</head>','<link rel="stylesheet" href="./assets/mobile-connectivity-ux-v39.css"><script defer src="./assets/school-iphone-viewport-lock-v39.js"></script></head>');
+// Dhahabk pins the whole iPhone document; Shawahed adopts that layout,
+// without adding a small fake status-bar cover.
 html=html.replace('</body>','<script src="./assets/mobile-connectivity-ux-v39.js"></script></body>');
 fs.writeFileSync(path,html);
 for(const [src,dest] of [
  ['scripts/mobile-connectivity-ux-v39.js',root+'assets/mobile-connectivity-ux-v39.js'],
- ['scripts/mobile-connectivity-ux-v39.css',root+'assets/mobile-connectivity-ux-v39.css']
+ ['scripts/mobile-connectivity-ux-v39.css',root+'assets/mobile-connectivity-ux-v39.css'],
+ ['scripts/school-iphone-viewport-lock-v39.js',root+'assets/school-iphone-viewport-lock-v39.js']
 ])fs.copyFileSync(src,dest);
 const swPath=root+'sw.js',sw=fs.readFileSync(swPath,'utf8');
 const asset="'./assets/mobile.js'";
 if(!sw.includes(asset))throw Error('Cannot extend PWA offline shell');
-fs.writeFileSync(swPath,sw.replace(asset,asset+",'./assets/mobile-connectivity-ux-v39.js','./assets/mobile-connectivity-ux-v39.css'"));
-console.log('PASS iOS 27 fixed opaque status strip, banners moved to settings, connectivity UX installed, no fake write queue.');
+fs.writeFileSync(swPath,sw.replace(asset,asset+",'./assets/mobile-connectivity-ux-v39.js','./assets/mobile-connectivity-ux-v39.css','./assets/school-iphone-viewport-lock-v39.js'"));
+console.log('PASS Dhahabk-matched iPhone fixed viewport and no status-bar scrim, banners moved to settings, connectivity UX installed, no fake write queue.');
