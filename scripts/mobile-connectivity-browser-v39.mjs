@@ -127,7 +127,10 @@ try{
     const tabs=[...nav.querySelectorAll('button')].map(x=>{
       const r=x.getBoundingClientRect(),st=getComputedStyle(x);
       return {text:x.innerText,rect:{x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom},
-        display:st.display,font:st.fontSize,padding:st.padding}
+        display:st.display,font:st.fontSize,padding:st.padding,
+      icon:x.querySelector('i')?.getBoundingClientRect().toJSON(),
+      label:x.querySelector('span')?.getBoundingClientRect().toJSON(),
+      labelFont:getComputedStyle(x.querySelector('span')).fontSize}
     });
     return {innerHeight,viewport:v?{height:v.height,offsetTop:v.offsetTop}:null,
       navRect:{x:n.x,y:n.y,width:n.width,height:n.height,bottom:n.bottom},
@@ -143,14 +146,19 @@ try{
     'Navigation must end at bottom of screen with no empty area below: '+JSON.stringify(navMetrics.navRect));
   assert.equal(navMetrics.bodyStyle.padding,'0px',
     'The old 73px body bottom reserve must be completely removed');
-  assert.ok(navMetrics.navRect.height>=69&&navMetrics.navRect.height<=120,
+  assert.ok(navMetrics.navRect.height>=70&&navMetrics.navRect.height<=130,
     'Bottom tab bar must be compact while reserving space for the iOS Home Indicator');
   assert.equal(navMetrics.navStyle.position,'relative',
     'The flex-child tab bar should not overlay scrolling content');
   assert.equal(navMetrics.tabs.length,4);
   for(let i=0;i<navMetrics.tabs.length;i++){
     const tab=navMetrics.tabs[i];
-    assert.ok(tab.rect.height>=50&&tab.rect.height<=60,'Consistent touch target');
+    assert.ok(tab.rect.height>=48&&tab.rect.height<=82,'Flexible Dhahabk-size navigation target');
+    assert.ok(Math.abs(tab.icon.width-24)<1 && Math.abs(tab.icon.height-24)<1,
+      'Use exact Dhahabk iPhone 24px navigation icons');
+    assert.equal(tab.labelFont,'10px','Use matching Dhahabk 10px caption');
+    assert.ok(tab.label?.height>=10&&navMetrics.navRect.bottom-tab.label.bottom>=18,
+      'Caption must remain completely visible above Home Indicator safe-area');
     assert.ok(tab.rect.y>=navMetrics.navRect.y&&tab.rect.bottom<=navMetrics.navRect.bottom,
       'All tabs must fit within the safe-area background');
     assert.ok(Math.abs(tab.rect.width-navMetrics.tabs[0].rect.width)<2,
@@ -162,15 +170,18 @@ try{
       colors:btns.map(b=>getComputedStyle(b).color),
       markup:btns.map(b=>b.outerHTML.slice(0,500)),
       active:btns.map(b=>({label:b.textContent.trim(),selected:b.classList.contains('selected')||
-        b.getAttribute('aria-current')==='page',background:getComputedStyle(b).backgroundColor})),
+        b.getAttribute('aria-current')==='page',background:getComputedStyle(b).backgroundColor,
+        color:getComputedStyle(b).color})),
       innerWidth:document.documentElement.clientWidth,
       bodyScrollWidth:document.body.scrollWidth};
   });
   assert.equal(footerStyle.background,'rgb(255, 255, 255)','Opaque professional white bottom navigation');
   assert.ok(footerStyle.bodyScrollWidth<=footerStyle.innerWidth+2,'No horizontal overflow from footer');
   console.log('IPHONE_NAV_CLASSES',JSON.stringify({width,footerStyle}));
-  assert.ok(footerStyle.active.some(x=>x.selected&&x.background!=='rgba(0, 0, 0, 0)'),
-   'Highlight selected navigation tab with a clear pale teal background');
+  assert.ok(footerStyle.active.some(x=>x.selected&&x.color==='rgb(12, 120, 139)'),
+   'Match Dhahabk: identify active tab by color without a squeezed pill');
+  assert.ok(footerStyle.active.every(x=>x.background==='rgba(0, 0, 0, 0)'),
+   'Dhahabk bottom tabs remain flat without tall highlighted pills');
 
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
