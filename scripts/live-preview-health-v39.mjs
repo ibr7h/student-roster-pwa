@@ -72,8 +72,8 @@ assert.ok(iphoneLockJs.includes('ResizeObserver(positionMainBelowHeader)'),'iPho
 assert.ok(iphoneLockJs.includes("activeTab('home')"),'iPhone accessible active footer tab not deployed');
 assert.ok(iphoneLockCss.includes('padding-bottom:0!important')&&iphoneLockCss.includes('body>#mobileBottomNav')&&iphoneLockCss.includes('grid-template-columns:repeat(4,minmax(0,1fr))'),'No-gap four-tab navigation CSS missing from live release');
 assert.ok(iphoneLockCss.includes('height:74px!important')&&iphoneLockCss.includes('font-size:14px!important')&&iphoneLockCss.includes('width:32px!important'),'Large installed-iPhone navigation CSS not deployed');
-assert.ok(iphoneLockCss.includes('padding:7px 12px max(20px,env(safe-area-inset-bottom,0px))!important'),'Dhahabk-style safe-area bar missing');
-assert.ok(iphoneLockCss.includes('min-height:48px!important')&&iphoneLockCss.includes('font-size:24px!important')&&iphoneLockCss.includes('font-size:10px!important'),'Dhahabk iPhone nav size settings not deployed');
+assert.ok(iphoneLockCss.includes('padding:9px 12px max(20px,env(safe-area-inset-bottom,0px))!important'),'Installed iPhone PWA safe-area footer padding missing');
+assert.ok(iphoneLockCss.includes('min-height:74px!important')&&iphoneLockCss.includes('font-size:32px!important')&&iphoneLockCss.includes('font-size:14px!important'),'Large readable iPhone navigation controls not deployed');
 
 assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.js')).includes('schoolConnectivityPanel'),'Connectivity screen asset not deployed');
 assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.css')).includes('school-connect-sheet'),'Connectivity UI CSS not deployed');
