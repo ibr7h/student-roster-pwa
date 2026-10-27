@@ -221,6 +221,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
  }
  html.school-iphone-page-lock body>#mobileBottomNav>button[aria-current="page"],
  html.school-iphone-page-lock body>#mobileBottomNav>button[aria-selected="true"],
+ html.school-iphone-page-lock body>#mobileBottomNav>button.selected,
  html.school-iphone-page-lock body>#mobileBottomNav>button.active{
    color:#0c788b!important;
    background:#e9f8f8!important;
