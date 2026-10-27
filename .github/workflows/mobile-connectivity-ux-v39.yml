@@ -1,10 +1,11 @@
 name: Verify Shawahed iPhone connectivity UX and no-fake-sync safety
 on:
   push:
-    branches: [fix/school-v39-ios27-status-scrim-r19-20261027,fix/school-v39-opaque-ios-status-r18-20261027,fix/school-v39-mobile-connectivity-ux-r17-20261026,feature/school-v3.9-unified-auth-20261020]
+    branches: [fix/school-v39-ios27-status-scrim-r19-20261027,fix/school-v39-opaque-ios-status-r18-20261027,fix/school-v39-mobile-connectivity-ux-r17-20261026,fix/iphone-viewport-match-dhahabk-r20,feature/school-v3.9-unified-auth-20261020]
     paths:
       - scripts/mobile-connectivity-ux-v39.js
       - scripts/mobile-connectivity-ux-v39.css
+      - scripts/school-iphone-viewport-lock-v39.js
       - scripts/apply-mobile-connectivity-ux-v39.mjs
       - scripts/apply-auth-ui-v39.mjs
       - scripts/mobile-connectivity-browser-v39.mjs

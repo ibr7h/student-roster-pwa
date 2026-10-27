@@ -1,30 +1,9 @@
-/* Shawahed iOS 27 native scrim mitigation + connectivity settings r19. */
+/* Shawahed fixed-document iPhone viewport parity with Dhahabk, r20. */
 :root{--shd-head:#0d4153;--shd-gold:#dfb84c;--shd-surface:#f5f8fb;}
 html{background:var(--shd-head)!important}
 body{background:var(--shd-surface)!important}
 #appHeader{background:var(--shd-head)!important;background-image:none!important;box-shadow:none!important;
  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
-/* iOS 27 Home Screen PWAs can draw a *system* gradient over the status
-   region regardless of theme-color/meta. A real fixed, opaque viewport-top
-   surface can prevent that system scrim; do not add blur or transparency.
-   This is an OS-specific rendering workaround, not a guaranteed Apple API. */
-#schoolIosStatusBarSurface{display:none;}
-@supports (-webkit-touch-callout: none){
-  @media screen and (display-mode: standalone){
-    #schoolIosStatusBarSurface{
-      display:block!important;
-      position:fixed!important;
-      top:0!important;right:0!important;left:0!important;
-      width:100%!important;height:10px!important;
-      background:#0d4153!important;
-      opacity:1!important;
-      border:0!important;
-      -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
-      pointer-events:none!important;
-      z-index:12001!important;
-    }
-  }
-}
 /* No negative safe-area overlay: native opaque status bar owns the area above the page. */
 #appHeader::before{content:none!important;display:none!important;}
 #appHeader .app-header-layout{position:relative}
@@ -119,3 +98,14 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
 }
 @media print{#schoolConnectivityOpen,#schoolConnectivityPanel{display:none!important}}
 @media(prefers-reduced-motion:reduce){#schoolConnectivityPanel *{transition:none!important}}
+
+/* Fixed-document iPhone viewport architecture reused from Dhahabk.
+   Only installed mobile PWA: inner main remains scrollable, no status scrim. */
+@media screen and (max-width:767px){
+ html.school-iphone-page-lock{height:100%!important;width:100%!important;overflow:hidden!important;overscroll-behavior:none!important;}
+ html.school-iphone-page-lock body{position:fixed!important;top:0!important;right:0!important;left:0!important;bottom:auto!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;overflow:hidden!important;overscroll-behavior:none!important;display:flex!important;flex-direction:column!important;}
+ html.school-iphone-page-lock body>main{flex:1 1 0%!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch;}
+ html.school-iphone-page-lock body>#appHeader{flex:0 0 auto!important;position:relative!important;top:auto!important;}
+ html.school-iphone-page-lock body>#mobileBottomNav{flex:0 0 auto!important;position:relative!important;bottom:auto!important;}
+ html.school-iphone-page-lock #schoolIosStatusBarSurface{display:none!important;}
+}

@@ -36,7 +36,7 @@ async function fetchText(path){
  throw new Error('PWA request failed '+path+': '+String(last));
 }
 const serviceWorker=await fetchText('/sw.js');
-assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261027-r19'),'PWA cache not updated on live preview');
+assert.ok(serviceWorker.includes('school-evidence-pwa-cloud-v3.9.0-owner-drive-20261027-r20'),'PWA cache not updated on live preview');
 const authScript=await fetchText('/assets/auth-ui-v39.js');
 assert.ok(authScript.includes('إذا كانت بيانات التسجيل متاحة'),'Updated non-enumerating signup copy not deployed');
 assert.ok(authScript.includes('auth39-retryConnection'),'Updated login retry action not deployed');
@@ -46,9 +46,9 @@ assert.ok(mobileScript.includes('schoolReportMenuGuard'),'Mobile report must dis
 const documentHtml=await fetchText('/index.html');
 assert.ok(documentHtml.includes('جارٍ إعداد التقرير المدرسي')&&documentHtml.includes('إعادة محاولة التقرير'),'Published A4 launch must paint before rendering and show retry on failure');
 const releaseData=JSON.parse(await fetchText('/release.json'));
-assert.equal(releaseData.version,'v3.9.0-r19','Published release manifest must match displayed build');
+assert.equal(releaseData.version,'v3.9.0-r20','Published release manifest must match displayed build');
 const releaseScript=await fetchText('/assets/release-ui-v39.js');
-assert.ok(releaseScript.includes("CURRENT='v3.9.0-r19'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
+assert.ok(releaseScript.includes("CURRENT='v3.9.0-r20'")&&releaseScript.includes('school-release-badge'),'Published version label must match manifest');
 assert.ok(documentHtml.includes('release-ui-v39.js'),'Visible PWA version script not attached to live page');
 assert.ok(documentHtml.includes('window.schoolMemberSaving')&&documentHtml.includes('window.schoolPermissionsSaving'),'Deployed team management handlers must be active');
 assert.ok(documentHtml.includes('mobile-report-fix-v39.css'),'Deployed school A4 phone layout must be linked');
@@ -60,12 +60,13 @@ assert.ok((await fetchText('/assets/school-report-a4-preview-v39.css')).includes
 assert.ok(documentHtml.includes('schoolReportToggleView'),'Phone/A4 preview toggle not in deployed HTML');
 assert.ok(documentHtml.includes('repOptMainCover')&&documentHtml.includes('template.updateIndexPageNumbers(docContainer)'),'Published report cover and TOC integration missing');
 assert.ok(documentHtml.includes('mobile-connectivity-ux-v39.js'),'Connectivity UX script not loaded');
-assert.ok(documentHtml.includes('name="apple-mobile-web-app-status-bar-style" content="black"')&&!documentHtml.includes('black-translucent'),'Native iOS status bar must be opaque, not translucent');
-assert.ok(documentHtml.includes('name="apple-mobile-web-app-capable" content="yes"')&&documentHtml.includes('name="theme-color" content="#0d4153"'),'iPhone standalone and solid header metadata missing');
-assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.css')).includes('#appHeader::before{content:none!important;display:none!important;}'),'Legacy translucent top overlay still deployed');
-assert.ok(documentHtml.includes('id="schoolIosStatusBarSurface" aria-hidden="true"'),'iOS 27 status-band surface missing from deployed HTML');
-const ios27Style=await fetchText('/assets/mobile-connectivity-ux-v39.css');
-assert.ok(ios27Style.includes('display-mode: standalone')&&ios27Style.includes('@supports (-webkit-touch-callout: none)')&&ios27Style.includes('height:10px!important')&&ios27Style.includes('position:fixed!important'),'iOS 27 PWA fixed opaque scrim-mitigation rule not deployed');
+assert.ok(!documentHtml.includes('apple-mobile-web-app-status-bar-style'),'Dhahabk parity: no forced iOS status-bar meta');
+assert.ok(!documentHtml.includes('schoolIosStatusBarSurface'),'Old 10px status scrim must be removed');
+assert.ok(documentHtml.includes('school-iphone-viewport-lock-v39.js'),'Dhahabk-style iPhone lock script missing');
+const iphoneLockJs=await fetchText('/assets/school-iphone-viewport-lock-v39.js');
+assert.ok(iphoneLockJs.includes('school-iphone-page-lock'),'Installed-iPhone viewport code missing');
+const iphoneLockCss=await fetchText('/assets/mobile-connectivity-ux-v39.css');
+assert.ok(iphoneLockCss.includes('html.school-iphone-page-lock body>main')&&iphoneLockCss.includes('overflow-y:auto!important'),'Scrollable internal school content not deployed');
 assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.js')).includes('schoolConnectivityPanel'),'Connectivity screen asset not deployed');
 assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.css')).includes('school-connect-sheet'),'Connectivity UI CSS not deployed');
 assert.ok((await fetchText('/assets/school-report-cover-v39.js')).includes('ShawahedReportDesign'),'Report designer script not on live service');
