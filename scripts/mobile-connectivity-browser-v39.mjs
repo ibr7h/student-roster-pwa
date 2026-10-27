@@ -120,6 +120,24 @@ try{
   assert.ok(Math.abs(headerDuringScroll.after-headerDuringScroll.before)<2,
     'Scrolling school content must never scroll the fixed iPhone header');
 
+  const navMetrics=await page.evaluate(()=>{
+    const nav=document.getElementById('mobileBottomNav'),body=document.body,main=body.querySelector('main');
+    const n=nav.getBoundingClientRect(),v=window.visualViewport;
+    const c=getComputedStyle(nav),b=getComputedStyle(body),m=getComputedStyle(main);
+    const tabs=[...nav.querySelectorAll('button')].map(x=>{
+      const r=x.getBoundingClientRect(),st=getComputedStyle(x);
+      return {text:x.innerText,rect:{x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom},
+        display:st.display,font:st.fontSize,padding:st.padding}
+    });
+    return {innerHeight,viewport:v?{height:v.height,offsetTop:v.offsetTop}:null,
+      navRect:{x:n.x,y:n.y,width:n.width,height:n.height,bottom:n.bottom},
+      navStyle:{position:c.position,bottom:c.bottom,margin:c.margin,padding:c.padding,
+        background:c.backgroundColor,flex:c.flex,display:c.display,minHeight:c.minHeight,maxHeight:c.maxHeight},
+      bodyRect:body.getBoundingClientRect().toJSON(),bodyStyle:{display:b.display,padding:b.padding,height:b.height},
+      mainRect:main.getBoundingClientRect().toJSON(),mainStyle:{flex:m.flex,margin:m.margin,padding:m.padding},
+      tabs};
+  });
+  console.log('IPHONE_BOTTOM_NAV_GEOMETRY',JSON.stringify({width,navMetrics}));
   assert.equal(head.filter,'none','No iOS top blur');
   assert.equal(head.image,'none','Opaque header must not use gradients');
   assert.equal(await page.locator('#schoolConnectivityOpen').count(),1);
