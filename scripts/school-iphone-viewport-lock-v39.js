@@ -1,6 +1,33 @@
 /* Standalone iPhone PWA fixed viewport, following Dhahabk's structure. */
 (()=>{'use strict';const mobile=/iPhone|iPod/i.test(navigator.userAgent);const standalone=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;if(!mobile||!standalone)return;document.documentElement.classList.add('school-iphone-page-lock');
 
+/* Dhahabk-style fixed page with explicit *visible* iPhone viewport height.
+   Some installed iOS PWA builds report 100dvh larger than visualViewport,
+   placing the last (label) row of the footer beneath the actual screen. */
+const root=document.documentElement;
+let viewportFrame=0;
+function measureVisibleViewport(){
+ viewportFrame=0;
+ const vv=window.visualViewport;
+ const inner=Math.round(window.innerHeight);
+ if(!Number.isFinite(inner)||inner<200)return;
+ const focused=!!document.activeElement?.matches('input,textarea,select,[contenteditable="true"],[role="textbox"]');
+ const scale=vv?.scale||1;
+ const observed=vv?Math.floor(vv.height+Math.max(0,vv.offsetTop)):inner;
+ // Do not shrink the full canvas behind the QuickType bar/keyboard or during pinch.
+ const usable=!focused&&scale<=1.05&&observed>inner*.60?Math.min(inner,observed):inner;
+ root.style.setProperty('--school-iphone-visible-height',Math.max(1,usable)+'px');
+}
+function scheduleVisibleViewport(){if(!viewportFrame)viewportFrame=requestAnimationFrame(measureVisibleViewport)}
+window.addEventListener('resize',scheduleVisibleViewport,{passive:true});
+window.addEventListener('orientationchange',scheduleVisibleViewport,{passive:true});
+document.addEventListener('focusin',scheduleVisibleViewport,true);
+document.addEventListener('focusout',scheduleVisibleViewport,true);
+window.visualViewport?.addEventListener('resize',scheduleVisibleViewport,{passive:true});
+window.visualViewport?.addEventListener('scroll',scheduleVisibleViewport,{passive:true});
+measureVisibleViewport();
+
+
 // Keep four bottom-tab icons aligned and expose the current screen accessibly.
 // The original mobileNavigate handlers remain authoritative for navigation.
 const nav=document.getElementById('mobileBottomNav');
