@@ -128,11 +128,10 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
 }
 
 
-/* v3.9.0-r26 — same shipped Dhahabk iPhone navigation, inside measured visible viewport.
-   Source: gold-app-pwa/apps/user/overrides/web/user.css:
-     .gold-web.workspace .mobile-bottom-nav / .mobile-tab (navy/gold).
-   Keep Shawahed's four destinations and the previously fixed iPhone viewport.
-   Actual screenshot: no active pill, navy background, gold selected icon/label. */
+/* v3.9.0-r27 — Shawahed institutional palette on the proven iPhone navigation geometry.
+   Background matches #appHeader via --shd-head; selected state uses an accessible
+   pale turquoise from the platform's teal UI family (not Dhahabk navy/gold).
+   Keep the safe-area, icon size, button height and active-state layout unchanged. */
 @media screen and (max-width:767px){
  html.school-iphone-page-lock body{
    padding-bottom:0!important;
@@ -157,7 +156,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    position:relative!important;
    inset:auto!important;
    flex:0 0 auto!important;
-   background:#001F3F!important;
+   background:var(--shd-head,#0d4153)!important;
    background-image:none!important;
    border:0!important;
    border-top:1px solid rgba(148,163,184,.2)!important;
@@ -185,7 +184,7 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
    border:0!important;
    border-radius:0!important;
    background:transparent!important;
-   color:#94A3B8!important;
+   color:#c5d9e0!important;
    font-size:10px!important;
    font-weight:700!important;
    line-height:1.25!important;
@@ -228,11 +227,11 @@ body.school-connect-open .mobile-bottom-nav{pointer-events:none}
  html.school-iphone-page-lock body>#mobileBottomNav>button[aria-selected="true"],
  html.school-iphone-page-lock body>#mobileBottomNav>button.selected,
  html.school-iphone-page-lock body>#mobileBottomNav>button.active{
-   color:#D4AF37!important;
+   color:#7adbd2!important;
    background:transparent!important;
  }
  html.school-iphone-page-lock body>#mobileBottomNav>button:focus-visible{
-   outline:2px solid #D4AF37!important;
+   outline:2px solid #7adbd2!important;
    outline-offset:-2px!important;
  }
 }

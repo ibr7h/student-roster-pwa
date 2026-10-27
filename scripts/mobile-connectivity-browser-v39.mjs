@@ -147,16 +147,16 @@ try{
   assert.equal(navMetrics.bodyStyle.padding,'0px',
     'The old 73px body bottom reserve must be completely removed');
   assert.ok(navMetrics.navRect.height>=60&&navMetrics.navRect.height<=95,
-    'Dhahabk has a compact content-sized navy tab bar with safe-area padding');
+    'Preserve compact content-sized tab bar and safe-area padding');
   assert.equal(navMetrics.navStyle.position,'relative',
     'The flex-child tab bar should not overlay scrolling content');
   assert.equal(navMetrics.tabs.length,4);
   for(let i=0;i<navMetrics.tabs.length;i++){
     const tab=navMetrics.tabs[i];
-    assert.ok(tab.rect.height>=48&&tab.rect.height<=60,'Dhahabk tab touch target at least 48px');
+    assert.ok(tab.rect.height>=48&&tab.rect.height<=60,'Native tab touch target at least 48px');
     assert.ok(Math.abs(tab.icon.width-24)<1 && Math.abs(tab.icon.height-24)<1,
-      'Dhahabk iPhone tab icons are 24px');
-    assert.equal(tab.labelFont,'10px','Dhahabk workspace tab labels are 10px');
+      'iPhone tab icons remain 24px');
+    assert.equal(tab.labelFont,'10px','Shawahed iPhone tab labels remain 10px');
     assert.ok(tab.label?.height>=10&&navMetrics.navRect.bottom-tab.label.bottom>=8,
       'Caption must remain completely visible above Home Indicator safe-area');
     assert.ok(tab.rect.y>=navMetrics.navRect.y&&tab.rect.bottom<=navMetrics.navRect.bottom,
@@ -175,11 +175,14 @@ try{
       innerWidth:document.documentElement.clientWidth,
       bodyScrollWidth:document.body.scrollWidth};
   });
-  assert.equal(footerStyle.background,'rgb(0, 31, 63)','Use identical dark navy background as Dhahabk');
+  assert.equal(footerStyle.background,head.background,'Footer background must match Shawahed app header');
+  assert.equal(footerStyle.background,'rgb(13, 65, 83)','Shawahed navy-teal, not Dhahabk navy');
+  assert.ok(footerStyle.colors.every((c,i)=>footerStyle.active[i].selected||c==='rgb(197, 217, 224)'),
+   'Inactive tab labels and icons must use the Shawahed palette');
   assert.ok(footerStyle.bodyScrollWidth<=footerStyle.innerWidth+2,'No horizontal overflow from footer');
   console.log('IPHONE_NAV_CLASSES',JSON.stringify({width,footerStyle}));
-  assert.ok(footerStyle.active.some(x=>x.selected&&x.color==='rgb(212, 175, 55)'&&x.background==='rgba(0, 0, 0, 0)'),
-   'Dhahabk active tab must be gold without a pill background');
+  assert.ok(footerStyle.active.some(x=>x.selected&&x.color==='rgb(122, 219, 210)'&&x.background==='rgba(0, 0, 0, 0)'),
+   'Shawahed active tab must be turquoise without a pill background');
   assert.ok(footerStyle.active.every(x=>x.selected||x.background==='rgba(0, 0, 0, 0)'),
    'Inactive navigation must be transparent over navy');
 
