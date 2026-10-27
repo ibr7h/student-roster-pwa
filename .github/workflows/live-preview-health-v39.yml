@@ -3,6 +3,7 @@ name: Verify v3.9 deployed API health
 on:
   push:
     branches:
+      - test/shawahed-r26-footer-live-health
       - feature/school-v3.9-unified-auth-20261020
     paths:
       - scripts/live-preview-health-v39.mjs

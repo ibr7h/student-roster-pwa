@@ -74,7 +74,7 @@ assert.ok(iphoneLockCss.includes('height:var(--school-iphone-visible-height,100d
 assert.ok(iphoneLockJs.includes("activeTab('home')"),'iPhone accessible active footer tab not deployed');
 assert.ok(iphoneLockCss.includes('padding-bottom:0!important')&&iphoneLockCss.includes('body>#mobileBottomNav')&&iphoneLockCss.includes('grid-template-columns:repeat(4,minmax(0,1fr))'),'No-gap four-tab navigation CSS missing from live release');
 assert.ok(iphoneLockCss.includes('background:#001F3F!important')&&iphoneLockCss.includes('color:#D4AF37!important')&&iphoneLockCss.includes('font-size:10px!important')&&iphoneLockCss.includes('width:24px!important'),'Dhahabk dark navy/gold iPhone tab bar styling not deployed');
-assert.ok(iphoneLockCss.includes('padding:7px 12px max(9px,env(safe-area-inset-bottom,0px))!important'),'Dhahabk iPhone nav safe-area spacing not deployed');
+assert.ok(iphoneLockCss.includes('padding:7px 12px max(24px,env(safe-area-inset-bottom,0px))!important'),'Dhahabk iPhone nav safe-area spacing not deployed');
 assert.ok(iphoneLockCss.includes('min-height:48px!important')&&iphoneLockCss.includes('font-size:24px!important')&&iphoneLockCss.includes('background:transparent!important'),'Compact Dhahabk icon sizing and no active tab pill not deployed');
 
 assert.ok((await fetchText('/assets/mobile-connectivity-ux-v39.js')).includes('schoolConnectivityPanel'),'Connectivity screen asset not deployed');
