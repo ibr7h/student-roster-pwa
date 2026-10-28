@@ -118,6 +118,12 @@
   border-radius:var(--shd-ui-radius-md)!important;
   transition:background-color var(--shd-ui-motion-fast),border-color var(--shd-ui-motion-fast),transform var(--shd-ui-motion-fast);
 }
+/* Only the lightweight confirm/prompt bottom sheet gets a directional entrance. */
+@media(max-width:767px) and (prefers-reduced-motion:no-preference){
+  .school-native-sheet-backdrop>.school-native-sheet{animation:shd-ui-sheet-enter 200ms ease-out both}
+}
+@keyframes shd-ui-sheet-enter{from{opacity:.94;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.school-native-handle{touch-action:pan-y}
 /* Feedback is reserved for actual interactive elements; no navigation hijacking. */
 @media(hover:hover) and (pointer:fine){
   .shd-ui-button:not(:disabled):hover,
