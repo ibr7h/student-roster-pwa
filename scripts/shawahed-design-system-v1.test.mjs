@@ -22,6 +22,12 @@ test('build preserves preceding iPhone changes and installs one cached styleshee
  assert.ok(sw.includes('school-mobile-menu-ux-v39.css'),'existing tools cached');
  assert.ok(fs.existsSync('public/assets/'+name),'stylesheet emitted');
 });
+test('bottom sheet swipe-down only dismisses, never confirms destructive operations',()=>{
+ const source=read('scripts/mobile-native-v38.js');
+ assert.ok(source.includes("handle.addEventListener('touchstart'"));
+ assert.ok(source.includes("handle.addEventListener('touchend'"));
+ assert.ok(source.includes("dy>=72&&dy>dx*1.5)finish(input?null:false)"));
+});
 test('real sync exposes busy state and no fake offline save queue',()=>{
  const js=read('public/assets/mobile-connectivity-ux-v39.js');
  assert.ok(js.includes("button.setAttribute('aria-busy',String(waiting))"));
