@@ -76,6 +76,7 @@ function render(){
  overlay.querySelector('#schoolConnectLast').textContent='آخر تحديث: '+formatDate(lastSuccess);
  for(const control of overlay.querySelectorAll('[data-mode]'))control.setAttribute('aria-pressed',String(control.dataset.mode===mode));
  button.disabled=!signed||offline||waiting;
+ button.setAttribute('aria-busy',String(waiting));
  overlay.querySelector('#schoolConnectSyncText').textContent=waiting?'جارٍ التحديث…':'مزامنة الآن';
  overlay.querySelector('#schoolConnectQueue').textContent='لا توجد تعديلات محلية جاهزة للنشر';
  if(!signed)button.disabled=true;

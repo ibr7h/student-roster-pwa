@@ -88,3 +88,5 @@ await import('./apply-report-cover-v39.mjs');
 await import('./apply-mobile-menu-ux-v39.mjs');
 // Opaque iPhone safe-area and real connection status/sync settings UX.
 await import('./apply-mobile-connectivity-ux-v39.mjs');
+// Shared, accessible Shawahed mobile design layer; installed after v3.9 iPhone fixes.
+await import('./apply-shawahed-design-system-v1.mjs');
