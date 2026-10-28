@@ -8,6 +8,7 @@ on:
       - scripts/shawahed-design-system-v1.test.mjs
       - scripts/static-frontend-v37.mjs
       - scripts/mobile-connectivity-ux-v39.js
+      - scripts/mobile-native-v38.js
       - .github/workflows/shawahed-design-system-v1.yml
   workflow_dispatch:
 permissions: {contents: read}
