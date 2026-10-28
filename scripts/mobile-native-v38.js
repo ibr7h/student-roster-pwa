@@ -127,6 +127,20 @@ function sheet(message,{input=false,placeholder=''}={}){
   const shell=document.createElement('div');shell.className='school-native-sheet-backdrop';shell.dir='rtl';
   const panel=document.createElement('section');panel.className='school-native-sheet';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',input?'إدخال البيانات':'تأكيد العملية');
   const handle=document.createElement('div');handle.className='school-native-handle';panel.append(handle);
+  // Non-destructive iOS gesture: swipe DOWN on the handle to cancel/dismiss.
+  // Keep scroll gestures within the sheet content untouched.
+  let gestureStart=null;
+  handle.addEventListener('touchstart',event=>{
+   if(event.touches.length!==1){gestureStart=null;return}
+   gestureStart={x:event.touches[0].clientX,y:event.touches[0].clientY};
+  },{passive:true});
+  handle.addEventListener('touchcancel',()=>{gestureStart=null},{passive:true});
+  handle.addEventListener('touchend',event=>{
+   const start=gestureStart;gestureStart=null;
+   const end=event.changedTouches[0];if(!start||!end)return;
+   const dy=end.clientY-start.y,dx=Math.abs(end.clientX-start.x);
+   if(dy>=72&&dy>dx*1.5)finish(input?null:false);
+  },{passive:true});
   const title=document.createElement('h2');title.textContent=input?'إدخال البيانات':'تأكيد العملية';panel.append(title);
   const p=document.createElement('p');p.textContent=message;panel.append(p);
   let field;
