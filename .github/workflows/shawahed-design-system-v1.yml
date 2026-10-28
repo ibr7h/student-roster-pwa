@@ -30,3 +30,21 @@ jobs:
           node scripts/static-frontend-v37.mjs
       - name: Test component tokens, offline cache, and existing navigation compatibility
         run: node --test scripts/shawahed-design-system-v1.test.mjs
+  webkit-mobile-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: {image: 'mcr.microsoft.com/playwright:v1.58.2-noble'}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble isolated PWA for iPhone-size browser checks
+        run: |
+          apt-get update -qq && apt-get install -y -qq unzip
+          unzip -q -o site.zip -d public
+          node -e "const fs=require('node:fs'),z=require('node:zlib');fs.writeFileSync('school-backend.tar',z.brotliDecompressSync(Buffer.from(fs.readFileSync('backend-package.b64','utf8').trim(),'base64')))"
+          tar -xf school-backend.tar
+          node patch-release.mjs
+          node scripts/static-frontend-v37.mjs
+      - name: Test iPhone status area, 4-tab navigation and real connectivity states
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+          node scripts/mobile-connectivity-browser-v39.mjs
