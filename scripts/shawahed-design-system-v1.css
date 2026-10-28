@@ -1,0 +1,142 @@
+/* Shawahed Design System v1 — 2026-10-28.
+   UI-only progressive layer: do not change school themes, data, permissions,
+   iPhone fixed header/navigation geometry, or A4/PDF output. */
+:root{
+  --shd-ui-brand:#0d4153;
+  --shd-ui-primary:#0e6875;
+  --shd-ui-primary-hover:#095661;
+  --shd-ui-accent:#7adbd2;
+  --shd-ui-canvas:#f5f8fb;
+  --shd-ui-surface:#ffffff;
+  --shd-ui-surface-muted:#f2f7f9;
+  --shd-ui-text:#18364e;
+  --shd-ui-text-muted:#5c7082;
+  --shd-ui-border:#dce6eb;
+  --shd-ui-danger:#a52b35;
+  --shd-ui-success:#0b6954;
+  --shd-ui-focus:#0b7681;
+  --shd-ui-font:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans Arabic",Tahoma,Arial,sans-serif;
+  --shd-ui-1:4px;
+  --shd-ui-2:8px;
+  --shd-ui-3:12px;
+  --shd-ui-4:16px;
+  --shd-ui-5:20px;
+  --shd-ui-6:24px;
+  --shd-ui-8:32px;
+  --shd-ui-10:40px;
+  --shd-ui-radius-sm:8px;
+  --shd-ui-radius-md:12px;
+  --shd-ui-radius-lg:16px;
+  --shd-ui-radius-xl:24px;
+  --shd-ui-elevation:0 2px 12px rgba(13,65,83,.06);
+  --shd-ui-motion-fast:160ms;
+  --shd-ui-motion-normal:220ms;
+}
+/* Only UI shells and controls, never printable sheets, QR layouts or report pages. */
+:where(#authV39Shell,#schoolConnectivityPanel,#headerTools.school-tools-upgraded,.school-native-sheet){
+  font-family:var(--shd-ui-font);
+  -webkit-font-smoothing:antialiased;
+}
+:where(#authV39Shell,#schoolConnectivityPanel,#headerTools.school-tools-upgraded) :where(button,input,select,textarea){
+  font:inherit;
+}
+:where(#authV39Shell,#schoolConnectivityPanel,#headerTools.school-tools-upgraded,.school-native-sheet) :where(button,[role="button"],input,select,textarea):focus-visible,
+:where(#mobileBottomNav,#appHeader) :where(button,[role="button"]):focus-visible{
+  outline:3px solid var(--shd-ui-focus)!important;
+  outline-offset:2px!important;
+}
+/* Shared component variants are opt-in for new screens and safe to reuse. */
+.shd-ui-card{
+  background:var(--shd-ui-surface);color:var(--shd-ui-text);
+  border:1px solid var(--shd-ui-border);
+  border-radius:var(--shd-ui-radius-lg);
+  padding:var(--shd-ui-4);
+  box-shadow:var(--shd-ui-elevation);
+}
+.shd-ui-stack{display:flex;flex-direction:column;gap:var(--shd-ui-4);min-width:0}
+.shd-ui-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--shd-ui-4);min-width:0}
+.shd-ui-button{
+  display:inline-flex;justify-content:center;align-items:center;gap:var(--shd-ui-2);
+  min-height:48px;padding:var(--shd-ui-3) var(--shd-ui-4);
+  background:var(--shd-ui-primary);color:#fff;
+  border:1px solid transparent;border-radius:var(--shd-ui-radius-md);
+  font:700 15px/1.4 var(--shd-ui-font);cursor:pointer;
+  touch-action:manipulation;transition:background-color var(--shd-ui-motion-fast),transform var(--shd-ui-motion-fast);
+}
+.shd-ui-button[data-variant="secondary"]{background:var(--shd-ui-surface-muted);color:var(--shd-ui-text);border-color:var(--shd-ui-border)}
+.shd-ui-button[data-variant="danger"]{background:var(--shd-ui-danger)}
+.shd-ui-button:disabled,.shd-ui-button[aria-disabled="true"]{opacity:.55;cursor:not-allowed;transform:none}
+.shd-ui-field{
+  box-sizing:border-box;width:100%;min-width:0;min-height:48px;
+  padding:var(--shd-ui-3);border:1px solid var(--shd-ui-border);
+  border-radius:var(--shd-ui-radius-md);background:#fff;color:var(--shd-ui-text);
+  font:400 16px/1.5 var(--shd-ui-font);
+}
+.shd-ui-field[aria-invalid="true"]{border-color:var(--shd-ui-danger)}
+.shd-ui-skeleton{
+  display:block;min-height:16px;border-radius:var(--shd-ui-radius-sm);
+  background:linear-gradient(100deg,#e8eef2 20%,#f8fbfc 40%,#e8eef2 60%);
+  background-size:200% 100%;animation:shd-ui-skeleton 1.35s linear infinite;
+}
+.shd-ui-skeleton[data-shape="avatar"]{width:48px;height:48px;border-radius:50%}
+.shd-ui-skeleton[data-shape="title"]{height:22px;width:60%;max-width:280px}
+@keyframes shd-ui-skeleton{to{background-position-x:-200%}}
+/* Upgrade existing identity and connectivity controls, preserving their handlers. */
+#authV39Shell .auth39-head{background:var(--shd-ui-brand)!important}
+#authV39Shell .auth39-primary{background:var(--shd-ui-primary);box-shadow:none}
+#authV39Shell .auth39-primary:active{background:var(--shd-ui-primary-hover)}
+#authV39Shell .auth39-secondary{background:var(--shd-ui-surface-muted);color:var(--shd-ui-text)}
+#authV39Shell :is(input,select){border-color:var(--shd-ui-border);border-radius:var(--shd-ui-radius-md)}
+#authV39Shell :is(input,select):focus{border-color:var(--shd-ui-focus);box-shadow:0 0 0 3px rgba(11,118,129,.14)}
+#authV39Shell :is(.auth39-primary,.auth39-secondary){min-height:48px;border-radius:var(--shd-ui-radius-md)}
+#authV39Shell .auth39-intro{color:var(--shd-ui-text-muted)}
+#schoolConnectivityPanel .school-connect-overview,
+#schoolConnectivityPanel .school-connect-section{
+  border-color:var(--shd-ui-border);border-radius:var(--shd-ui-radius-lg);
+}
+#schoolConnectivityPanel .school-connect-primary{
+  min-height:48px;border-radius:var(--shd-ui-radius-md);background:var(--shd-ui-primary);
+  transition:background-color var(--shd-ui-motion-fast),transform var(--shd-ui-motion-fast);
+}
+#schoolConnectivityPanel .school-connect-primary[aria-busy="true"]{cursor:progress}
+#schoolConnectivityPanel .school-connect-primary[aria-busy="true"]::before{
+  content:"";width:16px;height:16px;flex:0 0 16px;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  border-radius:50%;animation:shd-ui-spin .8s linear infinite;
+}
+@keyframes shd-ui-spin{to{transform:rotate(360deg)}}
+#schoolConnectivityPanel .school-connect-modes button{
+  min-height:80px;border-radius:var(--shd-ui-radius-md);
+  transition:background-color var(--shd-ui-motion-fast),border-color var(--shd-ui-motion-fast);
+}
+#schoolConnectivityPanel .school-connect-modes button[aria-pressed="true"]{
+  border-color:var(--shd-ui-primary);background:#e9f5f3;color:#0c545f;
+}
+.school-native-sheet{border-radius:var(--shd-ui-radius-xl) var(--shd-ui-radius-xl) 0 0}
+.school-native-sheet :where(button,input){min-height:48px}
+#headerTools.school-tools-upgraded .school-menu-action{
+  border-radius:var(--shd-ui-radius-md)!important;
+  transition:background-color var(--shd-ui-motion-fast),border-color var(--shd-ui-motion-fast),transform var(--shd-ui-motion-fast);
+}
+/* Feedback is reserved for actual interactive elements; no navigation hijacking. */
+@media(hover:hover) and (pointer:fine){
+  .shd-ui-button:not(:disabled):hover,
+  #schoolConnectivityPanel .school-connect-primary:not(:disabled):hover{background:var(--shd-ui-primary-hover)}
+  #headerTools.school-tools-upgraded .school-menu-action:hover{border-color:#b9d4da!important}
+}
+@media(pointer:coarse){
+  :where(#authV39Shell,#schoolConnectivityPanel,.school-native-sheet) :where(button,[role="button"]){min-height:44px}
+  #mobileBottomNav>button{min-height:48px}
+}
+@media(prefers-reduced-motion:no-preference){
+  .shd-ui-button:not(:disabled):active,
+  #schoolConnectivityPanel .school-connect-primary:not(:disabled):active{transform:scale(.99)}
+}
+@media(prefers-reduced-motion:reduce){
+  .shd-ui-skeleton,#schoolConnectivityPanel .school-connect-primary[aria-busy="true"]::before{animation:none!important}
+  .shd-ui-button,#schoolConnectivityPanel .school-connect-primary,
+  #schoolConnectivityPanel .school-connect-modes button,
+  #headerTools.school-tools-upgraded .school-menu-action{transition:none!important;transform:none!important}
+}
+@media(min-width:768px){.school-native-sheet{border-radius:var(--shd-ui-radius-lg)}}
+@media print{.shd-ui-skeleton{animation:none!important}}
